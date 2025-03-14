@@ -8,65 +8,77 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            overflow-x: hidden;
         }
+
         .shelf-container {
             display: flex;
-            flex-wrap: nowrap;
             overflow-x: auto;
-            white-space: nowrap;
             padding: 20px;
-            height: 300px;
-            gap: 15px;
-            justify-content: flex-start;
+            white-space: nowrap;
             scroll-behavior: smooth;
         }
+
         .book {
-            padding: 10px;
-            cursor: pointer;
-            border: 1px solid #ccc;
-            min-height: 250px;
-            text-align: center;
-            transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            height: 250px; /* Fixed height for all books */
+            text-align: center;
+            transition: all 0.3s ease-in-out;
+            background: white;
             overflow: hidden;
-            background-color: #f4f4f4;
-            font-size: 0.9em;
-            position: relative;
         }
+
+        /* Scale book width dynamically based on page count */
+        .book[data-pages] {
+            width: calc(80px + (var(--pageCount) * 0.1px)); /* Dynamic width */
+        }
+
         .book-title {
-            font-weight: bold;
             font-size: 1em;
-            padding: 5px;
+            font-weight: bold;
+            word-wrap: break-word;
+            flex-grow: 1;
+            overflow: hidden;
         }
+
         .book-author {
             font-size: 0.9em;
-            padding: 5px;
+            color: gray;
+            margin-top: auto;
         }
+
+        /* Hover effect */
         .book:hover {
-            width: 300px !important;
-            height: 350px;
+            width: 300px !important; /* Expands to a uniform width */
+            height: 300px; /* Slightly larger height for balance */
+            position: relative;
             z-index: 10;
         }
-        .book .book-details {
+
+        .book:hover .book-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .book-content {
             display: none;
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            width: 90%;
-            transform: translateX(-50%);
-            background: white;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: left;
             font-size: 0.9em;
-            z-index: 10;
+            text-align: left;
+            padding: 10px;
+            overflow: hidden;
         }
-        .book:hover .book-details {
+
+        .book:hover .book-content {
             display: block;
         }
+
     </style>
 </head>
 <body>
@@ -96,19 +108,28 @@
         let allBooks = [];
 
         async function fetchBooks() {
-            const booksCollection = collection(db, "books");
-            const booksSnapshot = await getDocs(booksCollection);
-            allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            try {
+                const booksCollection = collection(db, "books");
+                const booksSnapshot = await getDocs(booksCollection);
+                allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            const topics = new Set();
-            allBooks.forEach(book => {
-                if (book.contentTags && Array.isArray(book.contentTags)) {
-                    book.contentTags.forEach(tag => topics.add(tag));
+                if (allBooks.length === 0) {
+                    console.warn("No books found in Firestore.");
                 }
-            });
 
-            populateFilter([...topics]);
-            displayBooks(allBooks.slice(0, 10));
+                // Extract unique topics from contentTags
+                const topics = new Set();
+                allBooks.forEach(book => {
+                    if (book.contentTags && Array.isArray(book.contentTags)) {
+                        book.contentTags.forEach(tag => topics.add(tag));
+                    }
+                });
+
+                populateFilter([...topics]);
+                displayBooks(allBooks);
+            } catch (error) {
+                console.error("Error fetching books:", error);
+            }
         }
 
         function populateFilter(tags) {
@@ -146,19 +167,22 @@
             books.forEach(book => {
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
-                bookDiv.style.width = `${Math.max(120, Math.min(250, book.pageCount / 4))}px`;
-                bookDiv.innerHTML = `<div class='book-title'>${book.title}</div><div class='book-author'>${book.author}</div>`;
-                
-                const bookDetails = document.createElement("div");
-                bookDetails.classList.add("book-details");
-                bookDetails.innerHTML = `
-                    <h2>${book.title}</h2>
-                    <p><strong>${book.author}</strong></p>
-                    <p>${book.pageCount} pages | ${book.yearPublished || "Unknown Year"}</p>
-                    <p>${book.summary}</p>
+
+                // Dynamically set width based on page count
+                const pageCount = book.pageCount ? book.pageCount : 200; // Default 200 pages
+                bookDiv.style.setProperty("--pageCount", pageCount);
+
+                bookDiv.innerHTML = `
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">${book.author}</div>
+                    <div class="book-content">
+                        <strong>${book.title}</strong><br>
+                        <em>${book.author}</em><br>
+                        ${book.pageCount ? `${book.pageCount} pages | ${book.yearPublished || 'Unknown Year'}` : "Page count unknown"}<br>
+                        <p>${book.summary}</p>
+                    </div>
                 `;
-                bookDiv.appendChild(bookDetails);
-                
+
                 bookshelf.appendChild(bookDiv);
             });
         }
