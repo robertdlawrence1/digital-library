@@ -8,42 +8,57 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            overflow-x: hidden;
         }
         .shelf-container {
             display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            white-space: nowrap;
             padding: 20px;
+            height: 200px; /* Fixed height for bookshelf */
         }
         .book {
             padding: 10px;
-            margin: 10px;
+            margin: 5px;
             cursor: pointer;
             border: 1px solid #ccc;
-            width: 150px;
-            height: 200px;
+            min-height: 180px;
             text-align: center;
-            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, height 0.3s ease-in-out;
+            transition: width 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             overflow: hidden;
+        }
+        .book-title {
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .book-author {
+            font-size: 0.8em;
+        }
+        .expanded {
+            width: 300px !important;
         }
         .book:hover {
-            transform: scale(1.2);
-            width: 250px;
-            height: 280px;
+            width: 300px !important;
         }
-        .description {
+        .expanded-view {
             display: none;
-            font-size: 0.9em;
-            margin-top: 5px;
-            max-height: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            position: absolute;
+            top: 220px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            padding: 15px;
+            border: 1px solid #ccc;
+            background: white;
+            text-align: left;
+            z-index: 100;
         }
-        .book:hover .description {
-            display: block;
+        .expanded-view p {
+            margin: 5px 0;
         }
     </style>
 </head>
@@ -54,6 +69,7 @@
         <option value="all">All</option>
     </select>
     <div class="shelf-container" id="bookshelf"></div>
+    <div id="expanded-view" class="expanded-view"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
@@ -71,31 +87,22 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let allBooks = [];  // Store books globally for filtering
+        let allBooks = [];
 
         async function fetchBooks() {
-            try {
-                const booksCollection = collection(db, "books");
-                const booksSnapshot = await getDocs(booksCollection);
-                allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const booksCollection = collection(db, "books");
+            const booksSnapshot = await getDocs(booksCollection);
+            allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                if (allBooks.length === 0) {
-                    console.warn("No books found in Firestore.");
+            const topics = new Set();
+            allBooks.forEach(book => {
+                if (book.contentTags && Array.isArray(book.contentTags)) {
+                    book.contentTags.forEach(tag => topics.add(tag));
                 }
+            });
 
-                // Extract unique topics from contentTags
-                const topics = new Set();
-                allBooks.forEach(book => {
-                    if (book.contentTags && Array.isArray(book.contentTags)) {
-                        book.contentTags.forEach(tag => topics.add(tag));
-                    }
-                });
-
-                populateFilter([...topics]);
-                displayBooks(allBooks);
-            } catch (error) {
-                console.error("Error fetching books:", error);
-            }
+            populateFilter([...topics]);
+            displayBooks(allBooks);
         }
 
         function populateFilter(tags) {
@@ -133,26 +140,33 @@
             books.forEach(book => {
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
-
-                // Ensure book title displays correctly
-                bookDiv.innerHTML = `<strong>${book.title}</strong>`;
-
-                const description = document.createElement("div");
-                description.classList.add("description");
-                description.innerHTML = `<em>${book.author}</em><br>${book.summary}`;
-
-                bookDiv.appendChild(description);
+                bookDiv.style.width = `${Math.max(80, Math.min(200, book.pageCount / 2))}px`;
+                bookDiv.innerHTML = `<div class='book-title'>${book.title}</div><div class='book-author'>${book.author}</div>`;
 
                 bookDiv.addEventListener("mouseover", () => {
-                    description.style.display = "block";
+                    showExpandedView(book);
                 });
-
                 bookDiv.addEventListener("mouseleave", () => {
-                    description.style.display = "none";
+                    hideExpandedView();
                 });
 
                 bookshelf.appendChild(bookDiv);
             });
+        }
+
+        function showExpandedView(book) {
+            const expandedView = document.getElementById("expanded-view");
+            expandedView.innerHTML = `
+                <h2>${book.title}</h2>
+                <p><strong>${book.author}</strong></p>
+                <p>${book.pageCount} pages | ${book.yearPublished || "Unknown Year"}</p>
+                <p>${book.summary}</p>
+            `;
+            expandedView.style.display = "block";
+        }
+
+        function hideExpandedView() {
+            document.getElementById("expanded-view").style.display = "none";
         }
 
         fetchBooks();
