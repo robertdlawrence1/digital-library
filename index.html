@@ -116,10 +116,11 @@
         const db = getFirestore(app);
 
         function calculateBookWidth(pageCount) {
-    const baseWidth = 120;
-    const scalingFactor = 6;
-    return Math.max(baseWidth, Math.min(250, pageCount / scalingFactor));
-        }
+    const minWidth = 150; // Ensure books are wide enough for text
+    const scalingFactor = 0.5; // Increase factor to reflect page count more clearly
+    const maxWidth = 400; // Set an upper limit for very long books
+    return Math.max(minWidth, Math.min(maxWidth, pageCount * scalingFactor));
+}
 
         async function fetchBooks() {
             const bookshelf = document.getElementById("bookshelf");
