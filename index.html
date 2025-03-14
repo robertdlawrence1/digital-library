@@ -273,5 +273,78 @@
       }
     });
   </script>
+<script>
+  // Fetch the combined JSON file
+  fetch('combined-digital-library.json')
+    .then(response => response.json())
+    .then(data => {
+      let books = data.books;
+
+      // Ensure each book has a status property; default to "not started" if missing.
+      books.forEach(book => {
+        if (!book.status) {
+          book.status = "not started";
+        }
+      });
+
+      // Define desired order: completed first, then current, then not started.
+      const statusOrder = { "completed": 0, "current": 1, "not started": 2 };
+
+      // Sort books by status and then alphabetically by title.
+      books.sort((a, b) => {
+        let statusDiff = statusOrder[a.status] - statusOrder[b.status];
+        return statusDiff !== 0 ? statusDiff : a.title.localeCompare(b.title);
+      });
+
+      // Clear the shelf container.
+      const shelf = document.getElementById('shelf');
+      shelf.innerHTML = '';
+
+      // Create a DOM element for each book.
+      books.forEach(book => {
+        const bookDiv = document.createElement('div');
+        bookDiv.className = 'book';
+        
+        // Add status-based classes for styling.
+        if (book.status === 'completed') {
+          bookDiv.classList.add('completed');
+        } else if (book.status === 'current') {
+          bookDiv.classList.add('current');
+        }
+
+        // Set a data-topic attribute for filtering.
+        bookDiv.setAttribute('data-topic', (book.contentTags && book.contentTags[0] || "nonfiction").toLowerCase());
+
+        // Create the spine text element.
+        const spineText = document.createElement('div');
+        spineText.className = 'spine-text';
+        spineText.innerText = book.title;
+        bookDiv.appendChild(spineText);
+
+        // Create the details element (displayed on hover).
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+        detailsDiv.innerHTML = `
+          <strong>${book.title}</strong><br>
+          Author: ${book.author}<br>
+          Status: ${book.status}<br>
+          ${book.summary}
+        `;
+        // Optionally, add a progress bar for current books.
+        if (book.status === 'current' && book.progress) {
+          detailsDiv.innerHTML += `
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: ${book.progress}%"></div>
+            </div>
+          `;
+        }
+        bookDiv.appendChild(detailsDiv);
+
+        // Append the book element to the shelf.
+        shelf.appendChild(bookDiv);
+      });
+    })
+    .catch(error => console.error('Error loading JSON:', error));
+</script>
 </body>
 </html>
