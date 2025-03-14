@@ -10,7 +10,7 @@
             text-align: center;
         }
 
-        /* Horizontal scrolling bookshelf */
+        /* Horizontal scrolling shelf */
         .shelf-container {
             display: flex;
             overflow-x: auto;
@@ -20,7 +20,7 @@
             scroll-behavior: smooth;
         }
 
-        /* Book spine */
+        /* Book spine container */
         .book {
             display: flex;
             flex-direction: column;
@@ -37,12 +37,12 @@
             position: relative;
         }
 
-        /* Book width dynamically scales based on page count */
+        /* Book width scales based on page count */
         .book[data-pages] {
-            width: calc(80px + (var(--pageCount) * 0.1px)); 
+            width: calc(80px + (var(--pageCount) * 0.1px));
         }
 
-        /* Title inside book spine - dynamically fits */
+        /* Title fits dynamically inside the spine */
         .book-title {
             font-weight: bold;
             text-align: center;
@@ -53,16 +53,18 @@
             word-wrap: break-word;
             overflow: hidden;
             white-space: normal;
+            max-width: 90%;
+            max-height: 50%;
         }
 
-        /* Dynamic font scaling for titles */
+        /* Dynamic font scaling for titles based on spine width */
         .book[data-pages] .book-title {
-            font-size: calc(12px + (var(--pageCount) * 0.02px));
+            font-size: clamp(10px, calc(14px - (200px - var(--bookWidth)) * 0.01), 18px);
         }
 
-        /* Author inside book spine */
+        /* Author fits inside book spine */
         .book-author {
-            font-size: 0.8em;
+            font-size: 0.9em;
             color: gray;
             text-align: center;
             margin-top: auto;
@@ -90,6 +92,8 @@
             text-align: left;
             padding: 10px;
             overflow: hidden;
+            max-height: 100px; /* Ensures text does not overflow */
+            text-overflow: ellipsis;
         }
 
         /* When hovered, show description */
@@ -188,7 +192,10 @@
 
                 // Dynamically set width based on page count
                 const pageCount = book.pageCount ? book.pageCount : 200;
+                const bookWidth = Math.max(80, Math.min(200, pageCount * 0.3)); // Prevents extremes
                 bookDiv.style.setProperty("--pageCount", pageCount);
+                bookDiv.style.setProperty("--bookWidth", bookWidth + "px");
+                bookDiv.style.width = bookWidth + "px";
 
                 bookDiv.innerHTML = `
                     <div class="book-title">${book.title}</div>
