@@ -6,7 +6,7 @@
     <title>My Reading Tracker</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             margin: 0;
             padding: 20px;
@@ -18,120 +18,192 @@
 
         h1 {
             margin-bottom: 20px;
+            color: #333;
         }
 
         .filter-container {
             margin-bottom: 20px;
         }
 
-        /* Horizontal scrolling shelf */
+        .filter-container select {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        /* Main bookshelf container */
         .shelf-container {
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 15px;
+            gap: 12px;
             white-space: nowrap;
             scroll-behavior: smooth;
             align-items: flex-end;
             background-color: #e0e0e0;
             border-radius: 5px;
-            min-height: 400px; /* Increased height */
-            flex-grow: 1; /* Take up available space */
+            min-height: 450px;
+            flex-grow: 1;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        /* Book spine */
+        /* Book spine styling */
         .book {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            align-items: center;
-            padding: 10px;
+            min-width: 20px;
+            width: auto;
+            height: 300px;
+            background: linear-gradient(to right, #f0f0f0, #ffffff, #f0f0f0);
+            border: 1px solid #ddd;
+            border-radius: 2px 6px 6px 2px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
             cursor: pointer;
-            border: 1px solid #ccc;
-            border-radius: 2px 5px 5px 2px;
-            height: 300px; /* Increased height */
-            text-align: center;
-            transition: all 0.3s ease-in-out;
-            background: white;
+            padding: 10px 5px;
+            transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* Title wraps inside the book spine */
+        /* Book title on spine */
         .book-title {
-            font-weight: bold;
-            text-align: center;
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            word-wrap: break-word;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            white-space: nowrap;
             overflow: hidden;
-            white-space: normal;
-            width: 100%;
-            max-height: 65%;
-            padding: 5px;
-            line-height: 1.2;
-        }
-
-        /* Author wraps properly at the bottom */
-        .book-author {
-            font-size: 0.9em;
-            color: gray;
-            text-align: center;
-            white-space: normal;
-            word-wrap: break-word;
-            overflow: hidden;
-            width: 100%;
-            margin-top: 10px;
-            line-height: 1.2;
-        }
-
-        /* Hover Effect */
-        .book:hover {
-            width: 300px !important; /* Uniform expanded width */
-            height: 350px; /* Increased expanded height */
-            position: relative;
-            z-index: 10;
-            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
-        }
-
-        /* Book Details in Hover View */
-        .book-content {
-            display: none;
-            font-size: 0.9em;
-            text-align: left;
-            padding: 10px;
-            overflow: hidden;
-            max-height: 100%;
             text-overflow: ellipsis;
-            white-space: normal;
+            flex-grow: 1;
+            font-weight: bold;
+            max-height: 85%;
+            text-align: center;
+            padding: 5px 0;
         }
 
-        /* When hovered, show description */
-        .book:hover .book-content {
+        /* Author name on spine */
+        .book-author {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            transform: rotate(180deg);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #555;
+            font-style: italic;
+            max-height: 40%;
+            text-align: center;
+            padding: 5px 0;
+        }
+
+        /* Expanded book view on hover */
+        .book:hover {
+            height: 350px;
+            width: 280px !important;
+            min-width: 280px;
+            writing-mode: horizontal-tb;
+            z-index: 100;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        /* Hide spine view on hover */
+        .book:hover .book-title,
+        .book:hover .book-author {
+            display: none;
+        }
+
+        /* Show expanded content on hover */
+        .book:hover .book-expanded-content {
             display: block;
         }
 
-        .book:hover .book-title, .book:hover .book-author {
+        /* Expanded content container (hidden by default) */
+        .book-expanded-content {
             display: none;
+            text-align: left;
+            height: 100%;
         }
 
-        /* Book metadata */
+        /* Book header in expanded view */
+        .book-header {
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        /* Book title in expanded view */
+        .book-expanded-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            line-height: 1.3;
+        }
+
+        /* Book author in expanded view */
+        .book-expanded-author {
+            font-size: 14px;
+            font-style: italic;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        /* Book metadata in expanded view */
         .book-metadata {
-            font-size: 0.85em;
+            font-size: 12px;
             color: #666;
-            margin: 5px 0;
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
-        /* Book summary */
+        .metadata-item {
+            background-color: #f5f5f5;
+            padding: 3px 8px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        /* Tags in expanded view */
+        .book-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+
+        .tag {
+            background-color: #e6f2ff;
+            color: #0066cc;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+        }
+
+        /* Book summary in expanded view */
         .book-summary {
-            font-size: 0.9em;
-            margin-top: 10px;
-            line-height: 1.4;
-            max-height: 180px; /* Increased for more content */
+            font-size: 13px;
+            line-height: 1.5;
             overflow-y: auto;
+            max-height: 180px;
+            color: #333;
+        }
+
+        /* Loading and error states */
+        .loading, .error, .no-books {
+            padding: 30px;
+            text-align: center;
+            width: 100%;
+            color: #666;
+        }
+
+        .error {
+            color: #d32f2f;
         }
     </style>
 </head>
@@ -143,12 +215,15 @@
             <option value="all">All</option>
         </select>
     </div>
-    <div class="shelf-container" id="bookshelf"></div>
+    <div class="shelf-container" id="bookshelf">
+        <div class="loading">Loading your bookshelf...</div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
             authDomain: "digital-library-4f53e.firebaseapp.com",
@@ -158,148 +233,266 @@
             appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
+        
+        // Store all books for filtering
         let allBooks = [];
 
+        /**
+         * Calculate book spine width based on page count
+         * Uses a logarithmic scale to make differences more natural
+         */
+        function calculateBookWidth(pageCount) {
+            if (!pageCount || isNaN(pageCount)) return 30; // Default width
+            
+            // Constrain page count to reasonable values
+            const pages = Math.max(50, Math.min(2000, parseInt(pageCount)));
+            
+            // Logarithmic scale for more natural progression
+            // Thin books: ~20-30px, Medium books: ~30-45px, Thick books: ~45-65px
+            const minWidth = 20;
+            const scaleFactorWidth = 8;
+            return Math.floor(minWidth + scaleFactorWidth * Math.log10(pages));
+        }
+        
+        /**
+         * Calculate font size for spine text based on book width
+         */
+        function calculateFontSize(bookWidth, isTitle = true) {
+            // Base size differs for title vs. author
+            const baseSize = isTitle ? 10 : 9;
+            
+            // Linear scaling factor with caps
+            const minSize = isTitle ? 8 : 7;
+            const maxSize = isTitle ? 12 : 10;
+            
+            // Calculate size based on width
+            const scaledSize = baseSize + (bookWidth - 30) / 10;
+            
+            // Return constrained value
+            return Math.max(minSize, Math.min(maxSize, scaledSize));
+        }
+
+        /**
+         * Fetch all books from Firestore
+         */
         async function fetchBooks() {
             try {
+                const bookshelf = document.getElementById("bookshelf");
+                
                 const booksCollection = collection(db, "books");
                 const booksSnapshot = await getDocs(booksCollection);
-                allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                if (allBooks.length === 0) {
-                    console.warn("No books found in Firestore.");
-                    document.getElementById("bookshelf").innerHTML = 
-                        '<div class="no-books">No books found in your library. Add some books to get started!</div>';
+                
+                if (booksSnapshot.empty) {
+                    bookshelf.innerHTML = '<div class="no-books">Your library is empty. Add some books to get started!</div>';
+                    return;
                 }
-
-                // Extract unique topics from contentTags
-                const topics = new Set();
+                
+                // Convert to array of book objects
+                allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Sort books - by author for example
+                allBooks.sort((a, b) => (a.author || "Unknown").localeCompare(b.author || "Unknown"));
+                
+                // Extract unique topics for filter
+                const allTopics = new Set();
                 allBooks.forEach(book => {
                     if (book.contentTags && Array.isArray(book.contentTags)) {
-                        book.contentTags.forEach(tag => topics.add(tag));
+                        book.contentTags.forEach(tag => allTopics.add(tag));
                     }
                 });
-
-                populateFilter([...topics]);
+                
+                // Set up filter dropdown
+                populateFilterOptions([...allTopics].sort());
+                
+                // Display all books initially
                 displayBooks(allBooks);
+                
             } catch (error) {
                 console.error("Error fetching books:", error);
-                document.getElementById("bookshelf").innerHTML = 
-                    '<div class="error">Error loading books. Please check your connection and try again.</div>';
+                const bookshelf = document.getElementById("bookshelf");
+                bookshelf.innerHTML = '<div class="error">Error loading your books. Please check your connection and try again.</div>';
             }
         }
 
-        function populateFilter(tags) {
+        /**
+         * Populate filter dropdown with topics
+         */
+        function populateFilterOptions(topics) {
             const filterDropdown = document.getElementById("filter");
+            
+            // Keep the "All" option and add sorted topics
             filterDropdown.innerHTML = '<option value="all">All</option>';
-
-            tags.sort().forEach(tag => {
+            
+            topics.forEach(topic => {
                 const option = document.createElement("option");
-                option.value = tag;
-                option.textContent = tag;
+                option.value = topic;
+                option.textContent = topic;
                 filterDropdown.appendChild(option);
             });
-
-            filterDropdown.addEventListener("change", (event) => {
-                filterBooks(event.target.value);
+            
+            // Add event listener for filtering
+            filterDropdown.addEventListener("change", event => {
+                filterBooksByTopic(event.target.value);
             });
         }
 
-        function filterBooks(selectedTag) {
-            let filteredBooks = allBooks;
-
-            if (selectedTag !== "all") {
-                filteredBooks = allBooks.filter(book =>
-                    book.contentTags && book.contentTags.includes(selectedTag)
+        /**
+         * Filter books by selected topic
+         */
+        function filterBooksByTopic(topic) {
+            let filteredBooks;
+            
+            if (topic === "all") {
+                filteredBooks = allBooks;
+            } else {
+                filteredBooks = allBooks.filter(book => 
+                    book.contentTags && Array.isArray(book.contentTags) && 
+                    book.contentTags.includes(topic)
                 );
             }
-
+            
             displayBooks(filteredBooks);
         }
 
-        function calculateBookWidth(pageCount) {
-            // Make sure we have a valid number
-            const pages = parseInt(pageCount) || 200; // Default if no valid page count
-            
-            // Base width for very short books
-            const baseWidth = 30;
-            
-            // Maximum width cap to prevent overly thick books
-            const maxWidth = 100;
-            
-            // Scale factor - adjust for desired visual proportions
-            const scaleFactor = 0.15;
-            
-            // Calculate width using a more linear relationship
-            // This gives a more visually proportional look to the books
-            const calculatedWidth = baseWidth + (Math.sqrt(pages) * scaleFactor);
-            
-            // Ensure the width stays within reasonable bounds
-            return Math.min(maxWidth, calculatedWidth);
-        }
-
+        /**
+         * Display books on the bookshelf
+         */
         function displayBooks(books) {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = "";
-
+            
+            if (books.length === 0) {
+                bookshelf.innerHTML = '<div class="no-books">No books match your filter. Try another topic.</div>';
+                return;
+            }
+            
             books.forEach(book => {
-                const bookDiv = document.createElement("div");
-                bookDiv.classList.add("book");
-
-                // Calculate book width based on page count using our dedicated function
                 const pageCount = book.pageCount || 200;
+                
+                // Calculate appropriate book width
                 const bookWidth = calculateBookWidth(pageCount);
                 
-                // Set the book width directly
-                bookDiv.style.width = `${bookWidth}px`;
+                // Create book element
+                const bookElement = document.createElement("div");
+                bookElement.className = "book";
+                bookElement.style.width = `${bookWidth}px`;
+                
+                // Calculate font sizes
+                const titleFontSize = calculateFontSize(bookWidth, true);
+                const authorFontSize = calculateFontSize(bookWidth, false);
+                
+                // Create spine view (default visible)
+                const titleElement = document.createElement("div");
+                titleElement.className = "book-title";
+                titleElement.textContent = book.title || "Untitled";
+                titleElement.style.fontSize = `${titleFontSize}px`;
+                
+                const authorElement = document.createElement("div");
+                authorElement.className = "book-author";
+                authorElement.textContent = book.author || "Unknown Author";
+                authorElement.style.fontSize = `${authorFontSize}px`;
+                
+                // Create expanded view (shown on hover)
+                const expandedContentElement = document.createElement("div");
+                expandedContentElement.className = "book-expanded-content";
+                
+                // Header section with title and author
+                const headerElement = document.createElement("div");
+                headerElement.className = "book-header";
+                
+                const expandedTitleElement = document.createElement("div");
+                expandedTitleElement.className = "book-expanded-title";
+                expandedTitleElement.textContent = book.title || "Untitled";
+                
+                const expandedAuthorElement = document.createElement("div");
+                expandedAuthorElement.className = "book-expanded-author";
+                expandedAuthorElement.textContent = book.author || "Unknown Author";
+                
+                headerElement.appendChild(expandedTitleElement);
+                headerElement.appendChild(expandedAuthorElement);
+                
+                // Metadata section
+                const metadataElement = document.createElement("div");
+                metadataElement.className = "book-metadata";
+                
+                // Pages metadata
+                const pagesElement = document.createElement("span");
+                pagesElement.className = "metadata-item";
+                pagesElement.textContent = `${pageCount} pages`;
+                metadataElement.appendChild(pagesElement);
+                
+                // Year published metadata
+                if (book.yearPublished) {
+                    const yearElement = document.createElement("span");
+                    yearElement.className = "metadata-item";
+                    yearElement.textContent = `Published: ${book.yearPublished}`;
+                    metadataElement.appendChild(yearElement);
+                }
+                
+                // Tags section if available
+                let tagsElement = null;
+                if (book.contentTags && book.contentTags.length > 0) {
+                    tagsElement = document.createElement("div");
+                    tagsElement.className = "book-tags";
+                    
+                    book.contentTags.forEach(tag => {
+                        const tagElement = document.createElement("span");
+                        tagElement.className = "tag";
+                        tagElement.textContent = tag;
+                        tagsElement.appendChild(tagElement);
+                    });
+                }
+                
+                // Summary section if available
+                let summaryElement = null;
+                if (book.summary) {
+                    summaryElement = document.createElement("div");
+                    summaryElement.className = "book-summary";
+                    summaryElement.textContent = book.summary;
+expandedContentElement.appendChild(summaryElement);
+}
 
-                // Calculate font size proportional to book width
-                // Narrower books get smaller text
-                const titleFontSize = Math.max(10, Math.min(16, bookWidth / 7));
-                const authorFontSize = Math.max(8, Math.min(14, bookWidth / 8));
+// Assemble all components of expanded view
+expandedContentElement.appendChild(headerElement);
+expandedContentElement.appendChild(metadataElement);
+if (tagsElement) expandedContentElement.appendChild(tagsElement);
+if (summaryElement) expandedContentElement.appendChild(summaryElement);
 
-                // Build the book HTML structure
-                const titleDiv = document.createElement("div");
-                titleDiv.classList.add("book-title");
-                titleDiv.textContent = book.title || "Untitled";
-                titleDiv.style.fontSize = `${titleFontSize}px`;
-                
-                const authorDiv = document.createElement("div");
-                authorDiv.classList.add("book-author");
-                authorDiv.textContent = book.author || "Unknown Author";
-                authorDiv.style.fontSize = `${authorFontSize}px`;
-                
-                const contentDiv = document.createElement("div");
-                contentDiv.classList.add("book-content");
-                
-                // Build expanded content (shown on hover)
-                contentDiv.innerHTML = `
-                    <strong>${book.title || "Untitled"}</strong><br>
-                    <em>${book.author || "Unknown Author"}</em>
-                    <div class="book-metadata">
-                        ${pageCount} pages | ${book.yearPublished || "Unknown Year"}
-                    </div>
-                    <div class="book-summary">
-                        ${book.summary || "No summary available."}
-                    </div>
-                `;
-                
-                // Assemble the book
-                bookDiv.appendChild(titleDiv);
-                bookDiv.appendChild(authorDiv);
-                bookDiv.appendChild(contentDiv);
-                
-                bookshelf.appendChild(bookDiv);
-            });
-        }
+// Assemble final book element with both views
+bookElement.appendChild(titleElement);
+bookElement.appendChild(authorElement);
+bookElement.appendChild(expandedContentElement);
 
-        // Initialize the app
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchBooks();
-        });
-    </script>
-</body>
-</html>
+// Add random color to book spine for visual distinction
+const getRandomBookColor = () => {
+    const colors = [
+        '#8B4513', '#A0522D', '#CD853F', '#D2691E', '#8B0000', 
+        '#B22222', '#A52A2A', '#800000', '#8B008B', '#9370DB',
+        '#6A5ACD', '#483D8B', '#4682B4', '#4169E1', '#191970',
+        '#006400', '#2E8B57', '#3CB371', '#20B2AA', '#008B8B'
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+};
+
+// Apply a random color to the book spine
+bookElement.style.backgroundColor = getRandomBookColor();
+// Ensure text is visible against background
+bookElement.style.color = '#fff';
+                
+// Add book to bookshelf
+bookshelf.appendChild(bookElement);
+});
+}
+
+/**
+ * Initialize the app
+ */
+function init() {
+    fetchBooks();
+}
+
+// Start the app
+init();
