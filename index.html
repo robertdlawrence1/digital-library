@@ -106,60 +106,21 @@
   </div>
   <div class="shelf-container" id="shelf"></div>
   <script>
-    fetch('./books.json')
-      .then(response => {
-        console.log('Response status:', response.status);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+    document.getElementById('topicFilter').addEventListener('change', function () {
+      const selectedTopic = this.value.toLowerCase();
+      const books = document.querySelectorAll('.book');
+    
+      books.forEach(book => {
+        const bookTopics = book.getAttribute('data-topic').split(',');
+    
+        // Check if the selected topic is in the book's topics OR show all if "all" is selected
+        if (selectedTopic === 'all' || bookTopics.includes(selectedTopic)) {
+          book.style.display = 'inline-block';
+        } else {
+          book.style.display = 'none';
         }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Fetched data:', data);
-        let books = data.books;
-        const uniqueTags = new Set();
-        books.forEach(book => {
-          if (book.contentTags && Array.isArray(book.contentTags)) {
-            book.contentTags.forEach(tag => uniqueTags.add(tag.toLowerCase()));
-          }
-        });
-        const sortedTags = Array.from(uniqueTags).sort();
-        const topicFilter = document.getElementById('topicFilter');
-        sortedTags.forEach(tag => {
-          const option = document.createElement('option');
-          option.value = tag;
-          option.innerText = tag;
-          topicFilter.appendChild(option);
-        });
-        const statusOrder = { "completed": 0, "current": 1, "not started": 2 };
-        books.forEach(book => { if (!book.status) book.status = "not started"; });
-        books.sort((a, b) => {
-          const statusDiff = statusOrder[a.status] - statusOrder[b.status];
-          return statusDiff !== 0 ? statusDiff : a.title.localeCompare(b.title);
-        });
-        const shelf = document.getElementById('shelf');
-        shelf.innerHTML = '';
-        books.forEach(book => {
-          const bookDiv = document.createElement('div');
-          bookDiv.className = 'book';
-          if (book.status === 'completed') bookDiv.classList.add('completed');
-          else if (book.status === 'current') bookDiv.classList.add('current');
-          bookDiv.setAttribute('data-topic', book.contentTags ? book.contentTags[0].toLowerCase() : 'nonfiction');
-          const spineText = document.createElement('div');
-          spineText.className = 'spine-text';
-          spineText.innerText = book.title;
-          bookDiv.appendChild(spineText);
-          const detailsDiv = document.createElement('div');
-          detailsDiv.className = 'details';
-          detailsDiv.innerHTML = `<strong>${book.title}</strong><br>Author: ${book.author}<br>Status: ${book.status}<br>${book.summary}`;
-          if (book.status === 'current' && book.progress) {
-            detailsDiv.innerHTML += `<div class="progress-bar"><div class="progress-fill" style="width: ${book.progress}%"></div></div>`;
-          }
-          bookDiv.appendChild(detailsDiv);
-          shelf.appendChild(bookDiv);
-        });
-      })
-      .catch(error => console.error('Error loading JSON:', error));
+      });
+    });
   </script>
 </body>
 </html>
