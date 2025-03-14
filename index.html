@@ -166,9 +166,13 @@
             filterDropdown.addEventListener("change", event => filterBooks(event.target.value, books));
         }
 
-        function filterBooks(topic, books) {
-    let filteredBooks = topic === "all" ? books : books.filter(book => book.contentTags?.includes(topic));
-    displayBooks(filteredBooks);
+        function filterBooks(topic, allBooks) {
+    let filteredBooks = topic === "all" ? allBooks : allBooks.filter(book => book.contentTags?.includes(topic));
+    if (filteredBooks.length === 0) {
+        document.getElementById("bookshelf").innerHTML = "<p>No books found.</p>";
+    } else {
+        displayBooks(filteredBooks);
+    }
 } else {
                 displayBooks(books.filter(book => book.contentTags?.includes(topic)));
             }
