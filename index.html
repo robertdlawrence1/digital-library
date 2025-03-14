@@ -16,14 +16,15 @@
             overflow-x: auto;
             white-space: nowrap;
             padding: 20px;
-            height: 200px; /* Fixed height for bookshelf */
-            gap: 10px; /* Adds spacing between book spines */
+            height: 300px; /* Increased height for better readability */
+            gap: 15px; /* Adds spacing between book spines */
+            justify-content: center;
         }
         .book {
             padding: 10px;
             cursor: pointer;
             border: 1px solid #ccc;
-            min-height: 180px;
+            min-height: 250px; /* Increased book height for better readability */
             text-align: center;
             transition: width 0.3s ease-in-out;
             display: flex;
@@ -31,13 +32,16 @@
             justify-content: space-between;
             overflow: hidden;
             background-color: #f4f4f4;
+            font-size: 0.9em;
         }
         .book-title {
-            font-size: 0.9em;
             font-weight: bold;
+            font-size: 1em;
+            padding: 5px;
         }
         .book-author {
-            font-size: 0.8em;
+            font-size: 0.9em;
+            padding: 5px;
         }
         .expanded {
             width: 300px !important;
@@ -48,7 +52,7 @@
         .expanded-view {
             display: none;
             position: absolute;
-            top: 220px;
+            top: 320px;
             left: 50%;
             transform: translateX(-50%);
             width: 50%;
@@ -103,7 +107,7 @@
             });
 
             populateFilter([...topics]);
-            displayBooks(allBooks);
+            displayBooks(allBooks.slice(0, 10)); // Limits books displayed at once
         }
 
         function populateFilter(tags) {
@@ -141,7 +145,7 @@
             books.forEach(book => {
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
-                bookDiv.style.width = `${Math.max(100, Math.min(250, book.pageCount / 4))}px`;
+                bookDiv.style.width = `${Math.max(120, Math.min(250, book.pageCount / 4))}px`;
                 bookDiv.innerHTML = `<div class='book-title'>${book.title}</div><div class='book-author'>${book.author}</div>`;
 
                 bookDiv.addEventListener("mouseover", () => {
