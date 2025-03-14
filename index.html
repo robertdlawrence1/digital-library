@@ -167,9 +167,9 @@
         }
 
         function filterBooks(topic, books) {
-            if (topic === "all") {
-                displayBooks(books);
-            } else {
+    let filteredBooks = topic === "all" ? books : books.filter(book => book.contentTags?.includes(topic));
+    displayBooks(filteredBooks);
+} else {
                 displayBooks(books.filter(book => book.contentTags?.includes(topic)));
             }
         }
