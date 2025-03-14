@@ -1,155 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Reading Tracker</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #f7f7f7;
-      overflow-x: hidden;
-    }
-    h1 {
-      text-align: center;
-      margin: 20px 0;
-    }
-    .controls {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 10px;
-    }
-    select {
-      font-size: 1rem;
-      padding: 5px;
-    }
-    .shelf-container {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 20px;
-      margin: 0 0 40px;
-      background-color: #fff;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .book {
-      display: inline-block;
-      background-color: #ccc;
-      width: 40px;
-      height: 200px;
-      margin: 0 10px;
-      text-align: center;
-      color: #333;
-      transform-origin: bottom center;
-      transition: all 0.3s ease;
-      position: relative;
-      cursor: pointer;
-      overflow: hidden;
-    }
-    .book .spine-text {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-weight: bold;
-      font-size: 14px;
-      padding: 10px 0;
-    }
-    .book:hover {
-      width: 250px;
-      height: auto;
-      background-color: #4f8ef7;
-      color: #fff;
-      transform: scale(1.1);
-      z-index: 2;
-      padding: 10px;
-    }
-    .book:hover .details {
-      display: block;
-      white-space: normal;
-      text-align: left;
-    }
-    .details {
-      display: none;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .progress-bar {
-      background-color: #e0e0e0;
-      border-radius: 5px;
-      overflow: hidden;
-      margin-top: 10px;
-      height: 10px;
-      width: 100%;
-    }
-    .progress-fill {
-      background-color: #4f8ef7;
-      height: 100%;
-    }
-    .completed {
-      background-color: #94d094;
-    }
-    .current {
-      background-color: #f7b267;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reading Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+        .shelf-container {
+            display: flex;
+            justify-content: center;
+            overflow-x: auto;
+            padding: 20px;
+        }
+        .book {
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            width: 120px;
+            min-height: 150px;
+            text-align: center;
+            transition: transform 0.3s ease-in-out;
+        }
+        .book:hover {
+            transform: scale(1.2);
+        }
+        .book.expanded {
+            width: 200px;
+            min-height: 250px;
+        }
+    </style>
 </head>
 <body>
-  <h1>My Reading Tracker</h1>
-  <div class="controls">
-    <label for="topicFilter" style="margin-right: 5px;">Filter by Topic:</label>
-    <select id="topicFilter"></select>
-  </div>
-  <div class="shelf-container" id="shelf"></div>
-  <script>
-    fetch('./books.json')
-      .then(response => response.json())
-      .then(data => {
-        let books = data.books;
-        const uniqueTags = new Set();
-        books.forEach(book => {
-          if (book.contentTags && Array.isArray(book.contentTags)) {
-            book.contentTags.forEach(tag => uniqueTags.add(tag.toLowerCase()));
-          }
-        });
-        const sortedTags = Array.from(uniqueTags).sort();
-        const topicFilter = document.getElementById('topicFilter');
-        sortedTags.forEach(tag => {
-          const option = document.createElement('option');
-          option.value = tag;
-          option.innerText = tag;
-          topicFilter.appendChild(option);
-        });
-        const shelf = document.getElementById('shelf');
-        shelf.innerHTML = '';
-        books.forEach(book => {
-          const bookDiv = document.createElement('div');
-          bookDiv.className = 'book';
-          bookDiv.setAttribute('data-topic', book.contentTags ? book.contentTags[0].toLowerCase() : 'nonfiction');
-          const spineText = document.createElement('div');
-          spineText.className = 'spine-text';
-          spineText.innerText = book.title;
-          bookDiv.appendChild(spineText);
-          const detailsDiv = document.createElement('div');
-          detailsDiv.className = 'details';
-          detailsDiv.innerHTML = `<strong>${book.title}</strong><br>Author: ${book.author}<br>Status: ${book.status || 'Not Started'}<br><p>${book.summary}</p>`;
-          if (book.status === 'current' && book.progress) {
-            detailsDiv.innerHTML += `<div class="progress-bar"><div class="progress-fill" style="width: ${book.progress}%"></div></div>`;
-          }
-          bookDiv.appendChild(detailsDiv);
-          shelf.appendChild(bookDiv);
-        });
-        document.getElementById('topicFilter').addEventListener('change', function () {
-          const selectedTopic = this.value.toLowerCase();
-          const books = document.querySelectorAll('.book');
-          books.forEach(book => {
-            const bookTopics = book.getAttribute('data-topic').split(',');
-            book.style.display = (selectedTopic === 'all' || bookTopics.includes(selectedTopic)) ? 'inline-block' : 'none';
-          });
-        });
-      })
-      .catch(error => console.error('Error loading JSON:', error));
-  </script>
+    <h1>My Reading Tracker</h1>
+    <label for="filter">Filter by Topic:</label>
+    <select id="filter">
+        <option value="all">All</option>
+    </select>
+    <div class="shelf-container" id="bookshelf"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
+            authDomain: "digital-library-4f53e.firebaseapp.com",
+            projectId: "digital-library-4f53e",
+            storageBucket: "digital-library-4f53e.firebasestorage.app",
+            messagingSenderId: "775289018267",
+            appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        async function fetchBooks() {
+            const booksCollection = collection(db, "books");
+            const booksSnapshot = await getDocs(booksCollection);
+            const books = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            displayBooks(books);
+        }
+
+        function displayBooks(books) {
+            const bookshelf = document.getElementById("bookshelf");
+            bookshelf.innerHTML = "";
+            
+            books.forEach(book => {
+                const bookDiv = document.createElement("div");
+                bookDiv.classList.add("book");
+                bookDiv.textContent = book.title;
+                
+                bookDiv.addEventListener("mouseover", () => {
+                    bookDiv.classList.add("expanded");
+                    bookDiv.innerHTML = `<strong>${book.title}</strong><br><em>${book.author}</em><br>${book.summary}`;
+                });
+                
+                bookDiv.addEventListener("mouseleave", () => {
+                    bookDiv.classList.remove("expanded");
+                    bookDiv.textContent = book.title;
+                });
+                
+                bookshelf.appendChild(bookDiv);
+            });
+        }
+
+        fetchBooks();
+    </script>
 </body>
 </html>
