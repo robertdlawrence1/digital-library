@@ -223,35 +223,24 @@
   
   <script>
     // Fetch the combined JSON file
-    fetch('/combined-digital-library.json')  // From the root of your web server
-      .then(response => response.json())
-      .then(data => {
-        let books = data.books;
-        
-        // ----------------------------
-        // 1. Dynamically Populate the Filter Dropdown
-        // ----------------------------
-        
-        // Get the dropdown element by its ID
-        const topicFilter = document.getElementById('topicFilter');
-        // Clear any existing options in case there are defaults
-        topicFilter.innerHTML = '';
-        
-        // Create and add the default "All" option
-        const allOption = document.createElement('option');
-        allOption.value = 'all';
-        allOption.innerText = 'All';
-        topicFilter.appendChild(allOption);
-        
-        // Create a Set to store unique tags (converted to lowercase)
-        const uniqueTags = new Set();
-        
-        // Loop through each book and add its content tags to the Set
-        books.forEach(book => {
-          if (book.contentTags && Array.isArray(book.contentTags)) {
-            book.contentTags.forEach(tag => {
-              uniqueTags.add(tag.toLowerCase());
-            });
+    fetch('combined-digital-library.json')
+  .then(response => {
+    console.log('Response status:', response.status);
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log('Fetched data:', data);
+    // Your existing code here
+  })
+  .catch(error => {
+    console.error('Error loading JSON:', error);
+    // Display the error on the page so it's visible
+    document.getElementById('shelf').innerHTML = 
+      `<p>Error loading books: ${error.message}</p>`;
+  });
           }
         });
         
