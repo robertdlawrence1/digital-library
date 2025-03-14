@@ -20,7 +20,7 @@
             scroll-behavior: smooth;
         }
 
-        /* Default book spine style */
+        /* Book spine */
         .book {
             display: flex;
             flex-direction: column;
@@ -29,7 +29,7 @@
             padding: 10px;
             cursor: pointer;
             border: 1px solid #ccc;
-            height: 250px; /* Fixed height */
+            height: 250px; /* Fixed height for all books */
             text-align: center;
             transition: all 0.3s ease-in-out;
             background: white;
@@ -37,32 +37,41 @@
             position: relative;
         }
 
-        /* Dynamic width scaling based on page count */
+        /* Book width dynamically scales based on page count */
         .book[data-pages] {
-            width: calc(80px + (var(--pageCount) * 0.1px));
+            width: calc(80px + (var(--pageCount) * 0.1px)); 
         }
 
-        /* Title inside the book spine */
+        /* Title inside book spine - dynamically fits */
         .book-title {
-            font-size: 1em;
             font-weight: bold;
-            word-wrap: break-word;
             text-align: center;
-            max-width: 90%;
-            line-height: 1.2;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-wrap: break-word;
+            overflow: hidden;
+            white-space: normal;
         }
 
-        /* Author at bottom */
+        /* Dynamic font scaling for titles */
+        .book[data-pages] .book-title {
+            font-size: calc(12px + (var(--pageCount) * 0.02px));
+        }
+
+        /* Author inside book spine */
         .book-author {
-            font-size: 0.9em;
+            font-size: 0.8em;
             color: gray;
+            text-align: center;
             margin-top: auto;
         }
 
-        /* Hover effect expands books */
+        /* Hover Effect */
         .book:hover {
-            width: 300px !important; /* Expands to a uniform width */
-            height: 300px; /* Slightly larger height for balance */
+            width: 300px !important; /* Uniform expanded width */
+            height: 300px; /* Expanded height */
             position: relative;
             z-index: 10;
         }
@@ -74,7 +83,7 @@
             height: 100%;
         }
 
-        /* Full book details inside expansion */
+        /* Book Details in Hover View */
         .book-content {
             display: none;
             font-size: 0.9em;
@@ -83,6 +92,7 @@
             overflow: hidden;
         }
 
+        /* When hovered, show description */
         .book:hover .book-content {
             display: block;
         }
