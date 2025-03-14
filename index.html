@@ -16,23 +16,25 @@
             overflow-x: auto;
             white-space: nowrap;
             padding: 20px;
-            height: 300px; /* Increased height for better readability */
-            gap: 15px; /* Adds spacing between book spines */
-            justify-content: center;
+            height: 300px;
+            gap: 15px;
+            justify-content: flex-start;
+            scroll-behavior: smooth;
         }
         .book {
             padding: 10px;
             cursor: pointer;
             border: 1px solid #ccc;
-            min-height: 250px; /* Increased book height for better readability */
+            min-height: 250px;
             text-align: center;
-            transition: width 0.3s ease-in-out;
+            transition: width 0.3s ease-in-out, height 0.3s ease-in-out;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
             background-color: #f4f4f4;
             font-size: 0.9em;
+            position: relative;
         }
         .book-title {
             font-weight: bold;
@@ -43,27 +45,27 @@
             font-size: 0.9em;
             padding: 5px;
         }
-        .expanded {
-            width: 300px !important;
-        }
         .book:hover {
             width: 300px !important;
+            height: 350px;
+            z-index: 10;
         }
-        .expanded-view {
+        .book .book-details {
             display: none;
             position: absolute;
-            top: 320px;
+            top: 10px;
             left: 50%;
+            width: 90%;
             transform: translateX(-50%);
-            width: 50%;
-            padding: 15px;
-            border: 1px solid #ccc;
             background: white;
+            padding: 10px;
+            border-radius: 5px;
             text-align: left;
-            z-index: 100;
+            font-size: 0.9em;
+            z-index: 10;
         }
-        .expanded-view p {
-            margin: 5px 0;
+        .book:hover .book-details {
+            display: block;
         }
     </style>
 </head>
@@ -74,7 +76,6 @@
         <option value="all">All</option>
     </select>
     <div class="shelf-container" id="bookshelf"></div>
-    <div id="expanded-view" class="expanded-view"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
@@ -107,7 +108,7 @@
             });
 
             populateFilter([...topics]);
-            displayBooks(allBooks.slice(0, 10)); // Limits books displayed at once
+            displayBooks(allBooks.slice(0, 10));
         }
 
         function populateFilter(tags) {
@@ -147,31 +148,19 @@
                 bookDiv.classList.add("book");
                 bookDiv.style.width = `${Math.max(120, Math.min(250, book.pageCount / 4))}px`;
                 bookDiv.innerHTML = `<div class='book-title'>${book.title}</div><div class='book-author'>${book.author}</div>`;
-
-                bookDiv.addEventListener("mouseover", () => {
-                    showExpandedView(book);
-                });
-                bookDiv.addEventListener("mouseleave", () => {
-                    hideExpandedView();
-                });
-
+                
+                const bookDetails = document.createElement("div");
+                bookDetails.classList.add("book-details");
+                bookDetails.innerHTML = `
+                    <h2>${book.title}</h2>
+                    <p><strong>${book.author}</strong></p>
+                    <p>${book.pageCount} pages | ${book.yearPublished || "Unknown Year"}</p>
+                    <p>${book.summary}</p>
+                `;
+                bookDiv.appendChild(bookDetails);
+                
                 bookshelf.appendChild(bookDiv);
             });
-        }
-
-        function showExpandedView(book) {
-            const expandedView = document.getElementById("expanded-view");
-            expandedView.innerHTML = `
-                <h2>${book.title}</h2>
-                <p><strong>${book.author}</strong></p>
-                <p>${book.pageCount} pages | ${book.yearPublished || "Unknown Year"}</p>
-                <p>${book.summary}</p>
-            `;
-            expandedView.style.display = "block";
-        }
-
-        function hideExpandedView() {
-            document.getElementById("expanded-view").style.display = "none";
         }
 
         fetchBooks();
