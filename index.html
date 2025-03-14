@@ -223,7 +223,7 @@
   
   <script>
     // Fetch the combined JSON file
-    fetch('combined-digital-library.json')
+    fetch('/combined-digital-library.json')  // From the root of your web server
       .then(response => response.json())
       .then(data => {
         let books = data.books;
