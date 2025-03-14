@@ -17,10 +17,10 @@
             white-space: nowrap;
             padding: 20px;
             height: 200px; /* Fixed height for bookshelf */
+            gap: 10px; /* Adds spacing between book spines */
         }
         .book {
             padding: 10px;
-            margin: 5px;
             cursor: pointer;
             border: 1px solid #ccc;
             min-height: 180px;
@@ -30,6 +30,7 @@
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
+            background-color: #f4f4f4;
         }
         .book-title {
             font-size: 0.9em;
@@ -140,7 +141,7 @@
             books.forEach(book => {
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
-                bookDiv.style.width = `${Math.max(80, Math.min(200, book.pageCount / 2))}px`;
+                bookDiv.style.width = `${Math.max(100, Math.min(250, book.pageCount / 4))}px`;
                 bookDiv.innerHTML = `<div class='book-title'>${book.title}</div><div class='book-author'>${book.author}</div>`;
 
                 bookDiv.addEventListener("mouseover", () => {
