@@ -10,49 +10,56 @@
             text-align: center;
         }
 
+        /* Horizontal scrolling bookshelf */
         .shelf-container {
             display: flex;
             overflow-x: auto;
             padding: 20px;
+            gap: 10px;
             white-space: nowrap;
             scroll-behavior: smooth;
         }
 
+        /* Default book spine style */
         .book {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            align-items: center;
             padding: 10px;
-            margin: 5px;
             cursor: pointer;
             border: 1px solid #ccc;
-            height: 250px; /* Fixed height for all books */
+            height: 250px; /* Fixed height */
             text-align: center;
             transition: all 0.3s ease-in-out;
             background: white;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Scale book width dynamically based on page count */
+        /* Dynamic width scaling based on page count */
         .book[data-pages] {
-            width: calc(80px + (var(--pageCount) * 0.1px)); /* Dynamic width */
+            width: calc(80px + (var(--pageCount) * 0.1px));
         }
 
+        /* Title inside the book spine */
         .book-title {
             font-size: 1em;
             font-weight: bold;
             word-wrap: break-word;
-            flex-grow: 1;
-            overflow: hidden;
+            text-align: center;
+            max-width: 90%;
+            line-height: 1.2;
         }
 
+        /* Author at bottom */
         .book-author {
             font-size: 0.9em;
             color: gray;
             margin-top: auto;
         }
 
-        /* Hover effect */
+        /* Hover effect expands books */
         .book:hover {
             width: 300px !important; /* Expands to a uniform width */
             height: 300px; /* Slightly larger height for balance */
@@ -67,6 +74,7 @@
             height: 100%;
         }
 
+        /* Full book details inside expansion */
         .book-content {
             display: none;
             font-size: 0.9em;
@@ -169,7 +177,7 @@
                 bookDiv.classList.add("book");
 
                 // Dynamically set width based on page count
-                const pageCount = book.pageCount ? book.pageCount : 200; // Default 200 pages
+                const pageCount = book.pageCount ? book.pageCount : 200;
                 bookDiv.style.setProperty("--pageCount", pageCount);
 
                 bookDiv.innerHTML = `
