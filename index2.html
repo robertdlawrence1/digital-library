@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Reading Tracker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f7f7f7;
+      overflow-x: hidden;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+    select {
+      font-size: 1rem;
+      padding: 5px;
+    }
+    .shelf-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 20px;
+      margin: 0 0 40px;
+      background-color: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    /* Book spine style */
+    .book {
+      display: inline-block;
+      background-color: #ccc;
+      width: 40px;
+      height: 200px;
+      margin: 0 10px;
+      text-align: center;
+      color: #333;
+      transform-origin: bottom center;
+      transition: all 0.3s ease;
+      position: relative;
+      cursor: pointer;
+    }
+    .book .spine-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-weight: bold;
+      font-size: 14px;
+      padding: 10px 0;
+    }
+    /* Hover effect: enlarge to mimic a book cover */
+    .book:hover {
+      width: 150px;
+      background-color: #4f8ef7;
+      color: #fff;
+      transform: scale(1.1);
+      z-index: 2;
+    }
+    /* Summary/progress bar container */
+    .book .details {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 200px;
+      background-color: #fff;
+      color: #333;
+      padding: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+      margin-left: 10px;
+      z-index: 3;
+    }
+    .book:hover .details {
+      display: block;
+    }
+    /* Simple progress bar styling */
+    .progress-bar {
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      overflow: hidden;
+      margin-top: 10px;
+      height: 10px;
+      width: 100%;
+    }
+    .progress-fill {
+      background-color: #4f8ef7;
+      height: 100%;
+      width: 40%; /* example percentage */
+    }
+    /* Example styles for different statuses */
+    .completed {
+      background-color: #94d094;
+    }
+    .current {
+      background-color: #f7b267;
+    }
+    /* Add book form */
+    .add-book-form {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .add-book-form input[type="text"] {
+      padding: 5px;
+      font-size: 1rem;
+      width: 200px;
+      margin-right: 5px;
+    }
+    .add-book-form button {
+      padding: 5px 10px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>My Reading Tracker</h1>
+  
+  <!-- TOP CONTROLS: Filter Dropdown -->
+  <div class="controls">
+    <label for="topicFilter" style="margin-right: 5px;">Filter by Topic:</label>
+    <select id="topicFilter">
+    </select>
+  </div>
+
+  <!-- SHELF CONTAINER -->
+  <div class="shelf-container" id="shelf">
+    <!-- Example Book: Completed, Tech -->
+    <div class="book completed" data-topic="tech">
+      <div class="spine-text">Thinking, Fast and Slow</div>
+      <div class="details">
+        <strong>Thinking, Fast and Slow</strong><br>
+        Author: Daniel Kahneman<br>
+        Status: Completed<br>
+        Topic: Tech/Economics
+      </div>
+    </div>
+    <!-- Example Book: Currently Reading, Tech -->
+    <div class="book current" data-topic="tech">
+      <div class="spine-text">Progressive Capitalism</div>
+      <div class="details">
+        <strong>Progressive Capitalism</strong><br>
+        Author: Ro Khanna<br>
+        Status: In Progress
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 60%"></div>
+        </div>
+        Topic: Tech/Politics
+      </div>
+    </div>
+    <!-- Example Book: In Progress, Fiction -->
+    <div class="book" data-topic="fiction">
+      <div class="spine-text">The Circle</div>
+      <div class="details">
+        <strong>The Circle</strong><br>
+        Author: Dave Eggers<br>
+        Status: In Progress
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 30%"></div>
+        </div>
+        Topic: Fiction/Tech
+      </div>
+    </div>
+    <!-- Example Book: Not Started, Nonfiction -->
+    <div class="book" data-topic="nonfiction">
+      <div class="spine-text">Abundance</div>
+      <div class="details">
+        <strong>Abundance</strong><br>
+        Authors: Ezra Klein & Derek Thompson<br>
+        Status: Not started<br>
+        Summary: Forward-looking take on policy, economics, and technology.<br>
+        Topic: Nonfiction
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM CONTROLS: Add New Book -->
+  <div class="add-book-form">
+    <input type="text" id="newBookTitle" placeholder="Book Title" />
+    <select id="newBookTopic">
+      <option value="tech">Tech</option>
+      <option value="fiction">Fiction</option>
+      <option value="nonfiction">Nonfiction</option>
+    </select>
+    <button id="addBookBtn">+ Add</button>
+  </div>
+
+  <!-- Firebase SDK and Initialization Script -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-analytics.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // For example, if you need Firestore, you could import it as:
+    // import { getFirestore } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
+      authDomain: "digital-library-4f53e.firebaseapp.com",
+      projectId: "digital-library-4f53e",
+      storageBucket: "digital-library-4f53e.firebasestorage.app",
+      messagingSenderId: "775289018267",
+      appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
+      measurementId: "G-4BVT6LVMHX"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+
+    // If you decide to use other Firebase services (e.g., Firestore), initialize them here:
+    // const db = getFirestore(app);
+  </script>
+
+  <!-- Additional JavaScript for UI Interactions -->
+  <script>
+    // Filtering by Topic
+    const topicFilter = document.getElementById('topicFilter');
+    const shelf = document.getElementById('shelf');
+    const books = shelf.getElementsByClassName('book');
+
+    topicFilter.addEventListener('change', function() {
+      const selectedTopic = this.value;
+      for (let i = 0; i < books.length; i++) {
+        const bookTopic = books[i].getAttribute('data-topic');
+        books[i].style.display = (selectedTopic === 'all' || bookTopic === selectedTopic) ? 'inline-block' : 'none';
+      }
+    });
+
+    // Adding a New Book
+    const addBookBtn = document.getElementById('addBookBtn');
+    const newBookTitle = document.getElementById('newBookTitle');
+    const newBookTopic = document.getElementById('newBookTopic');
+
+    addBookBtn.addEventListener('click', function() {
+      const title = newBookTitle.value.trim();
+      const topic = newBookTopic.value;
+
+      if (title !== '') {
+        const bookDiv = document.createElement('div');
+        bookDiv.className = 'book';
+        bookDiv.setAttribute('data-topic', topic);
+
+        const spineText = document.createElement('div');
+        spineText.className = 'spine-text';
+        spineText.innerText = title;
+        bookDiv.appendChild(spineText);
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'details';
+        detailsDiv.innerHTML = `
+          <strong>${title}</strong><br>
+          Status: Not started<br>
+          Topic: ${topic}
+        `;
+        bookDiv.appendChild(detailsDiv);
+
+        shelf.appendChild(bookDiv);
+        newBookTitle.value = '';
+      }
+    });
+  </script>
+  
+  <script>
+    // Fetch the combined JSON file
+    fetch('combined-digital-library.json')
+      .then(response => response.json())
+      .then(data => {
+        let books = data.books;
+        
+        // ----------------------------
+        // 1. Dynamically Populate the Filter Dropdown
+        // ----------------------------
+        
+        // Get the dropdown element by its ID
+        const topicFilter = document.getElementById('topicFilter');
+        // Clear any existing options in case there are defaults
+        topicFilter.innerHTML = '';
+        
+        // Create and add the default "All" option
+        const allOption = document.createElement('option');
+        allOption.value = 'all';
+        allOption.innerText = 'All';
+        topicFilter.appendChild(allOption);
+        
+        // Create a Set to store unique tags (converted to lowercase)
+        const uniqueTags = new Set();
+        
+        // Loop through each book and add its content tags to the Set
+        books.forEach(book => {
+          if (book.contentTags && Array.isArray(book.contentTags)) {
+            book.contentTags.forEach(tag => {
+              uniqueTags.add(tag.toLowerCase());
+            });
+          }
+        });
+        
+        // Convert the Set to an array and sort alphabetically
+        const sortedTags = Array.from(uniqueTags).sort();
+        
+        // Create an <option> for each tag and append it to the dropdown
+        sortedTags.forEach(tag => {
+          const option = document.createElement('option');
+          option.value = tag;
+          option.innerText = tag;
+          topicFilter.appendChild(option);
+        });
+        
+        // ----------------------------
+        // 2. Render the Books on the Shelf
+        // ----------------------------
+        
+        // Define the desired status order; if a book lacks a status, default to "not started"
+        const statusOrder = { "completed": 0, "current": 1, "not started": 2 };
+        books.forEach(book => {
+          if (!book.status) {
+            book.status = "not started";
+          }
+        });
+        
+        // Sort books by status (using the defined order) then alphabetically by title
+        books.sort((a, b) => {
+          const statusDiff = statusOrder[a.status] - statusOrder[b.status];
+          return statusDiff !== 0 ? statusDiff : a.title.localeCompare(b.title);
+        });
+        
+        // Get the shelf container element
+        const shelf = document.getElementById('shelf');
+        // Clear any pre-existing content on the shelf
+        shelf.innerHTML = '';
+        
+        // Loop over the books and create DOM elements for each one
+        books.forEach(book => {
+          const bookDiv = document.createElement('div');
+          bookDiv.className = 'book';
+          
+          // Add status-based classes for styling
+          if (book.status === 'completed') {
+            bookDiv.classList.add('completed');
+          } else if (book.status === 'current') {
+            bookDiv.classList.add('current');
+          }
+          
+          // Set a data attribute for filtering based on the first content tag (or default to "nonfiction")
+          if (book.contentTags && book.contentTags.length > 0) {
+            bookDiv.setAttribute('data-topic', book.contentTags[0].toLowerCase());
+          } else {
+            bookDiv.setAttribute('data-topic', 'nonfiction');
+          }
+          
+          // Create the spine text element (narrow rectangle displaying the book's title)
+          const spineText = document.createElement('div');
+          spineText.className = 'spine-text';
+          spineText.innerText = book.title;
+          bookDiv.appendChild(spineText);
+          
+          // Create the details element (shown on hover)
+          const detailsDiv = document.createElement('div');
+          detailsDiv.className = 'details';
+          detailsDiv.innerHTML = `
+            <strong>${book.title}</strong><br>
+            Author: ${book.author}<br>
+            Status: ${book.status}<br>
+            ${book.summary}
+          `;
+          // Optionally, add a progress bar if the book is current and has a progress field
+          if (book.status === 'current' && book.progress) {
+            detailsDiv.innerHTML += `
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${book.progress}%"></div>
+              </div>
+            `;
+          }
+          bookDiv.appendChild(detailsDiv);
+          
+          // Append the book element to the shelf container
+          shelf.appendChild(bookDiv);
+        });
+      })
+      .catch(error => console.error('Error loading JSON:', error));
+      
+    // ----------------------------
+    // 3. Add Filtering Functionality
+    // ----------------------------
+    
+    // When the user changes the dropdown, filter the displayed books.
+    const topicFilter = document.getElementById('topicFilter');
+    topicFilter.addEventListener('change', function() {
+      const selectedTopic = this.value;
+      const bookElements = document.querySelectorAll('.book');
+      bookElements.forEach(book => {
+        const bookTopic = book.getAttribute('data-topic');
+        // Display the book if "all" is selected or the book's topic matches
+        book.style.display = (selectedTopic === 'all' || bookTopic === selectedTopic) ? 'inline-block' : 'none';
+      });
+    });
+  </script>
+  
+</body>
+</html>
