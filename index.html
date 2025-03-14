@@ -47,6 +47,7 @@
       transition: all 0.3s ease;
       position: relative;
       cursor: pointer;
+      overflow: hidden;
     }
     .book .spine-text {
       writing-mode: vertical-rl;
@@ -56,27 +57,23 @@
       padding: 10px 0;
     }
     .book:hover {
-      width: 150px;
+      width: 250px;
+      height: auto;
       background-color: #4f8ef7;
       color: #fff;
       transform: scale(1.1);
       z-index: 2;
-    }
-    .book .details {
-      display: none;
-      position: absolute;
-      top: 0;
-      left: 100%;
-      width: 200px;
-      background-color: #fff;
-      color: #333;
       padding: 10px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.2);
-      margin-left: 10px;
-      z-index: 3;
     }
     .book:hover .details {
       display: block;
+      white-space: normal;
+      text-align: left;
+    }
+    .details {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
     }
     .progress-bar {
       background-color: #e0e0e0;
@@ -106,21 +103,53 @@
   </div>
   <div class="shelf-container" id="shelf"></div>
   <script>
-    document.getElementById('topicFilter').addEventListener('change', function () {
-      const selectedTopic = this.value.toLowerCase();
-      const books = document.querySelectorAll('.book');
-    
-      books.forEach(book => {
-        const bookTopics = book.getAttribute('data-topic').split(',');
-    
-        // Check if the selected topic is in the book's topics OR show all if "all" is selected
-        if (selectedTopic === 'all' || bookTopics.includes(selectedTopic)) {
-          book.style.display = 'inline-block';
-        } else {
-          book.style.display = 'none';
-        }
-      });
-    });
+    fetch('./books.json')
+      .then(response => response.json())
+      .then(data => {
+        let books = data.books;
+        const uniqueTags = new Set();
+        books.forEach(book => {
+          if (book.contentTags && Array.isArray(book.contentTags)) {
+            book.contentTags.forEach(tag => uniqueTags.add(tag.toLowerCase()));
+          }
+        });
+        const sortedTags = Array.from(uniqueTags).sort();
+        const topicFilter = document.getElementById('topicFilter');
+        sortedTags.forEach(tag => {
+          const option = document.createElement('option');
+          option.value = tag;
+          option.innerText = tag;
+          topicFilter.appendChild(option);
+        });
+        const shelf = document.getElementById('shelf');
+        shelf.innerHTML = '';
+        books.forEach(book => {
+          const bookDiv = document.createElement('div');
+          bookDiv.className = 'book';
+          bookDiv.setAttribute('data-topic', book.contentTags ? book.contentTags[0].toLowerCase() : 'nonfiction');
+          const spineText = document.createElement('div');
+          spineText.className = 'spine-text';
+          spineText.innerText = book.title;
+          bookDiv.appendChild(spineText);
+          const detailsDiv = document.createElement('div');
+          detailsDiv.className = 'details';
+          detailsDiv.innerHTML = `<strong>${book.title}</strong><br>Author: ${book.author}<br>Status: ${book.status || 'Not Started'}<br><p>${book.summary}</p>`;
+          if (book.status === 'current' && book.progress) {
+            detailsDiv.innerHTML += `<div class="progress-bar"><div class="progress-fill" style="width: ${book.progress}%"></div></div>`;
+          }
+          bookDiv.appendChild(detailsDiv);
+          shelf.appendChild(bookDiv);
+        });
+        document.getElementById('topicFilter').addEventListener('change', function () {
+          const selectedTopic = this.value.toLowerCase();
+          const books = document.querySelectorAll('.book');
+          books.forEach(book => {
+            const bookTopics = book.getAttribute('data-topic').split(',');
+            book.style.display = (selectedTopic === 'all' || bookTopics.includes(selectedTopic)) ? 'inline-block' : 'none';
+          });
+        });
+      })
+      .catch(error => console.error('Error loading JSON:', error));
   </script>
 </body>
 </html>
