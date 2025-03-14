@@ -20,7 +20,7 @@
             scroll-behavior: smooth;
         }
 
-        /* Book spine container */
+        /* Book spine */
         .book {
             display: flex;
             flex-direction: column;
@@ -29,7 +29,7 @@
             padding: 10px;
             cursor: pointer;
             border: 1px solid #ccc;
-            height: 250px; /* Fixed height for all books */
+            height: 250px;
             text-align: center;
             transition: all 0.3s ease-in-out;
             background: white;
@@ -37,12 +37,12 @@
             position: relative;
         }
 
-        /* Book width scales based on page count */
+        /* Book width dynamically scales based on page count */
         .book[data-pages] {
             width: calc(80px + (var(--pageCount) * 0.1px));
         }
 
-        /* Title fits dynamically inside the spine */
+        /* Title wraps inside the book spine */
         .book-title {
             font-weight: bold;
             text-align: center;
@@ -53,21 +53,25 @@
             word-wrap: break-word;
             overflow: hidden;
             white-space: normal;
-            max-width: 90%;
-            max-height: 50%;
+            max-width: 100%;
+            max-height: 60%;
+            padding: 5px;
         }
 
-        /* Dynamic font scaling for titles based on spine width */
+        /* Dynamic font scaling for title */
         .book[data-pages] .book-title {
             font-size: clamp(10px, calc(14px - (200px - var(--bookWidth)) * 0.01), 18px);
         }
 
-        /* Author fits inside book spine */
+        /* Author wraps properly at the bottom */
         .book-author {
             font-size: 0.9em;
             color: gray;
             text-align: center;
-            margin-top: auto;
+            white-space: normal;
+            word-wrap: break-word;
+            overflow: hidden;
+            max-width: 100%;
         }
 
         /* Hover Effect */
@@ -94,6 +98,7 @@
             overflow: hidden;
             max-height: 100px; /* Ensures text does not overflow */
             text-overflow: ellipsis;
+            white-space: normal;
         }
 
         /* When hovered, show description */
