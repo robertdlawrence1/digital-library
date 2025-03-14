@@ -16,23 +16,6 @@
             flex-direction: column;
         }
 
-        h1 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .filter-container {
-            margin-bottom: 20px;
-        }
-
-        .filter-container select {
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-        }
-
-        /* Main bookshelf container */
         .shelf-container {
             display: flex;
             overflow-x: auto;
@@ -48,7 +31,6 @@
             box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        /* Book spine styling */
         .book {
             display: flex;
             flex-direction: column;
@@ -56,8 +38,6 @@
             min-width: 20px;
             width: auto;
             height: 300px;
-            background: linear-gradient(to right, #f0f0f0, #ffffff, #f0f0f0);
-            border: 1px solid #ddd;
             border-radius: 2px 6px 6px 2px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
             cursor: pointer;
@@ -65,39 +45,21 @@
             transition: all 0.3s ease;
             overflow: hidden;
             position: relative;
+            color: #fff;
+            background-color: #8B4513;
         }
 
-        /* Book title on spine */
-        .book-title {
+        .book-title, .book-author {
             writing-mode: vertical-rl;
             text-orientation: mixed;
             transform: rotate(180deg);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex-grow: 1;
-            font-weight: bold;
-            max-height: 85%;
             text-align: center;
             padding: 5px 0;
         }
 
-        /* Author name on spine */
-        .book-author {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-            transform: rotate(180deg);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #555;
-            font-style: italic;
-            max-height: 40%;
-            text-align: center;
-            padding: 5px 0;
-        }
-
-        /* Expanded book view on hover */
         .book:hover {
             height: 350px;
             width: 280px !important;
@@ -109,390 +71,63 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
             overflow-y: auto;
             padding: 15px;
+            color: #000;
         }
 
-        /* Hide spine view on hover */
-        .book:hover .book-title,
-        .book:hover .book-author {
+        .book:hover .book-title, .book:hover .book-author {
             display: none;
-        }
-
-        /* Show expanded content on hover */
-        .book:hover .book-expanded-content {
-            display: block;
-        }
-
-        /* Expanded content container (hidden by default) */
-        .book-expanded-content {
-            display: none;
-            text-align: left;
-            height: 100%;
-        }
-
-        /* Book header in expanded view */
-        .book-header {
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        /* Book title in expanded view */
-        .book-expanded-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 5px;
-            line-height: 1.3;
-        }
-
-        /* Book author in expanded view */
-        .book-expanded-author {
-            font-size: 14px;
-            font-style: italic;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
-        /* Book metadata in expanded view */
-        .book-metadata {
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 12px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .metadata-item {
-            background-color: #f5f5f5;
-            padding: 3px 8px;
-            border-radius: 12px;
-            white-space: nowrap;
-        }
-
-        /* Tags in expanded view */
-        .book-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            margin-bottom: 12px;
-        }
-
-        .tag {
-            background-color: #e6f2ff;
-            color: #0066cc;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-        }
-
-        /* Book summary in expanded view */
-        .book-summary {
-            font-size: 13px;
-            line-height: 1.5;
-            overflow-y: auto;
-            max-height: 180px;
-            color: #333;
-        }
-
-        /* Loading and error states */
-        .loading, .error, .no-books {
-            padding: 30px;
-            text-align: center;
-            width: 100%;
-            color: #666;
-        }
-
-        .error {
-            color: #d32f2f;
         }
     </style>
 </head>
 <body>
     <h1>My Reading Tracker</h1>
-    <div class="filter-container">
-        <label for="filter">Filter by Topic:</label>
-        <select id="filter">
-            <option value="all">All</option>
-        </select>
-    </div>
-    <div class="shelf-container" id="bookshelf">
-        <div class="loading">Loading your bookshelf...</div>
-    </div>
+    <div class="shelf-container" id="bookshelf"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
-            authDomain: "digital-library-4f53e.firebaseapp.com",
-            projectId: "digital-library-4f53e",
-            storageBucket: "digital-library-4f53e.appspot.com",
-            messagingSenderId: "775289018267",
-            appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
-        };
-
-        // Initialize Firebase
+        const firebaseConfig = { /* Your Firebase Config */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        
-        // Store all books for filtering
-        let allBooks = [];
 
-        /**
-         * Calculate book spine width based on page count
-         * Uses a logarithmic scale to make differences more natural
-         */
         function calculateBookWidth(pageCount) {
-            if (!pageCount || isNaN(pageCount)) return 30; // Default width
-            
-            // Constrain page count to reasonable values
-            const pages = Math.max(50, Math.min(2000, parseInt(pageCount)));
-            
-            // Logarithmic scale for more natural progression
-            // Thin books: ~20-30px, Medium books: ~30-45px, Thick books: ~45-65px
-            const minWidth = 20;
-            const scaleFactorWidth = 8;
-            return Math.floor(minWidth + scaleFactorWidth * Math.log10(pages));
-        }
-        
-        /**
-         * Calculate font size for spine text based on book width
-         */
-        function calculateFontSize(bookWidth, isTitle = true) {
-            // Base size differs for title vs. author
-            const baseSize = isTitle ? 10 : 9;
-            
-            // Linear scaling factor with caps
-            const minSize = isTitle ? 8 : 7;
-            const maxSize = isTitle ? 12 : 10;
-            
-            // Calculate size based on width
-            const scaledSize = baseSize + (bookWidth - 30) / 10;
-            
-            // Return constrained value
-            return Math.max(minSize, Math.min(maxSize, scaledSize));
+            return Math.floor(20 + 8 * Math.log10(Math.max(50, Math.min(2000, pageCount || 200))));
         }
 
-        /**
-         * Fetch all books from Firestore
-         */
+        function getRandomBookColor() {
+            const colors = ['#8B4513', '#A0522D', '#CD853F', '#D2691E'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
         async function fetchBooks() {
-            try {
-                const bookshelf = document.getElementById("bookshelf");
-                
-                const booksCollection = collection(db, "books");
-                const booksSnapshot = await getDocs(booksCollection);
-                
-                if (booksSnapshot.empty) {
-                    bookshelf.innerHTML = '<div class="no-books">Your library is empty. Add some books to get started!</div>';
-                    return;
-                }
-                
-                // Convert to array of book objects
-                allBooks = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                // Sort books - by author for example
-                allBooks.sort((a, b) => (a.author || "Unknown").localeCompare(b.author || "Unknown"));
-                
-                // Extract unique topics for filter
-                const allTopics = new Set();
-                allBooks.forEach(book => {
-                    if (book.contentTags && Array.isArray(book.contentTags)) {
-                        book.contentTags.forEach(tag => allTopics.add(tag));
-                    }
-                });
-                
-                // Set up filter dropdown
-                populateFilterOptions([...allTopics].sort());
-                
-                // Display all books initially
-                displayBooks(allBooks);
-                
-            } catch (error) {
-                console.error("Error fetching books:", error);
-                const bookshelf = document.getElementById("bookshelf");
-                bookshelf.innerHTML = '<div class="error">Error loading your books. Please check your connection and try again.</div>';
-            }
-        }
-
-        /**
-         * Populate filter dropdown with topics
-         */
-        function populateFilterOptions(topics) {
-            const filterDropdown = document.getElementById("filter");
-            
-            // Keep the "All" option and add sorted topics
-            filterDropdown.innerHTML = '<option value="all">All</option>';
-            
-            topics.forEach(topic => {
-                const option = document.createElement("option");
-                option.value = topic;
-                option.textContent = topic;
-                filterDropdown.appendChild(option);
-            });
-            
-            // Add event listener for filtering
-            filterDropdown.addEventListener("change", event => {
-                filterBooksByTopic(event.target.value);
-            });
-        }
-
-        /**
-         * Filter books by selected topic
-         */
-        function filterBooksByTopic(topic) {
-            let filteredBooks;
-            
-            if (topic === "all") {
-                filteredBooks = allBooks;
-            } else {
-                filteredBooks = allBooks.filter(book => 
-                    book.contentTags && Array.isArray(book.contentTags) && 
-                    book.contentTags.includes(topic)
-                );
-            }
-            
-            displayBooks(filteredBooks);
-        }
-
-        /**
-         * Display books on the bookshelf
-         */
-        function displayBooks(books) {
             const bookshelf = document.getElementById("bookshelf");
-            bookshelf.innerHTML = "";
-            
-            if (books.length === 0) {
-                bookshelf.innerHTML = '<div class="no-books">No books match your filter. Try another topic.</div>';
-                return;
-            }
-            
+            const booksSnapshot = await getDocs(collection(db, "books"));
+            const books = booksSnapshot.docs.map(doc => doc.data()).sort((a, b) => (a.author || "").localeCompare(b.author || ""));
+
+            bookshelf.innerHTML = books.length ? '' : '<div>No books found.</div>';
             books.forEach(book => {
-                const pageCount = book.pageCount || 200;
-                
-                // Calculate appropriate book width
-                const bookWidth = calculateBookWidth(pageCount);
-                
-                // Create book element
                 const bookElement = document.createElement("div");
                 bookElement.className = "book";
-                bookElement.style.width = `${bookWidth}px`;
-                
-                // Calculate font sizes
-                const titleFontSize = calculateFontSize(bookWidth, true);
-                const authorFontSize = calculateFontSize(bookWidth, false);
-                
-                // Create spine view (default visible)
-                const titleElement = document.createElement("div");
-                titleElement.className = "book-title";
-                titleElement.textContent = book.title || "Untitled";
-                titleElement.style.fontSize = `${titleFontSize}px`;
-                
-                const authorElement = document.createElement("div");
-                authorElement.className = "book-author";
-                authorElement.textContent = book.author || "Unknown Author";
-                authorElement.style.fontSize = `${authorFontSize}px`;
-                
-                // Create expanded view (shown on hover)
-                const expandedContentElement = document.createElement("div");
-                expandedContentElement.className = "book-expanded-content";
-                
-                // Header section with title and author
-                const headerElement = document.createElement("div");
-                headerElement.className = "book-header";
-                
-                const expandedTitleElement = document.createElement("div");
-                expandedTitleElement.className = "book-expanded-title";
-                expandedTitleElement.textContent = book.title || "Untitled";
-                
-                const expandedAuthorElement = document.createElement("div");
-                expandedAuthorElement.className = "book-expanded-author";
-                expandedAuthorElement.textContent = book.author || "Unknown Author";
-                
-                headerElement.appendChild(expandedTitleElement);
-                headerElement.appendChild(expandedAuthorElement);
-                
-                // Metadata section
-                const metadataElement = document.createElement("div");
-                metadataElement.className = "book-metadata";
-                
-                // Pages metadata
-                const pagesElement = document.createElement("span");
-                pagesElement.className = "metadata-item";
-                pagesElement.textContent = `${pageCount} pages`;
-                metadataElement.appendChild(pagesElement);
-                
-                // Year published metadata
-                if (book.yearPublished) {
-                    const yearElement = document.createElement("span");
-                    yearElement.className = "metadata-item";
-                    yearElement.textContent = `Published: ${book.yearPublished}`;
-                    metadataElement.appendChild(yearElement);
-                }
-                
-                // Tags section if available
-                let tagsElement = null;
-                if (book.contentTags && book.contentTags.length > 0) {
-                    tagsElement = document.createElement("div");
-                    tagsElement.className = "book-tags";
-                    
-                    book.contentTags.forEach(tag => {
-                        const tagElement = document.createElement("span");
-                        tagElement.className = "tag";
-                        tagElement.textContent = tag;
-                        tagsElement.appendChild(tagElement);
-                    });
-                }
-                
-                // Summary section if available
-                let summaryElement = null;
-                if (book.summary) {
-                    summaryElement = document.createElement("div");
-                    summaryElement.className = "book-summary";
-                    summaryElement.textContent = book.summary;
-expandedContentElement.appendChild(summaryElement);
-}
+                bookElement.style.width = `${calculateBookWidth(book.pageCount)}px`;
+                bookElement.style.backgroundColor = getRandomBookColor();
+                bookElement.innerHTML = `
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">${book.author}</div>
+                    <div class="book-expanded-content" style="display: none;">
+                        <h3>${book.title}</h3>
+                        <p><em>${book.author}</em></p>
+                        <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
+                        <p>${book.summary}</p>
+                    </div>
+                `;
+                bookshelf.appendChild(bookElement);
+                bookElement.addEventListener("mouseenter", () => bookElement.querySelector(".book-expanded-content").style.display = "block");
+                bookElement.addEventListener("mouseleave", () => bookElement.querySelector(".book-expanded-content").style.display = "none");
+            });
+        }
 
-// Assemble all components of expanded view
-expandedContentElement.appendChild(headerElement);
-expandedContentElement.appendChild(metadataElement);
-if (tagsElement) expandedContentElement.appendChild(tagsElement);
-if (summaryElement) expandedContentElement.appendChild(summaryElement);
-
-// Assemble final book element with both views
-bookElement.appendChild(titleElement);
-bookElement.appendChild(authorElement);
-bookElement.appendChild(expandedContentElement);
-
-// Add random color to book spine for visual distinction
-const getRandomBookColor = () => {
-    const colors = [
-        '#8B4513', '#A0522D', '#CD853F', '#D2691E', '#8B0000', 
-        '#B22222', '#A52A2A', '#800000', '#8B008B', '#9370DB',
-        '#6A5ACD', '#483D8B', '#4682B4', '#4169E1', '#191970',
-        '#006400', '#2E8B57', '#3CB371', '#20B2AA', '#008B8B'
-    ];
-    return colors[Math.floor(Math.random() * colors.length)];
-};
-
-// Apply a random color to the book spine
-bookElement.style.backgroundColor = getRandomBookColor();
-// Ensure text is visible against background
-bookElement.style.color = '#fff';
-                
-// Add book to bookshelf
-bookshelf.appendChild(bookElement);
-});
-}
-
-/**
- * Initialize the app
- */
-function init() {
-    fetchBooks();
-}
-
-// Start the app
-init();
+        fetchBooks();
+    </script>
+</body>
+</html>
