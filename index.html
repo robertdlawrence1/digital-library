@@ -222,8 +222,7 @@
   </script>
   
   <script>
-   // Fetch the combined JSON file with enhanced debugging
-fetch('./combined-digital-library.json')  // Note the added ./ prefix
+  fetch('./combined-digital-library.json')
   .then(response => {
     console.log('Response status:', response.status);
     if (!response.ok) {
@@ -233,18 +232,21 @@ fetch('./combined-digital-library.json')  // Note the added ./ prefix
   })
   .then(data => {
     console.log('Fetched data:', data);
+    // Check if data.books exists
+    if (!data.books) {
+      console.error('No books property found in JSON data:', data);
+      document.getElementById('shelf').innerHTML = 
+        '<p>Error: JSON data does not contain a books array.</p>';
+      return;
+    }
+    
     let books = data.books;
+    console.log(`Found ${books.length} books in data`);
     
-    // ----------------------------
-    // 1. Dynamically Populate the Filter Dropdown
-    // ----------------------------
-    
-    // Keep the rest of your original code exactly the same
-    // ...
+    // Rest of your original code...
   })
   .catch(error => {
     console.error('Error loading JSON:', error);
-    // Display the error on the page so it's visible
     document.getElementById('shelf').innerHTML = 
       `<p>Error loading books: ${error.message}</p>`;
   });
