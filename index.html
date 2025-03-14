@@ -222,7 +222,7 @@
   </script>
   
   <script>
-  fetch('./combined-digital-library.json')
+ fetch('./combined-digital-library.json')
   .then(response => {
     console.log('Response status:', response.status);
     if (!response.ok) {
@@ -232,27 +232,33 @@
   })
   .then(data => {
     console.log('Fetched data:', data);
-    // Check if data.books exists
-    if (!data.books) {
-      console.error('No books property found in JSON data:', data);
-      document.getElementById('shelf').innerHTML = 
-        '<p>Error: JSON data does not contain a books array.</p>';
-      return;
-    }
-    
     let books = data.books;
-    console.log(`Found ${books.length} books in data`);
     
-    // Rest of your original code...
+    // Create a Set to store unique tags
+    const uniqueTags = new Set();
+    
+    // Add tags to the Set
+    books.forEach(book => {
+      if (book.contentTags && Array.isArray(book.contentTags)) {
+        book.contentTags.forEach(tag => {
+          uniqueTags.add(tag.toLowerCase());
+        });
+      }
+    });
+    
+    // Convert the Set to an array and sort alphabetically
+    const sortedTags = Array.from(uniqueTags).sort();
+    
+    // Rest of your code that uses sortedTags...
+    
   })
   .catch(error => {
     console.error('Error loading JSON:', error);
     document.getElementById('shelf').innerHTML = 
       `<p>Error loading books: ${error.message}</p>`;
   });
-          }
-        });
-        
+
+
         // Convert the Set to an array and sort alphabetically
         const sortedTags = Array.from(uniqueTags).sort();
         
