@@ -11,6 +11,9 @@
             margin: 0;
             padding: 20px;
             background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
         h1 {
@@ -29,10 +32,11 @@
             gap: 15px;
             white-space: nowrap;
             scroll-behavior: smooth;
-            min-height: 320px;
             align-items: flex-end;
             background-color: #e0e0e0;
             border-radius: 5px;
+            min-height: 400px; /* Increased height */
+            flex-grow: 1; /* Take up available space */
         }
 
         /* Book spine */
@@ -45,7 +49,7 @@
             cursor: pointer;
             border: 1px solid #ccc;
             border-radius: 2px 5px 5px 2px;
-            height: 250px;
+            height: 300px; /* Increased height */
             text-align: center;
             transition: all 0.3s ease-in-out;
             background: white;
@@ -87,7 +91,7 @@
         /* Hover Effect */
         .book:hover {
             width: 300px !important; /* Uniform expanded width */
-            height: 300px; /* Expanded height */
+            height: 350px; /* Increased expanded height */
             position: relative;
             z-index: 10;
             box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
@@ -126,7 +130,7 @@
             font-size: 0.9em;
             margin-top: 10px;
             line-height: 1.4;
-            max-height: 150px;
+            max-height: 180px; /* Increased for more content */
             overflow-y: auto;
         }
     </style>
@@ -167,7 +171,6 @@
 
                 if (allBooks.length === 0) {
                     console.warn("No books found in Firestore.");
-                    // Add a placeholder message if no books found
                     document.getElementById("bookshelf").innerHTML = 
                         '<div class="no-books">No books found in your library. Add some books to get started!</div>';
                 }
@@ -217,6 +220,27 @@
             displayBooks(filteredBooks);
         }
 
+        function calculateBookWidth(pageCount) {
+            // Make sure we have a valid number
+            const pages = parseInt(pageCount) || 200; // Default if no valid page count
+            
+            // Base width for very short books
+            const baseWidth = 30;
+            
+            // Maximum width cap to prevent overly thick books
+            const maxWidth = 100;
+            
+            // Scale factor - adjust for desired visual proportions
+            const scaleFactor = 0.15;
+            
+            // Calculate width using a more linear relationship
+            // This gives a more visually proportional look to the books
+            const calculatedWidth = baseWidth + (Math.sqrt(pages) * scaleFactor);
+            
+            // Ensure the width stays within reasonable bounds
+            return Math.min(maxWidth, calculatedWidth);
+        }
+
         function displayBooks(books) {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = "";
@@ -225,24 +249,17 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
 
-                // Calculate book width based on page count
-                // Formula: base width + scaled page count, with min/max constraints
-                const pageCount = book.pageCount ? book.pageCount : 200; // Default if no page count
-                // Ensure width scales reasonably with page count
-                // More pages = wider spine, but within reasonable limits
-                const minWidth = 40;  // Minimum width for very short books
-                const maxWidth = 120; // Maximum width for very long books
-                // Scale factor adjusted to create a reasonable curve
-                const scaleFactor = 0.05;
-                const bookWidth = Math.max(minWidth, Math.min(maxWidth, 
-                    minWidth + (Math.log(pageCount) * scaleFactor * pageCount)));
+                // Calculate book width based on page count using our dedicated function
+                const pageCount = book.pageCount || 200;
+                const bookWidth = calculateBookWidth(pageCount);
                 
+                // Set the book width directly
                 bookDiv.style.width = `${bookWidth}px`;
 
-                // Calculate font size based on spine width
+                // Calculate font size proportional to book width
                 // Narrower books get smaller text
-                const titleFontSize = Math.max(10, Math.min(16, bookWidth / 8));
-                const authorFontSize = Math.max(8, Math.min(14, bookWidth / 9));
+                const titleFontSize = Math.max(10, Math.min(16, bookWidth / 7));
+                const authorFontSize = Math.max(8, Math.min(14, bookWidth / 8));
 
                 // Build the book HTML structure
                 const titleDiv = document.createElement("div");
@@ -263,7 +280,7 @@
                     <strong>${book.title || "Untitled"}</strong><br>
                     <em>${book.author || "Unknown Author"}</em>
                     <div class="book-metadata">
-                        ${book.pageCount ? `${book.pageCount} pages | ` : ""} ${book.yearPublished || "Unknown Year"}
+                        ${pageCount} pages | ${book.yearPublished || "Unknown Year"}
                     </div>
                     <div class="book-summary">
                         ${book.summary || "No summary available."}
