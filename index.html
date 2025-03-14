@@ -16,6 +16,17 @@
             flex-direction: column;
         }
 
+        .filter-container {
+            margin-bottom: 20px;
+        }
+
+        .filter-container select {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
         .shelf-container {
             display: flex;
             overflow-x: auto;
@@ -81,50 +92,68 @@
 </head>
 <body>
     <h1>My Reading Tracker</h1>
+    <div class="filter-container">
+        <label for="filter">Filter by Topic:</label>
+        <select id="filter">
+            <option value="all">All</option>
+        </select>
+    </div>
     <div class="shelf-container" id="bookshelf"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        const firebaseConfig = { /* Your Firebase Config */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
+            authDomain: "digital-library-4f53e.firebaseapp.com",
+            projectId: "digital-library-4f53e",
+            storageBucket: "digital-library-4f53e.appspot.com",
+            messagingSenderId: "775289018267",
+            appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
+            measurementId: "G-4BVT6LVMHX"
+        };
+        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-
-        function calculateBookWidth(pageCount) {
-            return Math.floor(20 + 8 * Math.log10(Math.max(50, Math.min(2000, pageCount || 200))));
-        }
-
-        function getRandomBookColor() {
-            const colors = ['#8B4513', '#A0522D', '#CD853F', '#D2691E'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
 
         async function fetchBooks() {
             const bookshelf = document.getElementById("bookshelf");
             const booksSnapshot = await getDocs(collection(db, "books"));
-            const books = booksSnapshot.docs.map(doc => doc.data()).sort((a, b) => (a.author || "").localeCompare(b.author || ""));
+            const books = booksSnapshot.docs.map(doc => doc.data());
+            displayBooks(books);
+            populateFilterOptions(books);
+        }
 
-            bookshelf.innerHTML = books.length ? '' : '<div>No books found.</div>';
+        function displayBooks(books) {
+            const bookshelf = document.getElementById("bookshelf");
+            bookshelf.innerHTML = '';
             books.forEach(book => {
                 const bookElement = document.createElement("div");
                 bookElement.className = "book";
-                bookElement.style.width = `${calculateBookWidth(book.pageCount)}px`;
-                bookElement.style.backgroundColor = getRandomBookColor();
-                bookElement.innerHTML = `
-                    <div class="book-title">${book.title}</div>
-                    <div class="book-author">${book.author}</div>
-                    <div class="book-expanded-content" style="display: none;">
-                        <h3>${book.title}</h3>
-                        <p><em>${book.author}</em></p>
-                        <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
-                        <p>${book.summary}</p>
-                    </div>
-                `;
+                bookElement.innerHTML = `<div class="book-title">${book.title}</div>`;
                 bookshelf.appendChild(bookElement);
-                bookElement.addEventListener("mouseenter", () => bookElement.querySelector(".book-expanded-content").style.display = "block");
-                bookElement.addEventListener("mouseleave", () => bookElement.querySelector(".book-expanded-content").style.display = "none");
             });
+        }
+
+        function populateFilterOptions(books) {
+            const filterDropdown = document.getElementById("filter");
+            const topics = new Set(books.flatMap(book => book.contentTags || []));
+            topics.forEach(topic => {
+                const option = document.createElement("option");
+                option.value = topic;
+                option.textContent = topic;
+                filterDropdown.appendChild(option);
+            });
+            filterDropdown.addEventListener("change", event => filterBooks(event.target.value, books));
+        }
+
+        function filterBooks(topic, books) {
+            if (topic === "all") {
+                displayBooks(books);
+            } else {
+                displayBooks(books.filter(book => book.contentTags?.includes(topic)));
+            }
         }
 
         fetchBooks();
