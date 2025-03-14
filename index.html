@@ -8,6 +8,17 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        .filter-container {
+            margin-bottom: 20px;
         }
 
         /* Horizontal scrolling shelf */
@@ -15,9 +26,13 @@
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 10px;
+            gap: 15px;
             white-space: nowrap;
             scroll-behavior: smooth;
+            min-height: 320px;
+            align-items: flex-end;
+            background-color: #e0e0e0;
+            border-radius: 5px;
         }
 
         /* Book spine */
@@ -29,17 +44,14 @@
             padding: 10px;
             cursor: pointer;
             border: 1px solid #ccc;
+            border-radius: 2px 5px 5px 2px;
             height: 250px;
             text-align: center;
             transition: all 0.3s ease-in-out;
             background: white;
             overflow: hidden;
             position: relative;
-        }
-
-        /* Book width dynamically scales based on page count */
-        .book[data-pages] {
-            width: calc(80px + (var(--pageCount) * 0.1px));
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
         }
 
         /* Title wraps inside the book spine */
@@ -53,14 +65,10 @@
             word-wrap: break-word;
             overflow: hidden;
             white-space: normal;
-            max-width: 100%;
-            max-height: 60%;
+            width: 100%;
+            max-height: 65%;
             padding: 5px;
-        }
-
-        /* Dynamic font scaling for title */
-        .book[data-pages] .book-title {
-            font-size: clamp(10px, calc(14px - (200px - var(--bookWidth)) * 0.01), 18px);
+            line-height: 1.2;
         }
 
         /* Author wraps properly at the bottom */
@@ -71,7 +79,9 @@
             white-space: normal;
             word-wrap: break-word;
             overflow: hidden;
-            max-width: 100%;
+            width: 100%;
+            margin-top: 10px;
+            line-height: 1.2;
         }
 
         /* Hover Effect */
@@ -80,13 +90,7 @@
             height: 300px; /* Expanded height */
             position: relative;
             z-index: 10;
-        }
-
-        .book:hover .book-content {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.2);
         }
 
         /* Book Details in Hover View */
@@ -96,7 +100,7 @@
             text-align: left;
             padding: 10px;
             overflow: hidden;
-            max-height: 100px; /* Ensures text does not overflow */
+            max-height: 100%;
             text-overflow: ellipsis;
             white-space: normal;
         }
@@ -106,14 +110,35 @@
             display: block;
         }
 
+        .book:hover .book-title, .book:hover .book-author {
+            display: none;
+        }
+
+        /* Book metadata */
+        .book-metadata {
+            font-size: 0.85em;
+            color: #666;
+            margin: 5px 0;
+        }
+
+        /* Book summary */
+        .book-summary {
+            font-size: 0.9em;
+            margin-top: 10px;
+            line-height: 1.4;
+            max-height: 150px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
     <h1>My Reading Tracker</h1>
-    <label for="filter">Filter by Topic:</label>
-    <select id="filter">
-        <option value="all">All</option>
-    </select>
+    <div class="filter-container">
+        <label for="filter">Filter by Topic:</label>
+        <select id="filter">
+            <option value="all">All</option>
+        </select>
+    </div>
     <div class="shelf-container" id="bookshelf"></div>
 
     <script type="module">
@@ -142,6 +167,9 @@
 
                 if (allBooks.length === 0) {
                     console.warn("No books found in Firestore.");
+                    // Add a placeholder message if no books found
+                    document.getElementById("bookshelf").innerHTML = 
+                        '<div class="no-books">No books found in your library. Add some books to get started!</div>';
                 }
 
                 // Extract unique topics from contentTags
@@ -156,6 +184,8 @@
                 displayBooks(allBooks);
             } catch (error) {
                 console.error("Error fetching books:", error);
+                document.getElementById("bookshelf").innerHTML = 
+                    '<div class="error">Error loading books. Please check your connection and try again.</div>';
             }
         }
 
@@ -163,7 +193,7 @@
             const filterDropdown = document.getElementById("filter");
             filterDropdown.innerHTML = '<option value="all">All</option>';
 
-            tags.forEach(tag => {
+            tags.sort().forEach(tag => {
                 const option = document.createElement("option");
                 option.value = tag;
                 option.textContent = tag;
@@ -195,29 +225,64 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
 
-                // Dynamically set width based on page count
-                const pageCount = book.pageCount ? book.pageCount : 200;
-                const bookWidth = Math.max(80, Math.min(200, pageCount * 0.3)); // Prevents extremes
-                bookDiv.style.setProperty("--pageCount", pageCount);
-                bookDiv.style.setProperty("--bookWidth", bookWidth + "px");
-                bookDiv.style.width = bookWidth + "px";
+                // Calculate book width based on page count
+                // Formula: base width + scaled page count, with min/max constraints
+                const pageCount = book.pageCount ? book.pageCount : 200; // Default if no page count
+                // Ensure width scales reasonably with page count
+                // More pages = wider spine, but within reasonable limits
+                const minWidth = 40;  // Minimum width for very short books
+                const maxWidth = 120; // Maximum width for very long books
+                // Scale factor adjusted to create a reasonable curve
+                const scaleFactor = 0.05;
+                const bookWidth = Math.max(minWidth, Math.min(maxWidth, 
+                    minWidth + (Math.log(pageCount) * scaleFactor * pageCount)));
+                
+                bookDiv.style.width = `${bookWidth}px`;
 
-                bookDiv.innerHTML = `
-                    <div class="book-title">${book.title}</div>
-                    <div class="book-author">${book.author}</div>
-                    <div class="book-content">
-                        <strong>${book.title}</strong><br>
-                        <em>${book.author}</em><br>
-                        ${book.pageCount ? `${book.pageCount} pages | ${book.yearPublished || 'Unknown Year'}` : "Page count unknown"}<br>
-                        <p>${book.summary}</p>
+                // Calculate font size based on spine width
+                // Narrower books get smaller text
+                const titleFontSize = Math.max(10, Math.min(16, bookWidth / 8));
+                const authorFontSize = Math.max(8, Math.min(14, bookWidth / 9));
+
+                // Build the book HTML structure
+                const titleDiv = document.createElement("div");
+                titleDiv.classList.add("book-title");
+                titleDiv.textContent = book.title || "Untitled";
+                titleDiv.style.fontSize = `${titleFontSize}px`;
+                
+                const authorDiv = document.createElement("div");
+                authorDiv.classList.add("book-author");
+                authorDiv.textContent = book.author || "Unknown Author";
+                authorDiv.style.fontSize = `${authorFontSize}px`;
+                
+                const contentDiv = document.createElement("div");
+                contentDiv.classList.add("book-content");
+                
+                // Build expanded content (shown on hover)
+                contentDiv.innerHTML = `
+                    <strong>${book.title || "Untitled"}</strong><br>
+                    <em>${book.author || "Unknown Author"}</em>
+                    <div class="book-metadata">
+                        ${book.pageCount ? `${book.pageCount} pages | ` : ""} ${book.yearPublished || "Unknown Year"}
+                    </div>
+                    <div class="book-summary">
+                        ${book.summary || "No summary available."}
                     </div>
                 `;
-
+                
+                // Assemble the book
+                bookDiv.appendChild(titleDiv);
+                bookDiv.appendChild(authorDiv);
+                bookDiv.appendChild(contentDiv);
+                
                 bookshelf.appendChild(bookDiv);
             });
         }
 
-        fetchBooks();
+        // Initialize the app
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchBooks();
+        });
     </script>
 </body>
 </html>
