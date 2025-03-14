@@ -222,8 +222,8 @@
   </script>
   
   <script>
-    // Fetch the combined JSON file
-    fetch('combined-digital-library.json')
+   // Fetch the combined JSON file with enhanced debugging
+fetch('./combined-digital-library.json')  // Note the added ./ prefix
   .then(response => {
     console.log('Response status:', response.status);
     if (!response.ok) {
@@ -233,7 +233,14 @@
   })
   .then(data => {
     console.log('Fetched data:', data);
-    // Your existing code here
+    let books = data.books;
+    
+    // ----------------------------
+    // 1. Dynamically Populate the Filter Dropdown
+    // ----------------------------
+    
+    // Keep the rest of your original code exactly the same
+    // ...
   })
   .catch(error => {
     console.error('Error loading JSON:', error);
