@@ -116,9 +116,9 @@
         const db = getFirestore(app);
 
         function calculateBookWidth(pageCount) {
-    const minWidth = 150; // Ensure books are wide enough for text
-    const scalingFactor = 0.5; // Increase factor to reflect page count more clearly
-    const maxWidth = 400; // Set an upper limit for very long books
+    const minWidth = 180; // Wider default spine width for readability
+    const scalingFactor = 0.8; // Higher scaling factor to emphasize page count
+    const maxWidth = 500; // Allow for more variation in spine width
     return Math.max(minWidth, Math.min(maxWidth, pageCount * scalingFactor));
 }
 
