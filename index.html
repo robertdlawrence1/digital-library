@@ -14,10 +14,11 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+            justify-content: flex-start;
         }
 
         .filter-container {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .filter-container select {
@@ -37,9 +38,10 @@
             align-items: flex-end;
             background-color: #e0e0e0;
             border-radius: 5px;
-            min-height: 450px;
+            min-height: 350px;
             flex-grow: 1;
             box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
+            margin-top: 20px;
         }
 
         .book {
@@ -47,8 +49,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 300px;
-            border-radius: 2px 6px 6px 2px;
+            height: 250px;
+            border-radius: 4px;
             box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
             cursor: pointer;
             padding: 5px;
@@ -66,9 +68,8 @@
         }
 
         .book:hover {
-            height: auto;
-            width: 280px !important;
-            min-width: 280px;
+            width: 250px !important;
+            min-width: 250px;
             writing-mode: horizontal-tb;
             z-index: 100;
             background: white;
@@ -82,6 +83,8 @@
         .book-expanded-content {
             display: none;
             text-align: left;
+            max-width: 220px;
+            white-space: normal;
         }
 
         .book:hover .book-expanded-content {
@@ -136,12 +139,13 @@
                 bookElement.className = "book";
                 bookElement.style.width = `${calculateBookWidth(book.pageCount)}px`;
                 bookElement.innerHTML = `
-                    ${book.title} <br> ${book.author}
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author">${book.author}</div>
                     <div class="book-expanded-content">
                         <h3>${book.title}</h3>
                         <p><em>${book.author}</em></p>
                         <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
-                        <p style="white-space: normal; max-width: 250px;">${book.summary}</p>
+                        <p>${book.summary}</p>
                     </div>
                 `;
                 bookshelf.appendChild(bookElement);
