@@ -32,7 +32,7 @@
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 25px;
+            gap: 20px;
             white-space: nowrap;
             scroll-behavior: smooth;
             align-items: flex-start;
@@ -42,6 +42,7 @@
             flex-grow: 1;
             box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
             margin-top: 10px;
+            flex-wrap: nowrap;
         }
 
         .book {
@@ -65,8 +66,8 @@
         }
 
         .book:hover {
-            width: 350px !important;
-            min-width: 350px;
+            width: 400px !important;
+            min-width: 400px;
             z-index: 100;
             background: white;
             border-radius: 5px;
@@ -79,7 +80,7 @@
         .book-expanded-content {
             display: none;
             text-align: left;
-            max-width: 320px;
+            max-width: 380px;
             white-space: normal;
         }
 
@@ -115,28 +116,30 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        function calculateBookWidth(pageCount) {
-    const minWidth = 180; // Wider default spine width for readability
-    const scalingFactor = 0.8; // Higher scaling factor to emphasize page count
-    const maxWidth = 500; // Allow for more variation in spine width
-    return Math.max(minWidth, Math.min(maxWidth, pageCount * scalingFactor));
-}
-
         async function fetchBooks() {
-            const bookshelf = document.getElementById("bookshelf");
             const booksSnapshot = await getDocs(collection(db, "books"));
             const books = booksSnapshot.docs.map(doc => doc.data());
             displayBooks(books);
             populateFilterOptions(books);
         }
 
+        function calculateBookWidth(pageCount, minPageCount, maxPageCount) {
+            const minWidth = 150;
+            const maxWidth = 500;
+            return minWidth + ((pageCount - minPageCount) / (maxPageCount - minPageCount)) * (maxWidth - minWidth);
+        }
+
         function displayBooks(books) {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = '';
+            
+            const minPageCount = Math.min(...books.map(b => b.pageCount));
+            const maxPageCount = Math.max(...books.map(b => b.pageCount));
+
             books.forEach(book => {
                 const bookElement = document.createElement("div");
                 bookElement.className = "book";
-                bookElement.style.width = `${calculateBookWidth(book.pageCount)}px`;
+                bookElement.style.width = `${calculateBookWidth(book.pageCount, minPageCount, maxPageCount)}px`;
                 bookElement.innerHTML = `
                     <strong>${book.title}</strong><br>
                     <em>${book.author}</em>
