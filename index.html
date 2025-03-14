@@ -23,14 +23,26 @@
             width: 120px;
             min-height: 150px;
             text-align: center;
-            transition: transform 0.3s ease-in-out;
+            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+            overflow: hidden;
+            white-space: nowrap;
         }
         .book:hover {
-            transform: scale(1.2);
+            transform: scale(1.3);
+            width: 250px;
+            min-height: 200px;
+            white-space: normal;
         }
-        .book.expanded {
-            width: 200px;
-            min-height: 250px;
+        .book:hover .description {
+            display: block;
+            max-height: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .description {
+            display: none;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -44,13 +56,13 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, updateDoc, doc } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
             authDomain: "digital-library-4f53e.firebaseapp.com",
             projectId: "digital-library-4f53e",
-            storageBucket: "digital-library-4f53e.firebasestorage.app",
+            storageBucket: "digital-library-4f53e.appspot.com",
             messagingSenderId: "775289018267",
             appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
         };
@@ -62,28 +74,67 @@
             const booksCollection = collection(db, "books");
             const booksSnapshot = await getDocs(booksCollection);
             const books = booksSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            // Extract unique topics from contentTags
+            const topics = new Set();
+            books.forEach(book => {
+                if (book.contentTags && Array.isArray(book.contentTags)) {
+                    book.contentTags.forEach(tag => topics.add(tag));
+                }
+            });
+
+            populateFilter([...topics]);  // Convert Set to Array
             displayBooks(books);
+        }
+
+        function populateFilter(tags) {
+            const filterDropdown = document.getElementById("filter");
+            filterDropdown.innerHTML = '<option value="all">All</option>';
+
+            tags.forEach(tag => {
+                const option = document.createElement("option");
+                option.value = tag;
+                option.textContent = tag;
+                filterDropdown.appendChild(option);
+            });
+
+            filterDropdown.addEventListener("change", (event) => {
+                filterBooks(event.target.value);
+            });
+        }
+
+        function filterBooks(selectedTag) {
+            fetchBooks().then(books => {
+                if (selectedTag !== "all") {
+                    books = books.filter(book => book.contentTags && book.contentTags.includes(selectedTag));
+                }
+                displayBooks(books);
+            });
         }
 
         function displayBooks(books) {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = "";
-            
+
             books.forEach(book => {
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
-                bookDiv.textContent = book.title;
-                
+                bookDiv.innerHTML = `<strong>${book.title}</strong>`;
+
+                const description = document.createElement("div");
+                description.classList.add("description");
+                description.innerHTML = `<em>${book.author}</em><br>${book.summary}`;
+
+                bookDiv.appendChild(description);
+
                 bookDiv.addEventListener("mouseover", () => {
-                    bookDiv.classList.add("expanded");
-                    bookDiv.innerHTML = `<strong>${book.title}</strong><br><em>${book.author}</em><br>${book.summary}`;
+                    description.style.display = "block";
                 });
-                
+
                 bookDiv.addEventListener("mouseleave", () => {
-                    bookDiv.classList.remove("expanded");
-                    bookDiv.textContent = book.title;
+                    description.style.display = "none";
                 });
-                
+
                 bookshelf.appendChild(bookDiv);
             });
         }
