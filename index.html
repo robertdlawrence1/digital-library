@@ -24,7 +24,7 @@
       gap: 10px;
       justify-content: center;
     }
-    /* Style for filter buttons */
+    /* Filter button styling */
     .filter-button {
       padding: 8px 16px;
       border-radius: 20px;
@@ -125,38 +125,38 @@
     let activeFilters = [];
     const maxFilters = 3; // Maximum of 3 tags can be selected
 
-    // Global library min and max page counts (computed once)
-    let libraryMin = Infinity;
-    let libraryMax = -Infinity;
+    // Global variables to store library-wide min and max page counts (computed once)
+    let LIBRARY_MIN = Infinity;
+    let LIBRARY_MAX = -Infinity;
 
-    // 1. Fetch all books and compute library-wide min/max page counts
+    // Fetch all books and compute global min/max page counts
     async function fetchBooks() {
       const snapshot = await getDocs(collection(db, "books"));
       allBooks = snapshot.docs.map(doc => doc.data());
 
-      // Compute global min and max from the entire library
+      // Compute global min and max page counts across the entire library
       allBooks.forEach(book => {
-        if (book.pageCount < libraryMin) libraryMin = book.pageCount;
-        if (book.pageCount > libraryMax) libraryMax = book.pageCount;
+        if (book.pageCount < LIBRARY_MIN) LIBRARY_MIN = book.pageCount;
+        if (book.pageCount > LIBRARY_MAX) LIBRARY_MAX = book.pageCount;
       });
       // Prevent division by zero if all books have the same pageCount
-      if (libraryMin === libraryMax) {
-        libraryMin = 0;
+      if (LIBRARY_MIN === LIBRARY_MAX) {
+        LIBRARY_MIN = 0;
       }
 
       displayBooks(allBooks);
       createFilterButtons(allBooks);
     }
 
-    // 2. Calculate spine width using global min/max (fixed for the entire library)
+    // Calculate the spine width using the global LIBRARY_MIN and LIBRARY_MAX
     function calculateSpineWidth(pageCount) {
       const minWidth = 150;
       const maxWidth = 500;
-      const ratio = (pageCount - libraryMin) / (libraryMax - libraryMin);
+      const ratio = (pageCount - LIBRARY_MIN) / (LIBRARY_MAX - LIBRARY_MIN);
       return Math.round(minWidth + ratio * (maxWidth - minWidth));
     }
 
-    // 3. Display the provided list of books (using fixed spine widths)
+    // Display a list of books with fixed spine widths based on global values
     function displayBooks(books) {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
@@ -167,7 +167,7 @@
       books.forEach(book => {
         const bookDiv = document.createElement("div");
         bookDiv.className = "book";
-        // Use global library values for consistent scaling
+        // Use the fixed global min/max to compute the width
         bookDiv.style.width = calculateSpineWidth(book.pageCount) + "px";
         bookDiv.innerHTML = `
           <strong>${book.title}</strong><br>
@@ -183,7 +183,7 @@
       });
     }
 
-    // 4. Create filter buttons for each unique tag (contentTags)
+    // Create filter buttons for each unique tag across the entire library
     function createFilterButtons(books) {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
@@ -197,20 +197,20 @@
       });
     }
 
-    // 5. Toggle filter: allow a maximum of 3 tags; filtering does not affect spine width
+    // Toggle filter selection (max 3 filters allowed)
     function toggleFilter(tag, btn) {
       if (activeFilters.includes(tag)) {
         activeFilters = activeFilters.filter(t => t !== tag);
         btn.classList.remove("selected");
       } else {
-        if (activeFilters.length >= maxFilters) return; // Prevent selecting more than 3 tags
+        if (activeFilters.length >= maxFilters) return;
         activeFilters.push(tag);
         btn.classList.add("selected");
       }
       applyFilters();
     }
 
-    // 6. Apply filters: only show books that include every selected tag
+    // Apply the active filters to the global book list; widths remain computed from global LIBRARY_MIN/MAX
     function applyFilters() {
       if (activeFilters.length === 0) {
         displayBooks(allBooks);
