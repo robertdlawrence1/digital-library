@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Reading Tracker</title>
   <style>
+    /* Base styling */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       text-align: center;
@@ -17,6 +18,11 @@
       justify-content: flex-start;
     }
 
+    h1 {
+      margin-top: 0;
+    }
+
+    /* Filter buttons */
     .filter-container {
       display: flex;
       flex-wrap: wrap;
@@ -34,18 +40,19 @@
       font-size: 14px;
       transition: background-color 0.2s, color 0.2s, border 0.2s;
     }
+    
     .filter-button.selected {
       background-color: #8B4513;
       color: #fff;
       border-color: #5a2d0c;
     }
 
+    /* Bookshelf */
     .shelf-container {
       display: flex;
       overflow-x: auto;
       padding: 20px;
       gap: 10px;
-      white-space: nowrap;
       scroll-behavior: smooth;
       align-items: flex-start;
       background-color: #e0e0e0;
@@ -56,7 +63,7 @@
       margin-top: 10px;
     }
 
-    /* Book spines */
+    /* Book styling */
     .book {
       display: flex;
       flex-direction: column;
@@ -67,20 +74,40 @@
       box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
       cursor: pointer;
       padding: 15px;
-      overflow: hidden;
       position: relative;
       color: #fff;
       background-color: #8B4513;
       text-align: center;
       font-size: 14px;
-      word-wrap: break-word;
-      white-space: normal;
-      transition: width 0.3s ease;
+      flex-shrink: 0; /* Critical: prevents flex resizing */
+      text-overflow: ellipsis;
+      /* Important: No transitions on the base state */
     }
 
-    /* Hover expansion: only changes width to reveal description */
+    /* Spine text (vertical mode) */
+    .book-spine-text {
+      width: 100%;
+      text-align: center;
+      overflow: hidden;
+      white-space: normal;
+      word-wrap: break-word;
+      /* Limit to prevent text overflow */
+      max-height: 360px;
+    }
+
+    /* Expanded book */
+    .book-expanded-content {
+      display: none;
+      text-align: left;
+      max-width: 380px;
+      white-space: normal;
+      overflow-y: auto;
+      max-height: 360px;
+    }
+
+    /* Hover effects - completely separate from base styling */
     .book:hover {
-      width: 400px !important;
+      width: 400px !important; /* Force override */
       min-width: 400px;
       z-index: 100;
       background: #fff;
@@ -89,25 +116,21 @@
       overflow-y: auto;
       padding: 20px;
       color: #000;
+      transition: width 0.3s ease, background-color 0.3s ease, color 0.3s ease;
     }
-
-    .book-spine-text {
-      width: 100%;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    .book-expanded-content {
-      display: none;
-      text-align: left;
-      max-width: 380px;
-      white-space: normal;
-    }
+    
     .book:hover .book-expanded-content {
       display: block;
     }
+    
     .book:hover .book-spine-text {
       display: none;
+    }
+
+    /* Messages */
+    .message {
+      padding: 20px;
+      color: #555;
     }
   </style>
 </head>
@@ -120,6 +143,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
       authDomain: "digital-library-4f53e.firebaseapp.com",
@@ -133,105 +157,100 @@
     initializeApp(firebaseConfig);
     const db = getFirestore();
 
-    let allBooks = [];
-    let activeFilters = [];
-    const maxFilters = 3;
+    // State management
+    const state = {
+      allBooks: [],         // Complete book collection
+      displayedBooks: [],   // Currently displayed books (filtered or all)
+      spineWidths: new Map(), // Map of book ID to spine width
+      activeFilters: [],    // Active filter tags
+      maxFilters: 3         // Maximum allowed filters
+    };
 
-    // Logarithmic spine width calculation
+    // Pure function to calculate spine width based on page count
     function calculateSpineWidth(pageCount) {
-      // Constants for spine width calculation
+      // Constants
       const MIN_WIDTH = 30;  // Minimum width in pixels
-      const MAX_WIDTH = 120; // Maximum width in pixels
+      const MAX_WIDTH = 100; // Maximum width in pixels
+      const BASE_WIDTH = 20; // Base width for all books
       
-      // Safety check - ensure we have a valid number
+      // Validate input - default to 200 if invalid
       const pages = Math.max(1, Number(pageCount) || 200);
       
-      // Logarithmic scaling formula
-      // This creates a curve where width increases more quickly for smaller books
-      // and more slowly for larger books
-      const logBase = 10;
-      const scale = 35; // Scaling factor
-      
-      // Calculate width using logarithm
-      const width = MIN_WIDTH + scale * Math.log(pages) / Math.log(logBase);
+      // Logarithmic scaling with a more gradual curve
+      // Log base 5 gives more distinction between thin and thick books
+      const logFactor = Math.log(pages) / Math.log(5);
+      const scaledWidth = BASE_WIDTH + (logFactor * 8);
       
       // Ensure width is within bounds
-      return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(width)));
+      return Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(scaledWidth)));
     }
 
-    async function fetchBooks() {
-      try {
-        const snapshot = await getDocs(collection(db, "books"));
-        allBooks = snapshot.docs.map(doc => {
-          const data = doc.data();
-          // Store the ID and data
-          return { id: doc.id, ...data };
-        });
-        
-        // Pre-calculate spine widths once during load
-        allBooks.forEach(book => {
-          const pageCount = Number(book.pageCount) || 200;
-          book.spineWidth = calculateSpineWidth(pageCount);
-        });
-        
-        displayBooks(allBooks);
-        createFilterButtons(allBooks);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-        document.getElementById("bookshelf").innerHTML = 
-          "<p>Error loading books. Please check your connection.</p>";
-      }
+    // Pure function to create a book element
+    function createBookElement(book) {
+      const bookDiv = document.createElement("div");
+      bookDiv.className = "book";
+      bookDiv.dataset.id = book.id; // Store ID for reference
+      
+      // Use the pre-calculated width from our spine width map
+      const width = state.spineWidths.get(book.id);
+      
+      // Apply width directly and force it as an inline style
+      // Add !important to inline style
+      bookDiv.style.cssText = `width: ${width}px !important; min-width: ${width}px;`;
+      
+      // Create content
+      bookDiv.innerHTML = `
+        <div class="book-spine-text">
+          <strong>${book.title}</strong><br>
+          <em>${book.author}</em>
+        </div>
+        <div class="book-expanded-content">
+          <h3>${book.title}</h3>
+          <p><em>by ${book.author}</em></p>
+          <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
+          <p>${book.summary || ""}</p>
+          ${book.contentTags ? `<p>Tags: ${book.contentTags.join(", ")}</p>` : ""}
+        </div>
+      `;
+      
+      return bookDiv;
     }
 
-    function displayBooks(books) {
+    // Render the book display based on current state
+    function renderBooks() {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
-
-      if (!books.length) {
-        shelf.innerHTML = "<p>No books found matching these filters.</p>";
+      
+      if (!state.displayedBooks.length) {
+        const message = document.createElement("div");
+        message.className = "message";
+        message.textContent = "No books found matching these filters.";
+        shelf.appendChild(message);
         return;
       }
-
-      books.forEach(book => {
-        const bookDiv = document.createElement("div");
-        bookDiv.className = "book";
-        
-        // Set the pre-calculated width - this ensures consistency 
-        // even when filtering changes which books are displayed
-        bookDiv.style.width = book.spineWidth + "px";
-        
-        bookDiv.innerHTML = `
-          <div class="book-spine-text">
-            <strong>${book.title}</strong><br>
-            <em>${book.author}</em>
-          </div>
-          <div class="book-expanded-content">
-            <h3>${book.title}</h3>
-            <p><em>by ${book.author}</em></p>
-            <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
-            <p>${book.summary || ""}</p>
-            ${book.contentTags ? `<p>Tags: ${book.contentTags.join(", ")}</p>` : ""}
-          </div>
-        `;
-        
-        shelf.appendChild(bookDiv);
+      
+      // Create and append book elements
+      state.displayedBooks.forEach(book => {
+        const bookElement = createBookElement(book);
+        shelf.appendChild(bookElement);
       });
     }
 
-    function createFilterButtons(books) {
+    // Create filter buttons based on available tags
+    function createFilterButtons() {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
       
       // Extract all unique tags
-      const tags = new Set();
-      books.forEach(book => {
+      const allTags = new Set();
+      state.allBooks.forEach(book => {
         if (book.contentTags && Array.isArray(book.contentTags)) {
-          book.contentTags.forEach(tag => tags.add(tag));
+          book.contentTags.forEach(tag => allTags.add(tag));
         }
       });
       
-      // Create a button for each tag, sorted alphabetically
-      Array.from(tags).sort().forEach(tag => {
+      // Create buttons in alphabetical order
+      Array.from(allTags).sort().forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
         btn.textContent = tag;
@@ -240,41 +259,81 @@
       });
     }
 
-    function toggleFilter(tag, btn) {
-      if (activeFilters.includes(tag)) {
+    // Toggle a filter on/off
+    function toggleFilter(tag, buttonElement) {
+      if (state.activeFilters.includes(tag)) {
         // Remove filter
-        activeFilters = activeFilters.filter(t => t !== tag);
-        btn.classList.remove("selected");
+        state.activeFilters = state.activeFilters.filter(t => t !== tag);
+        buttonElement.classList.remove("selected");
       } else {
         // Add filter if not exceeding max
-        if (activeFilters.length >= maxFilters) return;
-        activeFilters.push(tag);
-        btn.classList.add("selected");
+        if (state.activeFilters.length >= state.maxFilters) return;
+        state.activeFilters.push(tag);
+        buttonElement.classList.add("selected");
       }
       
-      // Apply filters but don't recalculate spine widths
+      // Apply filters and update display
       applyFilters();
     }
 
+    // Apply current filters to the book collection
     function applyFilters() {
-      if (!activeFilters.length) {
-        // No filters - show all books
-        displayBooks(allBooks);
+      if (!state.activeFilters.length) {
+        // No filters active - show all books
+        state.displayedBooks = [...state.allBooks];
       } else {
-        // Filter books that have ALL selected tags
-        const filtered = allBooks.filter(book =>
-          activeFilters.every(tag => 
+        // Filter to books containing ALL selected tags
+        state.displayedBooks = state.allBooks.filter(book => 
+          state.activeFilters.every(tag => 
             book.contentTags && 
             Array.isArray(book.contentTags) && 
             book.contentTags.includes(tag)
           )
         );
-        displayBooks(filtered);
+      }
+      
+      // Re-render with new selection
+      renderBooks();
+    }
+
+    // Initial data load
+    async function loadBookData() {
+      try {
+        // Show loading indicator
+        document.getElementById("bookshelf").innerHTML = 
+          "<div class='message'>Loading your book collection...</div>";
+        
+        // Fetch books from Firestore
+        const snapshot = await getDocs(collection(db, "books"));
+        
+        // Process book data
+        state.allBooks = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { id: doc.id, ...data };
+        });
+        
+        // Pre-calculate all spine widths and store in map
+        state.allBooks.forEach(book => {
+          const width = calculateSpineWidth(book.pageCount);
+          state.spineWidths.set(book.id, width);
+        });
+        
+        // Initialize displayed books to all books
+        state.displayedBooks = [...state.allBooks];
+        
+        // Create UI elements
+        createFilterButtons();
+        renderBooks();
+        
+      } catch (error) {
+        console.error("Error loading book data:", error);
+        document.getElementById("bookshelf").innerHTML = 
+          "<div class='message'>Error loading books. Please check your connection and try again.</div>";
       }
     }
 
-    // Initial load
-    fetchBooks();
+    // Start the application
+    loadBookData();
   </script>
 </body>
 </html>
