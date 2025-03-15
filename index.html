@@ -45,7 +45,7 @@
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 15px;
+            gap: 20px;
             white-space: nowrap;
             scroll-behavior: smooth;
             align-items: flex-start;
@@ -124,6 +124,7 @@
         const db = getFirestore(app);
         let allBooks = [];
         let activeFilters = new Set();
+        const maxFilters = 3;
 
         async function fetchBooks() {
             const booksSnapshot = await getDocs(collection(db, "books"));
@@ -170,7 +171,12 @@
         }
 
         function toggleFilter(topic, button) {
-            activeFilters.has(topic) ? activeFilters.delete(topic) : activeFilters.add(topic);
+            if (activeFilters.has(topic)) {
+                activeFilters.delete(topic);
+            } else {
+                if (activeFilters.size >= maxFilters) return;
+                activeFilters.add(topic);
+            }
             button.classList.toggle("active");
             filterBooks();
         }
