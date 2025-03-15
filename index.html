@@ -1,193 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Reading Tracker</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-        }
-
-        .filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .filter-button {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: 1px solid #555;
-            background-color: white;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .filter-button.selected {
-            background-color: #555;
-            color: white;
-        }
-
-        .shelf-container {
-            display: flex;
-            overflow-x: auto;
-            padding: 20px;
-            gap: 15px;
-            white-space: nowrap;
-            scroll-behavior: smooth;
-            align-items: flex-start;
-            background-color: #e0e0e0;
-            border-radius: 5px;
-            min-height: 550px;
-            flex-grow: 1;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
-            margin-top: 10px;
-        }
-
-        .book {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 400px;
-            border-radius: 4px;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
-            cursor: pointer;
-            padding: 15px;
-            transition: all 0.3s ease;
-            overflow: hidden;
-            position: relative;
-            color: #fff;
-            background-color: #8B4513;
-            text-align: center;
-            font-size: 18px;
-            white-space: normal;
-        }
-
-        .book:hover {
-            width: 350px !important;
-            min-width: 350px;
-            z-index: 100;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            overflow-y: auto;
-            padding: 20px;
-            color: #000;
-        }
-
-        .book-expanded-content {
-            display: none;
-            text-align: left;
-            max-width: 320px;
-            white-space: normal;
-        }
-
-        .book:hover .book-expanded-content {
-            display: block;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Reading Tracker</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+    /* Filter buttons container */
+    .filter-container {
+      margin-bottom: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    /* Style for filter buttons */
+    .filter-button {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 2px solid #555;
+      background-color: #eee;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s, color 0.2s, border 0.2s;
+    }
+    .filter-button.selected {
+      background-color: #8B4513;
+      color: #fff;
+      border-color: #5a2d0c;
+    }
+    /* Bookshelf container */
+    .shelf-container {
+      display: flex;
+      overflow-x: auto;
+      padding: 20px;
+      gap: 20px;
+      white-space: nowrap;
+      scroll-behavior: smooth;
+      align-items: flex-start;
+      background-color: #e0e0e0;
+      border-radius: 5px;
+      min-height: 550px;
+      flex-grow: 1;
+      box-shadow: inset 0 5px 15px rgba(0, 0, 0, 0.1);
+      margin-top: 10px;
+    }
+    /* Book spine styling */
+    .book {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 400px;
+      border-radius: 4px;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      padding: 15px;
+      transition: all 0.3s ease;
+      overflow: hidden;
+      position: relative;
+      color: #fff;
+      background-color: #8B4513;
+      text-align: center;
+      font-size: 18px;
+      white-space: normal;
+    }
+    /* Expanded view on hover */
+    .book:hover {
+      width: 400px !important;
+      min-width: 400px;
+      z-index: 100;
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      overflow-y: auto;
+      padding: 20px;
+      color: #000;
+    }
+    .book-expanded-content {
+      display: none;
+      text-align: left;
+      max-width: 380px;
+      white-space: normal;
+    }
+    .book:hover .book-expanded-content {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <h1>My Reading Tracker</h1>
-    <div class="filter-container" id="filter-buttons"></div>
-    <div class="shelf-container" id="bookshelf"></div>
+  <h1>My Reading Tracker</h1>
+  <div class="filter-container" id="filter-buttons"></div>
+  <div class="shelf-container" id="bookshelf"></div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
-            authDomain: "digital-library-4f53e.firebaseapp.com",
-            projectId: "digital-library-4f53e",
-            storageBucket: "digital-library-4f53e.appspot.com",
-            messagingSenderId: "775289018267",
-            appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
-            measurementId: "G-4BVT6LVMHX"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
+      authDomain: "digital-library-4f53e.firebaseapp.com",
+      projectId: "digital-library-4f53e",
+      storageBucket: "digital-library-4f53e.appspot.com",
+      messagingSenderId: "775289018267",
+      appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
+      measurementId: "G-4BVT6LVMHX"
+    };
 
-        function calculateBookWidth(pageCount) {
-            return Math.max(100, Math.min(250, pageCount / 3));
-        }
+    // Initialize Firebase and Firestore
+    initializeApp(firebaseConfig);
+    const db = getFirestore();
 
-        async function fetchBooks() {
-            const booksSnapshot = await getDocs(collection(db, "books"));
-            const books = booksSnapshot.docs.map(doc => doc.data());
-            displayBooks(books);
-            createFilterButtons(books);
-        }
+    let allBooks = [];
+    let activeFilters = [];
+    const maxFilters = 3; // Maximum of 3 tags can be selected
 
-        function displayBooks(books) {
-            const bookshelf = document.getElementById("bookshelf");
-            bookshelf.innerHTML = '';
-            books.forEach(book => {
-                const bookElement = document.createElement("div");
-                bookElement.className = "book";
-                bookElement.style.width = `${calculateBookWidth(book.pageCount)}px`;
-                bookElement.innerHTML = `
-                    <strong>${book.title}</strong><br>
-                    <em>${book.author}</em>
-                    <div class="book-expanded-content">
-                        <h3>${book.title}</h3>
-                        <p><em>${book.author}</em></p>
-                        <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
-                        <p>${book.summary}</p>
-                    </div>
-                `;
-                bookshelf.appendChild(bookElement);
-            });
-        }
+    // Global library min and max page counts (computed once)
+    let libraryMin = Infinity;
+    let libraryMax = -Infinity;
 
-        function createFilterButtons(books) {
-            const filterContainer = document.getElementById("filter-buttons");
-            const topics = new Set(books.flatMap(book => book.contentTags || []));
-            filterContainer.innerHTML = '';
-            topics.forEach(topic => {
-                const button = document.createElement("button");
-                button.className = "filter-button";
-                button.textContent = topic;
-                button.onclick = () => toggleFilter(topic, books);
-                filterContainer.appendChild(button);
-            });
-        }
+    // 1. Fetch all books and compute library-wide min/max page counts
+    async function fetchBooks() {
+      const snapshot = await getDocs(collection(db, "books"));
+      allBooks = snapshot.docs.map(doc => doc.data());
 
-        let activeFilters = [];
-        function toggleFilter(topic, books) {
-            const button = [...document.getElementsByClassName("filter-button")].find(btn => btn.textContent === topic);
-            if (activeFilters.includes(topic)) {
-                activeFilters = activeFilters.filter(f => f !== topic);
-                button.classList.remove("selected");
-            } else if (activeFilters.length < 3) {
-                activeFilters.push(topic);
-                button.classList.add("selected");
-            }
-            filterBooks(books);
-        }
+      // Compute global min and max from the entire library
+      allBooks.forEach(book => {
+        if (book.pageCount < libraryMin) libraryMin = book.pageCount;
+        if (book.pageCount > libraryMax) libraryMax = book.pageCount;
+      });
+      // Prevent division by zero if all books have the same pageCount
+      if (libraryMin === libraryMax) {
+        libraryMin = 0;
+      }
 
-        function filterBooks(books) {
-            if (activeFilters.length === 0) {
-                displayBooks(books);
-            } else {
-                displayBooks(books.filter(book => activeFilters.every(tag => book.contentTags?.includes(tag))));
-            }
-        }
+      displayBooks(allBooks);
+      createFilterButtons(allBooks);
+    }
 
-        fetchBooks();
-    </script>
+    // 2. Calculate spine width using global min/max (fixed for the entire library)
+    function calculateSpineWidth(pageCount) {
+      const minWidth = 150;
+      const maxWidth = 500;
+      const ratio = (pageCount - libraryMin) / (libraryMax - libraryMin);
+      return Math.round(minWidth + ratio * (maxWidth - minWidth));
+    }
+
+    // 3. Display the provided list of books (using fixed spine widths)
+    function displayBooks(books) {
+      const shelf = document.getElementById("bookshelf");
+      shelf.innerHTML = "";
+      if (!books.length) {
+        shelf.innerHTML = "<p>No books found.</p>";
+        return;
+      }
+      books.forEach(book => {
+        const bookDiv = document.createElement("div");
+        bookDiv.className = "book";
+        // Use global library values for consistent scaling
+        bookDiv.style.width = calculateSpineWidth(book.pageCount) + "px";
+        bookDiv.innerHTML = `
+          <strong>${book.title}</strong><br>
+          <em>${book.author}</em>
+          <div class="book-expanded-content">
+            <h3>${book.title}</h3>
+            <p><em>${book.author}</em></p>
+            <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
+            <p>${book.summary}</p>
+          </div>
+        `;
+        shelf.appendChild(bookDiv);
+      });
+    }
+
+    // 4. Create filter buttons for each unique tag (contentTags)
+    function createFilterButtons(books) {
+      const container = document.getElementById("filter-buttons");
+      container.innerHTML = "";
+      const tags = new Set(books.flatMap(book => book.contentTags || []));
+      tags.forEach(tag => {
+        const btn = document.createElement("button");
+        btn.className = "filter-button";
+        btn.textContent = tag;
+        btn.addEventListener("click", () => toggleFilter(tag, btn));
+        container.appendChild(btn);
+      });
+    }
+
+    // 5. Toggle filter: allow a maximum of 3 tags; filtering does not affect spine width
+    function toggleFilter(tag, btn) {
+      if (activeFilters.includes(tag)) {
+        activeFilters = activeFilters.filter(t => t !== tag);
+        btn.classList.remove("selected");
+      } else {
+        if (activeFilters.length >= maxFilters) return; // Prevent selecting more than 3 tags
+        activeFilters.push(tag);
+        btn.classList.add("selected");
+      }
+      applyFilters();
+    }
+
+    // 6. Apply filters: only show books that include every selected tag
+    function applyFilters() {
+      if (activeFilters.length === 0) {
+        displayBooks(allBooks);
+      } else {
+        const filtered = allBooks.filter(book =>
+          activeFilters.every(tag => book.contentTags && book.contentTags.includes(tag))
+        );
+        displayBooks(filtered);
+      }
+    }
+
+    fetchBooks();
+  </script>
 </body>
 </html>
