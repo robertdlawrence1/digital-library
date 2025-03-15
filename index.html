@@ -79,18 +79,20 @@
       text-align: center;
       font-size: 14px;
       flex-shrink: 0;
-      text-overflow: ellipsis;
       transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      /* Width will be set inline via JS */
+      /* The width will be set inline via JS */
     }
 
-    /* Spine text (vertical mode) */
+    /* Spine text styling:
+       - 'white-space: normal' and 'word-break: normal' to avoid splitting words
+       - 'overflow-wrap: normal' so it only wraps at spaces, not in the middle of words */
     .book-spine-text {
       width: 100%;
       text-align: center;
       overflow: hidden;
       white-space: normal;
-      word-wrap: break-word;
+      word-break: normal;
+      overflow-wrap: normal;
       max-height: 360px;
     }
 
@@ -98,10 +100,12 @@
     .book-expanded-content {
       display: none;
       text-align: left;
+      white-space: normal;      /* same no-break style for expanded text */
+      word-break: normal;
+      overflow-wrap: normal;
       max-width: 380px;
-      white-space: normal;
-      overflow-y: auto;
       max-height: 360px;
+      overflow-y: auto;
     }
     .book.expanded {
       width: 400px !important;
@@ -133,7 +137,6 @@
   <div class="filter-container" id="filter-buttons"></div>
   <div class="shelf-container" id="bookshelf"></div>
 
-  <!-- Main script -->
   <script type="module">
     /****************************************************
      *  Firebase Setup
@@ -162,31 +165,27 @@
      *  Application State
      ****************************************************/
     const state = {
-      allBooks: [],         // Complete book collection
-      displayedBooks: [],   // Currently displayed books (filtered or all)
-      activeFilters: [],    // Active filter tags
-      maxFilters: 3         // Maximum allowed filters
+      allBooks: [],
+      displayedBooks: [],
+      activeFilters: [],
+      maxFilters: 3
     };
 
     /****************************************************
      *  Spine Width Calculation
-     *  (Linear approach for more noticeable differences)
+     *  (Adjust these constants to make widths more or less dramatic)
      ****************************************************/
     function calculateSpineWidth(pageCount) {
-      // Safeguards
       const pages = Math.max(1, Number(pageCount) || 200);
 
-      // You can tweak these constants
-      const MIN_WIDTH = 20;   // narrower spines
-      const MAX_WIDTH = 150;  // thicker spines for very large page counts
-      const MAX_PAGES = 2000; // clamp at 2,000 pages for the upper bound
+      // Increase the max width to make thick books REALLY stand out
+      const MIN_WIDTH = 20;    // narrower minimum
+      const MAX_WIDTH = 300;   // wider maximum
+      const MAX_PAGES = 2000;  // if a book is over 2,000 pages, we cap it
 
-      // Constrain page count so it doesn't exceed our scale
+      // Linear ratio from 0 to 1
       const clampedPages = Math.min(pages, MAX_PAGES);
-
-      // ratio from 0 to 1
       const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
-      // final width
       const width = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
 
       return Math.round(width);
@@ -199,7 +198,7 @@
       const bookDiv = document.createElement("div");
       bookDiv.className = "book";
 
-      // Calculate spine width & apply inline style
+      // Apply inline width based on page count
       const spineWidth = calculateSpineWidth(book.pageCount);
       bookDiv.style.width = spineWidth + "px";
       bookDiv.style.minWidth = spineWidth + "px";
@@ -217,16 +216,15 @@
           <p>${book.summary || ""}</p>
           ${
             book.contentTags 
-            ? `<p>Tags: ${book.contentTags.join(", ")}</p>` 
-            : ""
+              ? `<p>Tags: ${book.contentTags.join(", ")}</p>` 
+              : ""
           }
         </div>
       `;
 
-      // Click to toggle expanded
+      // Toggle expanded view
       bookDiv.addEventListener("click", (e) => {
         bookDiv.classList.toggle("expanded");
-        // If expanding, collapse any others
         if (bookDiv.classList.contains("expanded")) {
           document.querySelectorAll(".book.expanded").forEach(expandedBook => {
             if (expandedBook !== bookDiv) {
@@ -298,11 +296,9 @@
      ****************************************************/
     function toggleFilter(tag, buttonElement) {
       if (state.activeFilters.includes(tag)) {
-        // Remove filter
         state.activeFilters = state.activeFilters.filter(t => t !== tag);
         buttonElement.classList.remove("selected");
       } else {
-        // Add filter if not exceeding max
         if (state.activeFilters.length >= state.maxFilters) return;
         state.activeFilters.push(tag);
         buttonElement.classList.add("selected");
@@ -337,13 +333,12 @@
 
         const snapshot = await getDocs(collection(db, "books"));
 
-        // Map documents to JS objects
         state.allBooks = snapshot.docs.map(doc => {
           const data = doc.data();
           return { id: doc.id, ...data };
         });
 
-        // Debugging: log page counts to confirm numeric data
+        // Debug: Log page counts
         console.log("Loaded books:", state.allBooks.map(b => ({
           title: b.title,
           pageCount: b.pageCount
