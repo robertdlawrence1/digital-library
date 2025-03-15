@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Reading Tracker</title>
   <style>
     body {
@@ -16,15 +16,15 @@
       flex-direction: column;
       justify-content: flex-start;
     }
-    /* Filter buttons container */
+
     .filter-container {
-      margin-bottom: 20px;
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
       justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
     }
-    /* Filter button styling */
+
     .filter-button {
       padding: 8px 16px;
       border-radius: 20px;
@@ -39,7 +39,7 @@
       color: #fff;
       border-color: #5a2d0c;
     }
-    /* Bookshelf container */
+
     .shelf-container {
       display: flex;
       overflow-x: auto;
@@ -55,7 +55,8 @@
       box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
       margin-top: 10px;
     }
-    /* Book spine styling */
+
+    /* Book spines */
     .book {
       display: flex;
       flex-direction: column;
@@ -66,7 +67,6 @@
       box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
       cursor: pointer;
       padding: 15px;
-      transition: all 0.3s ease;
       overflow: hidden;
       position: relative;
       color: #fff;
@@ -74,8 +74,11 @@
       text-align: center;
       font-size: 18px;
       white-space: normal;
+      /* Smooth transition for hover expansion */
+      transition: width 0.3s ease;
     }
-    /* Expanded view on hover */
+
+    /* Hover expansion: only changes width to reveal description */
     .book:hover {
       width: 400px !important;
       min-width: 400px;
@@ -87,6 +90,7 @@
       padding: 20px;
       color: #000;
     }
+
     .book-expanded-content {
       display: none;
       text-align: left;
@@ -117,63 +121,49 @@
       measurementId: "G-4BVT6LVMHX"
     };
 
-    // Initialize Firebase and Firestore
     initializeApp(firebaseConfig);
     const db = getFirestore();
 
     let allBooks = [];
     let activeFilters = [];
-    const maxFilters = 3; // Maximum of 3 filters
+    const maxFilters = 3;
 
-    // Global variables to store library-wide min and max page counts (computed once)
-    let LIBRARY_MIN = Infinity;
-    let LIBRARY_MAX = -Infinity;
+    // A simple formula for spine width:
+    //  baseWidth + pageCount * factor
+    // Adjust to your preference
+    const BASE_WIDTH = 150; // default base
+    const PAGE_FACTOR = 0.3; // how much each page adds
 
-    // Fetch all books and compute global min/max; also pre-calculate spine widths.
+    // 1. Fetch all books & store each book's spine width in the book object.
     async function fetchBooks() {
       const snapshot = await getDocs(collection(db, "books"));
       allBooks = snapshot.docs.map(doc => doc.data());
 
-      // Compute global min and max page counts
+      // Precompute a fixed spineWidth for each book, used forever
       allBooks.forEach(book => {
-        if (book.pageCount < LIBRARY_MIN) LIBRARY_MIN = book.pageCount;
-        if (book.pageCount > LIBRARY_MAX) LIBRARY_MAX = book.pageCount;
-      });
-      // Avoid division by zero if all books have the same pageCount.
-      if (LIBRARY_MIN === LIBRARY_MAX) {
-        LIBRARY_MIN = 0;
-      }
-
-      // Pre-calculate spine width for each book and store it.
-      allBooks.forEach(book => {
-        book.spineWidth = calculateSpineWidth(book.pageCount);
+        const pages = Number(book.pageCount) || 200;
+        book.spineWidth = Math.round(BASE_WIDTH + pages * PAGE_FACTOR);
       });
 
       displayBooks(allBooks);
       createFilterButtons(allBooks);
     }
 
-    // Calculate the spine width using the fixed global values.
-    function calculateSpineWidth(pageCount) {
-      const minWidth = 150;
-      const maxWidth = 500;
-      const ratio = (pageCount - LIBRARY_MIN) / (LIBRARY_MAX - LIBRARY_MIN);
-      return Math.round(minWidth + ratio * (maxWidth - minWidth));
-    }
-
-    // Display books using the pre-calculated spine width.
+    // 2. Display the books. Spine widths come from book.spineWidth (never recalculated).
     function displayBooks(books) {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
+
       if (!books.length) {
         shelf.innerHTML = "<p>No books found.</p>";
         return;
       }
+
       books.forEach(book => {
         const bookDiv = document.createElement("div");
         bookDiv.className = "book";
-        // Use the stored spineWidth
         bookDiv.style.width = book.spineWidth + "px";
+
         bookDiv.innerHTML = `
           <strong>${book.title}</strong><br>
           <em>${book.author}</em>
@@ -188,11 +178,11 @@
       });
     }
 
-    // Create filter buttons for each unique tag across the entire library.
+    // 3. Create filter buttons for each unique tag
     function createFilterButtons(books) {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
-      const tags = new Set(books.flatMap(book => book.contentTags || []));
+      const tags = new Set(books.flatMap(b => b.contentTags || []));
       tags.forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
@@ -202,7 +192,7 @@
       });
     }
 
-    // Toggle filter selection (limit to maxFilters).
+    // 4. Toggle up to 3 filters, no re-scaling
     function toggleFilter(tag, btn) {
       if (activeFilters.includes(tag)) {
         activeFilters = activeFilters.filter(t => t !== tag);
@@ -215,9 +205,9 @@
       applyFilters();
     }
 
-    // Apply filters: only show books that include every selected tag.
+    // 5. Show/hide books based on filters, but keep spineWidth the same
     function applyFilters() {
-      if (activeFilters.length === 0) {
+      if (!activeFilters.length) {
         displayBooks(allBooks);
       } else {
         const filtered = allBooks.filter(book =>
