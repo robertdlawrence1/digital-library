@@ -45,7 +45,7 @@
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 25px;
+            gap: 15px;
             white-space: nowrap;
             scroll-behavior: smooth;
             align-items: flex-start;
@@ -133,10 +133,7 @@
         }
 
         function calculateBookWidth(pageCount) {
-            const minWidth = 150;
-            const maxWidth = 450;
-            const maxPageCount = Math.max(...allBooks.map(b => b.pageCount), 1000);
-            return Math.max(minWidth, Math.min(maxWidth, (pageCount / maxPageCount) * (maxWidth - minWidth) + minWidth));
+            return Math.max(200, Math.min(450, pageCount / 2));
         }
 
         function displayBooks(books) {
