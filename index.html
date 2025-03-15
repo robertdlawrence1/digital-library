@@ -34,6 +34,7 @@
       font-size: 14px;
       transition: background-color 0.2s, color 0.2s, border 0.2s;
     }
+    
     .filter-button.selected {
       background-color: #8B4513;
       color: #fff;
@@ -44,7 +45,7 @@
       display: flex;
       overflow-x: auto;
       padding: 20px;
-      gap: 20px;
+      gap: 10px;
       white-space: nowrap;
       scroll-behavior: smooth;
       align-items: flex-start;
@@ -66,19 +67,17 @@
       border-radius: 4px;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
       cursor: pointer;
-      padding: 15px;
+      padding: 10px 5px;
       overflow: hidden;
       position: relative;
       color: #fff;
       background-color: #8B4513;
       text-align: center;
-      font-size: 18px;
       white-space: normal;
-      /* Smooth transition for hover expansion */
-      transition: width 0.3s ease;
+      word-wrap: break-word;
+      transition: width 0.3s ease, transform 0.2s ease;
     }
 
-    /* Hover expansion: only changes width to reveal description */
     .book:hover {
       width: 400px !important;
       min-width: 400px;
@@ -89,6 +88,28 @@
       overflow-y: auto;
       padding: 20px;
       color: #000;
+      transform: translateY(-10px);
+    }
+
+    .spine-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      transform: rotate(0deg);
+      word-wrap: break-word;
+      overflow: hidden;
+    }
+
+    .page-indicator {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      font-size: 10px;
+      opacity: 0.8;
     }
 
     .book-expanded-content {
@@ -97,8 +118,13 @@
       max-width: 380px;
       white-space: normal;
     }
+    
     .book:hover .book-expanded-content {
       display: block;
+    }
+    
+    .book:hover .spine-content {
+      display: none;
     }
   </style>
 </head>
@@ -128,34 +154,70 @@
     let activeFilters = [];
     const maxFilters = 3;
 
-    // A simple formula for spine width:
-    //  baseWidth + pageCount * factor
-    // Adjust to your preference
-    const BASE_WIDTH = 150; // default base
-    const PAGE_FACTOR = 0.3; // how much each page adds
-
-    // 1. Fetch all books & store each book's spine width in the book object.
+    // Constants for spine width calculation
+    const MIN_WIDTH = 30;         // Minimum width in pixels
+    const MAX_WIDTH = 120;        // Maximum width in pixels
+    const BASE_WIDTH = 40;        // Base width for even a 0-page book
+    const MIN_PAGES = 100;        // Reference point for short books
+    const MAX_PAGES = 1000;       // Reference point for long books
+    
+    // Font size calculation values
+    const MIN_FONT_SIZE = 10;
+    const MAX_FONT_SIZE = 16;
+    
     async function fetchBooks() {
-      const snapshot = await getDocs(collection(db, "books"));
-      allBooks = snapshot.docs.map(doc => doc.data());
-
-      // Precompute a fixed spineWidth for each book, used forever
-      allBooks.forEach(book => {
-        const pages = Number(book.pageCount) || 200;
-        book.spineWidth = Math.round(BASE_WIDTH + pages * PAGE_FACTOR);
-      });
-
-      displayBooks(allBooks);
-      createFilterButtons(allBooks);
+      try {
+        const snapshot = await getDocs(collection(db, "books"));
+        allBooks = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return { id: doc.id, ...data };
+        });
+        
+        // Calculate spine widths based on page count
+        allBooks.forEach(book => {
+          const pageCount = Number(book.pageCount) || 200;
+          
+          // Calculate width based on page count
+          let spineWidth;
+          if (pageCount <= MIN_PAGES) {
+            // Linear scaling for thin books
+            spineWidth = BASE_WIDTH + (pageCount / MIN_PAGES) * (MIN_WIDTH - BASE_WIDTH);
+          } else if (pageCount >= MAX_PAGES) {
+            // Cap at max width for very thick books
+            spineWidth = MAX_WIDTH;
+          } else {
+            // Progressive scaling for medium to thick books
+            const ratio = (pageCount - MIN_PAGES) / (MAX_PAGES - MIN_PAGES);
+            spineWidth = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
+          }
+          
+          book.spineWidth = Math.round(spineWidth);
+          
+          // Calculate font size based on spine width
+          book.fontSize = Math.max(
+            MIN_FONT_SIZE, 
+            Math.min(MAX_FONT_SIZE, MIN_FONT_SIZE + (spineWidth / MAX_WIDTH) * (MAX_FONT_SIZE - MIN_FONT_SIZE))
+          );
+        });
+        
+        // Sort by spine width (page count) for a more organized shelf
+        allBooks.sort((a, b) => b.spineWidth - a.spineWidth);
+        
+        displayBooks(allBooks);
+        createFilterButtons(allBooks);
+      } catch (error) {
+        console.error("Error fetching books:", error);
+        document.getElementById("bookshelf").innerHTML = 
+          "<p>Error loading books. Please try again later.</p>";
+      }
     }
 
-    // 2. Display the books. Spine widths come from book.spineWidth (never recalculated).
     function displayBooks(books) {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
 
       if (!books.length) {
-        shelf.innerHTML = "<p>No books found.</p>";
+        shelf.innerHTML = "<p>No books found matching these filters.</p>";
         return;
       }
 
@@ -163,27 +225,49 @@
         const bookDiv = document.createElement("div");
         bookDiv.className = "book";
         bookDiv.style.width = book.spineWidth + "px";
-
+        
+        // Create text orientation based on spine width
+        const useVerticalText = book.spineWidth < 50;
+        const textRotation = useVerticalText ? "rotate(90deg)" : "rotate(0deg)";
+        const textAlign = useVerticalText ? "left" : "center";
+        
         bookDiv.innerHTML = `
-          <strong>${book.title}</strong><br>
-          <em>${book.author}</em>
+          <div class="spine-content" style="
+            font-size: ${book.fontSize}px; 
+            transform: ${textRotation};
+            text-align: ${textAlign};
+          ">
+            <strong>${book.title}</strong>
+            <small>${book.author}</small>
+          </div>
+          <div class="page-indicator">${book.pageCount}p</div>
           <div class="book-expanded-content">
             <h3>${book.title}</h3>
-            <p><em>${book.author}</em></p>
-            <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
-            <p>${book.summary}</p>
+            <p><em>by ${book.author}</em></p>
+            <p><strong>${book.pageCount} pages</strong> | Published: ${book.yearPublished || "Unknown"}</p>
+            <p>${book.summary || "No summary available."}</p>
+            ${book.contentTags ? `<p>Tags: ${book.contentTags.join(", ")}</p>` : ""}
           </div>
         `;
+        
         shelf.appendChild(bookDiv);
       });
     }
 
-    // 3. Create filter buttons for each unique tag
     function createFilterButtons(books) {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
-      const tags = new Set(books.flatMap(b => b.contentTags || []));
-      tags.forEach(tag => {
+      
+      // Extract all unique tags
+      const tags = new Set();
+      books.forEach(book => {
+        if (book.contentTags && Array.isArray(book.contentTags)) {
+          book.contentTags.forEach(tag => tags.add(tag));
+        }
+      });
+      
+      // Create a button for each tag
+      Array.from(tags).sort().forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
         btn.textContent = tag;
@@ -192,31 +276,41 @@
       });
     }
 
-    // 4. Toggle up to 3 filters, no re-scaling
     function toggleFilter(tag, btn) {
       if (activeFilters.includes(tag)) {
+        // Remove filter if already active
         activeFilters = activeFilters.filter(t => t !== tag);
         btn.classList.remove("selected");
       } else {
-        if (activeFilters.length >= maxFilters) return;
+        // Add filter if not at max
+        if (activeFilters.length >= maxFilters) {
+          alert(`Maximum ${maxFilters} filters can be applied at once.`);
+          return;
+        }
         activeFilters.push(tag);
         btn.classList.add("selected");
       }
       applyFilters();
     }
 
-    // 5. Show/hide books based on filters, but keep spineWidth the same
     function applyFilters() {
       if (!activeFilters.length) {
+        // No filters - show all books
         displayBooks(allBooks);
       } else {
+        // Filter books that have ALL selected tags
         const filtered = allBooks.filter(book =>
-          activeFilters.every(tag => book.contentTags && book.contentTags.includes(tag))
+          activeFilters.every(tag => 
+            book.contentTags && 
+            Array.isArray(book.contentTags) && 
+            book.contentTags.includes(tag)
+          )
         );
         displayBooks(filtered);
       }
     }
 
+    // Start the application
     fetchBooks();
   </script>
 </body>
