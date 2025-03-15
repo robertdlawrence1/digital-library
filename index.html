@@ -18,34 +18,32 @@
         }
 
         .filter-container {
-            margin-bottom: 10px;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
             justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
         }
 
         .filter-button {
-            padding: 8px 15px;
+            padding: 8px 16px;
             border-radius: 20px;
-            border: 2px solid #555;
-            background-color: #ddd;
+            border: 1px solid #555;
+            background-color: white;
             cursor: pointer;
             font-size: 14px;
-            transition: background-color 0.2s, color 0.2s, border 0.2s;
         }
 
-        .filter-button.active {
-            background-color: #8B4513;
+        .filter-button.selected {
+            background-color: #555;
             color: white;
-            border: 2px solid #5a2d0c;
         }
 
         .shelf-container {
             display: flex;
             overflow-x: auto;
             padding: 20px;
-            gap: 20px;
+            gap: 15px;
             white-space: nowrap;
             scroll-behavior: smooth;
             align-items: flex-start;
@@ -78,8 +76,8 @@
         }
 
         .book:hover {
-            width: 450px !important;
-            min-width: 450px;
+            width: 350px !important;
+            min-width: 350px;
             z-index: 100;
             background: white;
             border-radius: 5px;
@@ -92,7 +90,7 @@
         .book-expanded-content {
             display: none;
             text-align: left;
-            max-width: 420px;
+            max-width: 320px;
             white-space: normal;
         }
 
@@ -122,19 +120,16 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
-        let allBooks = [];
-        let activeFilters = new Set();
-        const maxFilters = 3;
+
+        function calculateBookWidth(pageCount) {
+            return Math.max(100, Math.min(250, pageCount / 3));
+        }
 
         async function fetchBooks() {
             const booksSnapshot = await getDocs(collection(db, "books"));
-            allBooks = booksSnapshot.docs.map(doc => doc.data());
-            displayBooks(allBooks);
-            populateFilterButtons(allBooks);
-        }
-
-        function calculateBookWidth(pageCount) {
-            return Math.max(200, Math.min(450, pageCount / 2));
+            const books = booksSnapshot.docs.map(doc => doc.data());
+            displayBooks(books);
+            createFilterButtons(books);
         }
 
         function displayBooks(books) {
@@ -158,31 +153,38 @@
             });
         }
 
-        function populateFilterButtons(books) {
+        function createFilterButtons(books) {
             const filterContainer = document.getElementById("filter-buttons");
             const topics = new Set(books.flatMap(book => book.contentTags || []));
+            filterContainer.innerHTML = '';
             topics.forEach(topic => {
                 const button = document.createElement("button");
                 button.className = "filter-button";
                 button.textContent = topic;
-                button.onclick = () => toggleFilter(topic, button);
+                button.onclick = () => toggleFilter(topic, books);
                 filterContainer.appendChild(button);
             });
         }
 
-        function toggleFilter(topic, button) {
-            if (activeFilters.has(topic)) {
-                activeFilters.delete(topic);
-            } else {
-                if (activeFilters.size >= maxFilters) return;
-                activeFilters.add(topic);
+        let activeFilters = [];
+        function toggleFilter(topic, books) {
+            const button = [...document.getElementsByClassName("filter-button")].find(btn => btn.textContent === topic);
+            if (activeFilters.includes(topic)) {
+                activeFilters = activeFilters.filter(f => f !== topic);
+                button.classList.remove("selected");
+            } else if (activeFilters.length < 3) {
+                activeFilters.push(topic);
+                button.classList.add("selected");
             }
-            button.classList.toggle("active");
-            filterBooks();
+            filterBooks(books);
         }
 
-        function filterBooks() {
-            displayBooks(allBooks.filter(book => [...activeFilters].every(tag => book.contentTags.includes(tag))) || allBooks);
+        function filterBooks(books) {
+            if (activeFilters.length === 0) {
+                displayBooks(books);
+            } else {
+                displayBooks(books.filter(book => activeFilters.every(tag => book.contentTags?.includes(tag))));
+            }
         }
 
         fetchBooks();
