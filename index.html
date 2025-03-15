@@ -40,7 +40,6 @@
       font-size: 14px;
       transition: background-color 0.2s, color 0.2s, border 0.2s;
     }
-    
     .filter-button.selected {
       background-color: #8B4513;
       color: #fff;
@@ -79,29 +78,11 @@
       background-color: #8B4513;
       text-align: center;
       font-size: 14px;
-      flex-shrink: 0; /* Critical: prevents flex resizing */
+      flex-shrink: 0;
       text-overflow: ellipsis;
       transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      /* Default width - will be overridden by data attribute */
-      width: 30px;
+      /* Width will be set inline via JS */
     }
-
-    /* Dynamic spine width based on data attribute */
-    .book[data-spine-width="30"] { width: 30px; min-width: 30px; }
-    .book[data-spine-width="35"] { width: 35px; min-width: 35px; }
-    .book[data-spine-width="40"] { width: 40px; min-width: 40px; }
-    .book[data-spine-width="45"] { width: 45px; min-width: 45px; }
-    .book[data-spine-width="50"] { width: 50px; min-width: 50px; }
-    .book[data-spine-width="55"] { width: 55px; min-width: 55px; }
-    .book[data-spine-width="60"] { width: 60px; min-width: 60px; }
-    .book[data-spine-width="65"] { width: 65px; min-width: 65px; }
-    .book[data-spine-width="70"] { width: 70px; min-width: 70px; }
-    .book[data-spine-width="75"] { width: 75px; min-width: 75px; }
-    .book[data-spine-width="80"] { width: 80px; min-width: 80px; }
-    .book[data-spine-width="85"] { width: 85px; min-width: 85px; }
-    .book[data-spine-width="90"] { width: 90px; min-width: 90px; }
-    .book[data-spine-width="95"] { width: 95px; min-width: 95px; }
-    .book[data-spine-width="100"] { width: 100px; min-width: 100px; }
 
     /* Spine text (vertical mode) */
     .book-spine-text {
@@ -110,7 +91,6 @@
       overflow: hidden;
       white-space: normal;
       word-wrap: break-word;
-      /* Limit to prevent text overflow */
       max-height: 360px;
     }
 
@@ -123,8 +103,6 @@
       overflow-y: auto;
       max-height: 360px;
     }
-
-    /* Hover state */
     .book.expanded {
       width: 400px !important;
       min-width: 400px !important;
@@ -136,11 +114,9 @@
       padding: 20px;
       color: #000;
     }
-    
     .book.expanded .book-expanded-content {
       display: block;
     }
-    
     .book.expanded .book-spine-text {
       display: none;
     }
@@ -157,25 +133,34 @@
   <div class="filter-container" id="filter-buttons"></div>
   <div class="shelf-container" id="bookshelf"></div>
 
+  <!-- Main script -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+    /****************************************************
+     *  Firebase Setup
+     ****************************************************/
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-    // Initialize Firebase
+    // Your web app's Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
       authDomain: "digital-library-4f53e.firebaseapp.com",
       projectId: "digital-library-4f53e",
-      storageBucket: "digital-library-4f53e.appspot.com",
+      storageBucket: "digital-library-4f53e.firebasestorage.app",
       messagingSenderId: "775289018267",
       appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
       measurementId: "G-4BVT6LVMHX"
     };
 
-    initializeApp(firebaseConfig);
-    const db = getFirestore();
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getFirestore(app);
 
-    // State management
+    /****************************************************
+     *  Application State
+     ****************************************************/
     const state = {
       allBooks: [],         // Complete book collection
       displayedBooks: [],   // Currently displayed books (filtered or all)
@@ -183,37 +168,43 @@
       maxFilters: 3         // Maximum allowed filters
     };
 
-    // Calculate spine width based on page count
+    /****************************************************
+     *  Spine Width Calculation
+     *  (Linear approach for more noticeable differences)
+     ****************************************************/
     function calculateSpineWidth(pageCount) {
-      // Constants
-      const MIN_WIDTH = 30;  // Minimum width in pixels
-      const MAX_WIDTH = 100; // Maximum width in pixels
-      const BASE_WIDTH = 20; // Base width for all books
-      
-      // Validate input - default to 200 if invalid
+      // Safeguards
       const pages = Math.max(1, Number(pageCount) || 200);
-      
-      // Logarithmic scaling with a more gradual curve
-      const logFactor = Math.log(pages) / Math.log(5);
-      const scaledWidth = BASE_WIDTH + (logFactor * 8);
-      
-      // Ensure width is within bounds
-      // Round to nearest 5px increment for CSS class compatibility
-      const width = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, Math.round(scaledWidth)));
-      return Math.round(width / 5) * 5;
+
+      // You can tweak these constants
+      const MIN_WIDTH = 20;   // narrower spines
+      const MAX_WIDTH = 150;  // thicker spines for very large page counts
+      const MAX_PAGES = 2000; // clamp at 2,000 pages for the upper bound
+
+      // Constrain page count so it doesn't exceed our scale
+      const clampedPages = Math.min(pages, MAX_PAGES);
+
+      // ratio from 0 to 1
+      const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
+      // final width
+      const width = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
+
+      return Math.round(width);
     }
 
-    // Create a book element
+    /****************************************************
+     *  Create Book Element
+     ****************************************************/
     function createBookElement(book) {
       const bookDiv = document.createElement("div");
       bookDiv.className = "book";
-      bookDiv.dataset.id = book.id;
-      
-      // Calculate spine width and set as data attribute
+
+      // Calculate spine width & apply inline style
       const spineWidth = calculateSpineWidth(book.pageCount);
-      bookDiv.dataset.spineWidth = spineWidth;
-      
-      // Create content
+      bookDiv.style.width = spineWidth + "px";
+      bookDiv.style.minWidth = spineWidth + "px";
+
+      // Build inner HTML
       bookDiv.innerHTML = `
         <div class="book-spine-text">
           <strong>${book.title}</strong><br>
@@ -224,16 +215,18 @@
           <p><em>by ${book.author}</em></p>
           <p>${book.pageCount} pages | Published: ${book.yearPublished || "Unknown"}</p>
           <p>${book.summary || ""}</p>
-          ${book.contentTags ? `<p>Tags: ${book.contentTags.join(", ")}</p>` : ""}
+          ${
+            book.contentTags 
+            ? `<p>Tags: ${book.contentTags.join(", ")}</p>` 
+            : ""
+          }
         </div>
       `;
-      
-      // Add event listeners for expanding/collapsing
+
+      // Click to toggle expanded
       bookDiv.addEventListener("click", (e) => {
-        // Toggle expanded class
         bookDiv.classList.toggle("expanded");
-        
-        // If expanding this book, collapse any others
+        // If expanding, collapse any others
         if (bookDiv.classList.contains("expanded")) {
           document.querySelectorAll(".book.expanded").forEach(expandedBook => {
             if (expandedBook !== bookDiv) {
@@ -241,18 +234,19 @@
             }
           });
         }
-        
         e.stopPropagation();
       });
-      
+
       return bookDiv;
     }
 
-    // Render books based on current state
+    /****************************************************
+     *  Render Books
+     ****************************************************/
     function renderBooks() {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
-      
+
       if (!state.displayedBooks.length) {
         const message = document.createElement("div");
         message.className = "message";
@@ -260,37 +254,36 @@
         shelf.appendChild(message);
         return;
       }
-      
-      // Create and append book elements
+
       state.displayedBooks.forEach(book => {
         const bookElement = createBookElement(book);
         shelf.appendChild(bookElement);
       });
-      
-      // Add event listener to collapse expanded books when clicking elsewhere
+
+      // Collapse expanded books if clicking outside
       document.addEventListener("click", (e) => {
         if (!e.target.closest(".book")) {
-          document.querySelectorAll(".book.expanded").forEach(book => {
-            book.classList.remove("expanded");
-          });
+          document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
         }
       });
     }
 
-    // Create filter buttons
+    /****************************************************
+     *  Create Filter Buttons
+     ****************************************************/
     function createFilterButtons() {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
-      
-      // Extract all unique tags
+
+      // Gather all unique tags
       const allTags = new Set();
       state.allBooks.forEach(book => {
-        if (book.contentTags && Array.isArray(book.contentTags)) {
+        if (Array.isArray(book.contentTags)) {
           book.contentTags.forEach(tag => allTags.add(tag));
         }
       });
-      
-      // Create buttons in alphabetical order
+
+      // Sort and create buttons
       Array.from(allTags).sort().forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
@@ -300,7 +293,9 @@
       });
     }
 
-    // Toggle filter on/off
+    /****************************************************
+     *  Toggle Filter On/Off
+     ****************************************************/
     function toggleFilter(tag, buttonElement) {
       if (state.activeFilters.includes(tag)) {
         // Remove filter
@@ -312,71 +307,65 @@
         state.activeFilters.push(tag);
         buttonElement.classList.add("selected");
       }
-      
-      // Apply filters and update display
       applyFilters();
     }
 
-    // Apply current filters
+    /****************************************************
+     *  Apply Filters
+     ****************************************************/
     function applyFilters() {
       if (!state.activeFilters.length) {
-        // No filters active - show all books
         state.displayedBooks = [...state.allBooks];
       } else {
-        // Filter to books containing ALL selected tags
-        state.displayedBooks = state.allBooks.filter(book => 
-          state.activeFilters.every(tag => 
-            book.contentTags && 
-            Array.isArray(book.contentTags) && 
-            book.contentTags.includes(tag)
+        // Book must contain ALL selected tags
+        state.displayedBooks = state.allBooks.filter(book =>
+          state.activeFilters.every(tag =>
+            Array.isArray(book.contentTags) && book.contentTags.includes(tag)
           )
         );
       }
-      
-      // Re-render with new selection
       renderBooks();
     }
 
-    // Initial data load
+    /****************************************************
+     *  Load Data from Firestore
+     ****************************************************/
     async function loadBookData() {
       try {
-        // Show loading indicator
-        document.getElementById("bookshelf").innerHTML = 
+        document.getElementById("bookshelf").innerHTML =
           "<div class='message'>Loading your book collection...</div>";
-        
-        // Fetch books from Firestore
+
         const snapshot = await getDocs(collection(db, "books"));
-        
-        // Process book data
+
+        // Map documents to JS objects
         state.allBooks = snapshot.docs.map(doc => {
           const data = doc.data();
           return { id: doc.id, ...data };
         });
-        
-        // Initialize displayed books to all books
+
+        // Debugging: log page counts to confirm numeric data
+        console.log("Loaded books:", state.allBooks.map(b => ({
+          title: b.title,
+          pageCount: b.pageCount
+        })));
+
+        // Initialize displayed books
         state.displayedBooks = [...state.allBooks];
-        
-        // Create UI elements
+
+        // Create UI
         createFilterButtons();
         renderBooks();
-        
+
       } catch (error) {
         console.error("Error loading book data:", error);
-        document.getElementById("bookshelf").innerHTML = 
+        document.getElementById("bookshelf").innerHTML =
           "<div class='message'>Error loading books. Please check your connection and try again.</div>";
       }
     }
 
-    // Add event listener to close expanded books when clicking outside
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".book")) {
-        document.querySelectorAll(".book.expanded").forEach(book => {
-          book.classList.remove("expanded");
-        });
-      }
-    });
-
-    // Start the application
+    /****************************************************
+     *  Start the Application
+     ****************************************************/
     document.addEventListener("DOMContentLoaded", () => {
       loadBookData();
     });
