@@ -197,12 +197,13 @@ body.dark-mode .book.expanded {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 80%; /* Increased from 75% */
+  height: 85%; /* Increased from 80% */
   font-family: 'Georgia', serif;
-  padding: 5px 2px; /* Reduced horizontal padding */
-  margin: 5px auto;
-  line-height: 1.1; /* Slightly tighter line height */
+  padding: 3px 1px; /* Minimal horizontal padding */
+  margin: 3px auto;
+  line-height: 1;
   overflow: hidden;
+  width: 90%; /* Control width to prevent overflow */
 }
 
 /* Make sure horizontal text is well-styled too */
