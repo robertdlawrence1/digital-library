@@ -247,4 +247,32 @@ body.dark-mode .theme-toggle:hover {
     body.dark-mode .theme-toggle:hover {
       background: #8B4513;
     }
+
+    /* Responsive layout adjustments */
+    @media (max-width: 768px) {
+      .shelf-container {
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        align-items: center;
+      }
+    
+      .book {
+        width: 85% !important;
+        height: auto !important;
+        min-height: 150px;
+        margin-bottom: 15px;
+      }
+    
+      .filter-container {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+      }
+    
+      .filter-button {
+        flex-shrink: 0;
+      }
+    }
+
   </style>
