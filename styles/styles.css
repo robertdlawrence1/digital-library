@@ -189,10 +189,53 @@ body.dark-mode .book.expanded {
   display: block;
 }
 
-/* Title orientation classes */
-.title-zone.horizontal,
+/* Improved vertical text styling */
 .title-zone.vertical {
-  white-space: normal;        /* can wrap at spaces */
-  word-break: normal;         /* do not break words */
-  overflow-wrap: normal;      /* do not forcibly break words */
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 75%;
+  font-family: 'Georgia', serif;
+  padding: 10px 3px;
+  margin: 5px auto;
+  line-height: 1.2;
+  text-align: center;
+  /* Ensure the text doesn't spill outside the spine */
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Make sure horizontal text is well-styled too */
+.title-zone.horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px 4px;
+  height: 75%;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+/* Author zone needs to be carefully placed with vertical titles */
+.book-spine-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Changed from space-around for better positioning */
+  height: 100%;
+  width: 100%;
+}
+
+.author-zone {
+  padding: 5px 3px;
+  font-size: 0.85em;
+  /* Always horizontal, even with vertical title */
+  text-align: center;
+  height: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
