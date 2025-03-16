@@ -83,21 +83,39 @@ function toggleDarkMode() {
 /****************************************************
  * Spine Width Calculation
  ****************************************************/
+
 function calculateSpineWidth(pageCount) {
-  const minSpineWidth = 30;
-  const maxSpineWidth = 90;
-  const minPages = 100;  // Minimum page count threshold
-  const maxPages = 1000; // Maximum page count threshold
+  // Base values
+  const minSpineWidth = 28;  // Thinnest possible spine
+  const maxSpineWidth = 85;  // Thickest possible spine
+  const minPages = 50;       // Minimum page count threshold
+  const maxPages = 1200;     // Maximum page count threshold
 
-  if (!pageCount) return minSpineWidth;
+  if (!pageCount || pageCount < minPages) return minSpineWidth;
 
-  // Clamp pageCount to between minPages and maxPages
-  const normalizedPages = Math.min(Math.max(pageCount, minPages), maxPages);
-
-  // Linear interpolation for spine width
-  const spineWidth = minSpineWidth + ((normalizedPages - minPages) / (maxPages - minPages)) * (maxSpineWidth - minSpineWidth);
-
-  return Math.round(spineWidth);
+  // Map the page count to our desired range
+  let normalizedPages = Math.min(Math.max(pageCount, minPages), maxPages);
+  
+  // Use a non-linear scale with power curve instead of logarithmic
+  // This gives a more natural progression of spine widths
+  
+  // First, calculate the base percentage of the range
+  const basePercentage = (normalizedPages - minPages) / (maxPages - minPages);
+  
+  // Then apply a power function to create a curve
+  // Values less than 1 create a curve that grows quickly at first, then slows down
+  // Values greater than 1 create a curve that starts slow, then accelerates
+  const curveStrength = 0.65; // Adjust this value to change the curve shape
+  const adjustedPercentage = Math.pow(basePercentage, curveStrength);
+  
+  // Calculate spine width
+  const spineWidth = minSpineWidth + adjustedPercentage * (maxSpineWidth - minSpineWidth);
+  
+  // Add a small random variation to make the bookshelf look more natural
+  // Range is +/- 2px but weighted toward center (multiplying random values)
+  const variation = (Math.random() - 0.5) * (Math.random() * 3);
+  
+  return Math.round(spineWidth + variation);
 }
 
 /****************************************************
@@ -121,21 +139,62 @@ function averageHue(tags) {
 }
 
 /****************************************************
- * fitTextToContainer: Adjust font-size so content fits.
+ * Enhanced Text Fitting for Book Spines
  ****************************************************/
-function fitTextToContainer(el, minFontSize = 8) {
+function improvedTextFitting(el, minFontSize = 9, maxFontSize = 16) {
   if (!el) return;
   const container = el.parentElement;
   if (!container) return;
-
-  let fontSize = parseFloat(window.getComputedStyle(el).fontSize);
-  for (let i = 0; i < 50; i++) {
-    if (el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight) {
-      if (fontSize <= minFontSize) break;
-      fontSize -= 1;
-      el.style.fontSize = fontSize + "px";
-    } else {
-      break;
+  
+  // Reset any existing font size to start fresh
+  el.style.fontSize = '';
+  
+  // Get the original text content
+  const originalText = el.textContent;
+  const isVertical = el.classList.contains('vertical');
+  
+  // Different approaches for vertical vs horizontal text
+  if (isVertical) {
+    // For vertical text, we focus more on height constraints
+    let fontSize = maxFontSize;
+    el.style.fontSize = fontSize + 'px';
+    
+    // Reduce font size until text fits
+    while ((el.scrollHeight > container.clientHeight * 0.75 || el.scrollWidth > container.clientWidth) && fontSize > minFontSize) {
+      fontSize -= 0.5;
+      el.style.fontSize = fontSize + 'px';
+    }
+    
+    // If text still doesn't fit, we need to truncate
+    if (el.scrollHeight > container.clientHeight * 0.75 && originalText.length > 12) {
+      // Calculate approximately how many characters we can fit
+      const approxCharsPerHeight = Math.floor((container.clientHeight * 0.75) / (fontSize * 1.2));
+      if (approxCharsPerHeight < originalText.length) {
+        el.textContent = originalText.substring(0, approxCharsPerHeight - 3) + '...';
+      }
+    }
+  } else {
+    // For horizontal text, width is usually the constraint
+    let fontSize = maxFontSize;
+    el.style.fontSize = fontSize + 'px';
+    
+    // Check if title fits in container
+    while ((el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight * 0.75) && fontSize > minFontSize) {
+      fontSize -= 0.5;
+      el.style.fontSize = fontSize + 'px';
+    }
+    
+    // If font is at minimum and still overflowing, truncate with ellipsis
+    if ((el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight * 0.75) && originalText.length > 8) {
+      // Calculate approximately how many characters we can fit
+      const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || fontSize * 1.2;
+      const availableLines = Math.floor((container.clientHeight * 0.75) / lineHeight);
+      const charsPerLine = Math.floor(container.clientWidth / (fontSize * 0.6));
+      const totalChars = availableLines * charsPerLine;
+      
+      if (totalChars < originalText.length) {
+        el.textContent = originalText.substring(0, totalChars - 3) + '...';
+      }
     }
   }
 }
@@ -206,6 +265,20 @@ function createBookElement(book) {
     e.stopPropagation();
   });
 
+  // Decide if title text should be vertical based on spine width and title length
+  const spineWidth = calculateSpineWidth(book.pageCount);
+  const titleThreshold = spineWidth < 45 ? 12 : 25; // Different threshold based on spine width
+  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 40;
+  const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
+  
+  // ... rest of existing code ...
+  
+  // Call improved text fitting instead of the old fitTextToContainer
+  const titleEl = bookDiv.querySelector('.title-zone');
+  const authorEl = bookDiv.querySelector('.author-zone');
+  improvedTextFitting(titleEl);
+  improvedTextFitting(authorEl, 8, 14); // Slightly different params for author text
+  
   return bookDiv;
 }
 
