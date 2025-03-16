@@ -66,7 +66,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 400px;                /* Spine height is fixed at 400px */
+      height: 400px;       /* Fixed height for the spine */
       border-radius: 4px;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
       cursor: pointer;
@@ -75,10 +75,10 @@
       color: #fff;
       background-color: #8B4513;
       text-align: center;
-      font-size: 14px;             /* This is the initial base font size */
+      font-size: 14px;    /* Base font size */
       flex-shrink: 0;
       transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      /* The spine width is set inline via JS (calculateSpineWidth) */
+      /* Spine width is set inline via JS */
     }
 
     /****************************************************
@@ -92,40 +92,42 @@
       height: 100%;
     }
 
-    /* Title zone (2/3 of the spine height).
-       For short titles (<= 50 chars), we keep it horizontal.
-       For long titles (> 50 chars), we make it vertical. */
+    /* Title zone (2/3 of the spine).
+       Horizontal if <= 50 chars; vertical if > 50. */
     .title-zone {
-      flex: 2;                     /* top 2/3 of the spine */
+      flex: 2;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 5px;
-      overflow: visible;          /* let text flow, but we rely on JS to shrink it if needed */
+      overflow: visible;      /* We'll rely on JS to shrink the text if needed */
     }
-    /* Horizontal title: normal left-to-right text. */
+    /* Horizontal title: normal text flow, wrapping at spaces. */
     .horizontal {
-      writing-mode: horizontal-tb;   /* normal text flow */
-      white-space: normal;           /* wrap at spaces if needed */
-      word-break: break-word;        /* wrap long words if absolutely needed (rare) */
+      writing-mode: horizontal-tb;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;  /* do not split words */
     }
-    /* Vertical title: each letter is sideways-lr, reading bottom-to-top. */
+    /* Vertical title: letters sideways-lr, reading bottom-to-top. */
     .vertical {
-      writing-mode: vertical-rl;     /* flows top-to-bottom on the page, read bottom-to-top */
-      text-orientation: sideways-lr; /* each letter is rotated 90° */
-      white-space: normal;           /* can wrap across multiple lines if needed */
-      word-break: break-word;
+      writing-mode: vertical-rl;
+      text-orientation: sideways-lr;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;
     }
 
-    /* Author zone (1/3 of the spine height), always horizontal, wrapping if needed. */
+    /* Author zone (1/3 of the spine), always horizontal. */
     .author-zone {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 5px;
-      white-space: normal;          /* wrap if needed */
-      word-break: break-word;       /* do not cut words in the middle unless absolutely necessary */
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: normal;
       overflow: visible;
     }
 
@@ -135,7 +137,7 @@
       text-align: left;
       white-space: normal;
       word-break: normal;
-      overflow-wrap: break-word;
+      overflow-wrap: normal;
       max-width: 380px;
       max-height: 360px;
       overflow-y: auto;
@@ -180,7 +182,7 @@
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyA...",
+      apiKey: "YOUR_API_KEY",
       authDomain: "digital-library-4f53e.firebaseapp.com",
       projectId: "digital-library-4f53e",
       storageBucket: "digital-library-4f53e.firebasestorage.app",
@@ -206,11 +208,12 @@
 
     /****************************************************
      * Spine Width Calculation
+     *  - Increased MIN_WIDTH to 40, MAX_WIDTH to 250
      ****************************************************/
     function calculateSpineWidth(pageCount) {
       const pages = Math.max(1, Number(pageCount) || 200);
-      const MIN_WIDTH = 10;
-      const MAX_WIDTH = 200;
+      const MIN_WIDTH = 40;
+      const MAX_WIDTH = 250;
       const MAX_PAGES = 2000;
       const clampedPages = Math.min(pages, MAX_PAGES);
       const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
@@ -225,21 +228,22 @@
      ****************************************************/
     function fitTextToContainer(el, minFontSize = 8) {
       if (!el) return;
-      const container = el.parentElement; // The immediate parent zone
+      const container = el.parentElement;
       if (!container) return;
 
-      // We'll do a quick while-loop that checks if the text overflows the container
-      // by comparing scrollWidth/scrollHeight to clientWidth/clientHeight.
       let fontSize = parseFloat(window.getComputedStyle(el).fontSize);
-
-      // We allow up to 50 iterations to avoid any infinite loops
       for (let i = 0; i < 50; i++) {
-        const overflows = (el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight);
-        if (!overflows || fontSize <= minFontSize) {
-          break; // It's either fitting or we've hit the minimum size
+        // If the content overflows horizontally or vertically, shrink
+        if (
+          el.scrollWidth > container.clientWidth ||
+          el.scrollHeight > container.clientHeight
+        ) {
+          if (fontSize <= minFontSize) break;
+          fontSize -= 1;
+          el.style.fontSize = fontSize + "px";
+        } else {
+          break;
         }
-        fontSize -= 1;
-        el.style.fontSize = fontSize + "px";
       }
     }
 
@@ -320,8 +324,6 @@
       allBooks.forEach(bookEl => {
         const titleEl = bookEl.querySelector('.title-zone');
         const authorEl = bookEl.querySelector('.author-zone');
-
-        // Adjust the font-size until there's no overflow
         fitTextToContainer(titleEl);
         fitTextToContainer(authorEl);
       });
