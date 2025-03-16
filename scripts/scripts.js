@@ -125,59 +125,65 @@ function averageHue(tags) {
 }
 
 /****************************************************
- * Enhanced Text Fitting for Book Spines
+ * Text Fitting for Book Spines
  ****************************************************/
 
-function improvedTextFitting(el, minFontSize = 9, maxFontSize = 16) {
+function improvedTextFitting(el, minFontSize = 8, maxFontSize = 16) {
   if (!el) return;
   const container = el.parentElement;
   if (!container) return;
   
-  // Reset font size
-  el.style.fontSize = '';
-  
+  // Store original text and reset any previous modifications
   const originalText = el.textContent;
+  el.style.fontSize = '';
+  el.textContent = originalText;  // Restore original text in case it was truncated before
+  
   const isVertical = el.classList.contains('vertical');
   
-  // Start with maximum font size
-  let fontSize = maxFontSize;
+  // Start with a reasonable font size based on text length
+  // Longer text starts with smaller font size to avoid excessive resizing iterations
+  let fontSize = Math.max(
+    minFontSize, 
+    maxFontSize - (originalText.length > 20 ? 2 : 0)
+  );
+  
   el.style.fontSize = fontSize + 'px';
   
-  // For vertical text, prioritize height
+  // For vertical text (on narrow spines)
   if (isVertical) {
-    // Give more space for vertical text - use more of available height
-    while ((el.scrollHeight > container.clientHeight * 0.85) && fontSize > minFontSize) {
+    // Try smaller font sizes until text fits height
+    while (el.scrollHeight > container.clientHeight * 0.9 && fontSize > minFontSize) {
       fontSize -= 0.5;
       el.style.fontSize = fontSize + 'px';
     }
     
-    // Only truncate as a last resort and be more conservative
-    if (el.scrollHeight > container.clientHeight * 0.9 && originalText.length > 30) {
-      const approxCharsPerHeight = Math.floor((container.clientHeight * 0.9) / (fontSize * 0.9));
-      if (approxCharsPerHeight < originalText.length) {
-        el.textContent = originalText.substring(0, approxCharsPerHeight - 3) + '...';
+    // Don't truncate text unless absolutely necessary
+    if (fontSize === minFontSize && el.scrollHeight > container.clientHeight * 0.95) {
+      // Only in extreme cases where even minimum font size doesn't fit
+      const estimatedCharsPerHeight = Math.floor((container.clientHeight * 0.95) / (fontSize * 1));
+      if (estimatedCharsPerHeight < originalText.length && estimatedCharsPerHeight > 10) {
+        el.textContent = originalText.substring(0, estimatedCharsPerHeight - 3) + '...';
       }
     }
   } else {
-    // For horizontal text, ensure width fits
-    while ((el.scrollWidth > container.clientWidth * 0.95) && fontSize > minFontSize) {
+    // For horizontal text
+    while (el.scrollWidth > container.clientWidth * 0.95 && fontSize > minFontSize) {
       fontSize -= 0.5;
       el.style.fontSize = fontSize + 'px';
     }
     
-    // Try to avoid truncation when possible
-    if (el.scrollWidth > container.clientWidth && originalText.length > 20) {
-      // Calculate approx chars that will fit
-      const charsPerWidth = Math.floor((container.clientWidth * 0.95) / (fontSize * 0.5));
-      if (charsPerWidth < originalText.length) {
-        el.textContent = originalText.substring(0, charsPerWidth - 3) + '...';
+    // Only truncate as absolute last resort
+    if (fontSize === minFontSize && el.scrollWidth > container.clientWidth * 0.95) {
+      const estimatedCharsPerWidth = Math.floor((container.clientWidth * 0.95) / (fontSize * 0.5));
+      if (estimatedCharsPerWidth < originalText.length && estimatedCharsPerWidth > 8) {
+        el.textContent = originalText.substring(0, estimatedCharsPerWidth - 3) + '...';
       }
     }
   }
 }
 
 /****************************************************
- * Create Book Element - Enhanced Version
+ * Create Book Element
  ****************************************************/
 
 function createBookElement(book) {
@@ -188,7 +194,7 @@ function createBookElement(book) {
   bookDiv.style.width = spineWidth + "px";
   bookDiv.style.minWidth = spineWidth + "px";
 
-  // Color logic remains the same
+  // Color logic (unchanged)
   let bgColor;
   if (Array.isArray(book.contentTags) && book.contentTags.length > 0) {
     const avgHue = averageHue(book.contentTags);
@@ -199,10 +205,23 @@ function createBookElement(book) {
   bookDiv.style.background = bgColor;
   bookDiv.style.color = "#fff";
 
-  // Make more spines vertical for better title display
-  // Increase threshold to make more titles vertical
-  const titleThreshold = spineWidth < 50 ? 8 : 15; // More aggressive thresholds
-  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 45;
+  // Better decision logic for vertical/horizontal text
+  // Use spine width and title length to decide orientation
+  const titleLength = book.title.length;
+  let isVerticalTitle = false;
+  
+  // Decision tree for vertical text
+  if (spineWidth < 40) {
+    // Very narrow books almost always need vertical text
+    isVerticalTitle = true;
+  } else if (spineWidth < 60) {
+    // Medium width books use vertical for longer titles
+    isVerticalTitle = titleLength > 12;
+  } else {
+    // Wider books can fit more horizontal text
+    isVerticalTitle = titleLength > 20;
+  }
+  
   const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
 
   // Build the spine's HTML (unchanged)
@@ -228,7 +247,7 @@ function createBookElement(book) {
     </div>
   `;
 
-  // Click functionality remains the same
+  // Click event handler (unchanged)
   bookDiv.addEventListener("click", (e) => {
     bookDiv.classList.toggle("expanded");
     if (bookDiv.classList.contains("expanded")) {
