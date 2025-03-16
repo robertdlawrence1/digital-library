@@ -59,9 +59,10 @@
       transition: background-color 0.2s, color 0.2s, border 0.2s;
     }
     .filter-button.selected {
-      background-color: #8B4513;
+      background-color: currentColor; /* This will be overridden in JavaScript */
       color: #fff;
-      border-color: #5a2d0c;
+      border-color: currentColor;
+      opacity: 1;
     }
 
     /* Bookshelf container */
@@ -357,19 +358,43 @@
     /****************************************************
      * Theme Management
      ****************************************************/
-    function toggleDarkMode() {
-      state.isDarkMode = !state.isDarkMode;
-      document.body.classList.toggle('dark-mode', state.isDarkMode);
-      
-      // Update the theme toggle button text
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        themeToggle.textContent = state.isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+ function toggleDarkMode() {
+  state.isDarkMode = !state.isDarkMode;
+  document.body.classList.toggle('dark-mode', state.isDarkMode);
+  
+  // Update the theme toggle button text
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.textContent = state.isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+  }
+  
+  // Update filter button styling
+  const filterButtons = document.querySelectorAll('.filter-button');
+  filterButtons.forEach(btn => {
+    const tag = btn.textContent;
+    const tagColor = colorSystem.getTagColor(tag);
+    
+    if (btn.classList.contains('selected')) {
+      // Selected buttons keep their tag color
+      btn.style.backgroundColor = tagColor;
+      btn.style.color = "#fff";
+    } else {
+      // Unselected buttons use theme-appropriate styling
+      if (state.isDarkMode) {
+        btn.style.backgroundColor = "#333";
+        btn.style.color = "#ddd";
+      } else {
+        btn.style.backgroundColor = "#eee";
+        btn.style.color = "#333";
       }
-      
-      // Re-render books for dark mode appearance updates
-      renderBooks();
+      btn.style.borderColor = tagColor;
+      btn.style.borderLeft = `6px solid ${tagColor}`;
     }
+  });
+  
+  // Re-render books for dark mode appearance updates
+  renderBooks();
+}
 
     /****************************************************
      * Spine Width Calculation
@@ -512,51 +537,76 @@
     /****************************************************
      * Filter Logic
      ****************************************************/
-    function createFilterButtons() {
-      const container = document.getElementById("filter-buttons");
-      container.innerHTML = "";
+function createFilterButtons() {
+  const container = document.getElementById("filter-buttons");
+  container.innerHTML = "";
 
-      // Extract all unique tags from books
-      const allTags = new Set();
-      state.allBooks.forEach(book => {
-        if (Array.isArray(book.contentTags)) {
-          book.contentTags.forEach(tag => allTags.add(tag));
-        }
-      });
-
-      // Sort tags alphabetically
-      const sortedTags = Array.from(allTags).sort();
-      
-      // Initialize color system with all available tags
-      colorSystem.initializeTagColors(sortedTags);
-
-      // Create filter buttons
-      sortedTags.forEach(tag => {
-        const btn = document.createElement("button");
-        btn.className = "filter-button";
-        btn.textContent = tag;
-        btn.style.borderColor = colorSystem.getTagColor(tag);
-        
-        // Add a subtle indicator of the tag color
-        btn.style.borderLeft = `6px solid ${colorSystem.getTagColor(tag)}`;
-        
-        btn.addEventListener("click", () => toggleFilter(tag, btn));
-        container.appendChild(btn);
-      });
+  // Extract all unique tags from books
+  const allTags = new Set();
+  state.allBooks.forEach(book => {
+    if (Array.isArray(book.contentTags)) {
+      book.contentTags.forEach(tag => allTags.add(tag));
     }
+  });
 
-    function toggleFilter(tag, buttonElement) {
-      if (state.activeFilters.includes(tag)) {
-        state.activeFilters = state.activeFilters.filter(t => t !== tag);
-        buttonElement.classList.remove("selected");
-      } else {
-        if (state.activeFilters.length >= state.maxFilters) return;
-        state.activeFilters.push(tag);
-        buttonElement.classList.add("selected");
-      }
-      applyFilters();
+  // Sort tags alphabetically
+  const sortedTags = Array.from(allTags).sort();
+  
+  // Initialize color system with all available tags
+  colorSystem.initializeTagColors(sortedTags);
+
+  // Create filter buttons
+  sortedTags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.className = "filter-button";
+    btn.textContent = tag;
+    
+    const tagColor = colorSystem.getTagColor(tag);
+    btn.style.borderColor = tagColor;
+    btn.style.borderLeft = `6px solid ${tagColor}`;
+    
+    // Apply proper theme styling
+    if (state.isDarkMode) {
+      btn.style.backgroundColor = "#333";
+      btn.style.color = "#ddd";
+    } else {
+      btn.style.backgroundColor = "#eee";
+      btn.style.color = "#333";
     }
-
+    
+    btn.addEventListener("click", () => toggleFilter(tag, btn));
+    container.appendChild(btn);
+  });
+}
+    
+function toggleFilter(tag, buttonElement) {
+  if (state.activeFilters.includes(tag)) {
+    // Unselect the filter
+    state.activeFilters = state.activeFilters.filter(t => t !== tag);
+    buttonElement.classList.remove("selected");
+    
+    // Reset the button appearance
+    buttonElement.style.backgroundColor = state.isDarkMode ? "#333" : "#eee";
+    buttonElement.style.color = state.isDarkMode ? "#ddd" : "#333";
+    buttonElement.style.borderColor = colorSystem.getTagColor(tag);
+    buttonElement.style.borderLeft = `6px solid ${colorSystem.getTagColor(tag)}`;
+  } else {
+    // Check max filters
+    if (state.activeFilters.length >= state.maxFilters) return;
+    
+    // Select the filter
+    state.activeFilters.push(tag);
+    buttonElement.classList.add("selected");
+    
+    // Apply the tag color to the selected button
+    const tagColor = colorSystem.getTagColor(tag);
+    buttonElement.style.backgroundColor = tagColor;
+    buttonElement.style.color = "#fff";
+    buttonElement.style.borderColor = tagColor;
+  }
+  applyFilters();
+}
+    
     function applyFilters() {
       if (!state.activeFilters.length) {
         state.displayedBooks = [...state.allBooks];
