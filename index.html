@@ -17,10 +17,7 @@
       flex-direction: column;
       justify-content: flex-start;
     }
-
-    h1 {
-      margin-top: 0;
-    }
+    h1 { margin-top: 0; }
 
     /* Filter buttons */
     .filter-container {
@@ -30,7 +27,6 @@
       gap: 10px;
       margin-bottom: 20px;
     }
-
     .filter-button {
       padding: 8px 16px;
       border-radius: 20px;
@@ -46,7 +42,7 @@
       border-color: #5a2d0c;
     }
 
-    /* Bookshelf */
+    /* Bookshelf container */
     .shelf-container {
       display: flex;
       overflow-x: auto;
@@ -85,9 +81,8 @@
 
     /****************************************************
      * SPINE TEXT LAYOUT
-     * - Top 2/3 = vertical title
-     * - Bottom 1/3 = horizontal author
-     * - No scrollbars on the spine
+     * The spine text container holds a title section (top 2/3)
+     * and an author section (bottom 1/3).
      ****************************************************/
     .book-spine-text {
       display: flex;
@@ -95,32 +90,51 @@
       height: 100%;
     }
 
-    /* Title section (vertical text, top 2/3) */
-    .book-title {
+    /* Title section for horizontal titles (<= 50 characters) */
+    .book-title.horizontal {
       flex: 2;
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Vertical text: top-to-bottom, letters upright */
-      writing-mode: vertical-rl;
-      text-orientation: upright;
-      /* Force a single "column" of text, no wrap => if too long, it gets clipped */
-      white-space: nowrap;
-      overflow: hidden;
-      font-size: 14px; /* Tweak if you want smaller or bigger vertical text */
+      white-space: normal;         /* Allow wrapping at spaces */
+      overflow: visible;            /* Show all text */
+      word-break: normal;
+      overflow-wrap: break-word;
       padding: 5px;
     }
 
-    /* Author section (horizontal, bottom 1/3) */
+    /* Title section for long titles (> 50 characters) displayed vertically.
+       The entire element is rotated so the letters are rotated as well.
+       Text is allowed to wrap (without splitting words) to fit in the allocated space. */
+    .book-title.vertical {
+      flex: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* Rotate the text block - this rotates the letters too */
+      transform: rotate(-90deg);
+      /* Adjust the origin so that the rotated block fits within its container */
+      transform-origin: left top;
+      white-space: normal;         /* Allow wrapping */
+      overflow: visible;            /* Ensure no text is hidden */
+      word-break: normal;
+      overflow-wrap: break-word;
+      padding: 5px;
+      font-size: 14px;              /* Starting font size (subject to scaling) */
+    }
+
+    /* Author section: horizontal with wrapping.
+       Words are not split; if needed, they break between words. */
     .book-author {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis; /* If extremely long, it gets clipped horizontally */
-      font-size: 12px; /* Slightly smaller if desired */
+      white-space: normal;
+      overflow: visible;
+      word-break: normal;
+      overflow-wrap: break-word;
+      font-size: 12px;
       padding: 5px;
     }
 
@@ -130,7 +144,7 @@
       text-align: left;
       white-space: normal;
       word-break: normal;
-      overflow-wrap: normal;
+      overflow-wrap: break-word;
       max-width: 380px;
       max-height: 360px;
       overflow-y: auto;
@@ -153,7 +167,7 @@
       display: none;
     }
 
-    /* Messages */
+    /* Message styling */
     .message {
       padding: 20px;
       color: #555;
@@ -167,7 +181,7 @@
 
   <script type="module">
     /****************************************************
-     *  Firebase Setup
+     * Firebase Setup
      ****************************************************/
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
@@ -175,7 +189,7 @@
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
+      apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
       authDomain: "digital-library-4f53e.firebaseapp.com",
       projectId: "digital-library-4f53e",
       storageBucket: "digital-library-4f53e.firebasestorage.app",
@@ -190,7 +204,7 @@
     const db = getFirestore(app);
 
     /****************************************************
-     *  Application State
+     * Application State
      ****************************************************/
     const state = {
       allBooks: [],
@@ -200,39 +214,58 @@
     };
 
     /****************************************************
-     *  Spine Width Calculation
+     * Spine Width Calculation
      ****************************************************/
     function calculateSpineWidth(pageCount) {
       const pages = Math.max(1, Number(pageCount) || 200);
-
-      // Adjust these to make widths more/less dramatic
       const MIN_WIDTH = 10;    
       const MAX_WIDTH = 200;   
       const MAX_PAGES = 2000;  
-
       const clampedPages = Math.min(pages, MAX_PAGES);
       const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
       const width = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
-
       return Math.round(width);
     }
 
     /****************************************************
-     *  Create Book Element
+     * fitTextToContainer: Adjusts font-size of an element until its
+     * bounding box fits within its parent container.
+     * This prevents text overflow without splitting words.
+     ****************************************************/
+    function fitTextToContainer(el) {
+      const parent = el.parentElement;
+      if (!parent) return;
+      const parentRect = parent.getBoundingClientRect();
+      let style = window.getComputedStyle(el);
+      let fontSize = parseFloat(style.fontSize);
+      const minFontSize = 8; // Minimum font size to avoid unreadable text
+      let elRect = el.getBoundingClientRect();
+      // Loop until the element's bounding box fits inside its parent's or until we hit the minimum font size.
+      while ((elRect.width > parentRect.width || elRect.height > parentRect.height) && fontSize > minFontSize) {
+        fontSize -= 1;
+        el.style.fontSize = fontSize + "px";
+        elRect = el.getBoundingClientRect();
+      }
+    }
+
+    /****************************************************
+     * Create Book Element
      ****************************************************/
     function createBookElement(book) {
       const bookDiv = document.createElement("div");
       bookDiv.className = "book";
-
-      // Apply inline width based on page count
+      // Set the width based on page count
       const spineWidth = calculateSpineWidth(book.pageCount);
       bookDiv.style.width = spineWidth + "px";
       bookDiv.style.minWidth = spineWidth + "px";
-
-      // Construct the spine text with separate vertical title & horizontal author
+      // Determine if the title should be vertical or horizontal.
+      // Threshold is 50 characters.
+      const titleThreshold = 50;
+      const titleClass = (book.title.length > titleThreshold) ? "book-title vertical" : "book-title horizontal";
+      // Construct the spine text with title and author.
       bookDiv.innerHTML = `
         <div class="book-spine-text">
-          <div class="book-title">
+          <div class="${titleClass}">
             ${book.title}
           </div>
           <div class="book-author">
@@ -242,13 +275,11 @@
         <div class="book-expanded-content">
           <h3>${book.title}</h3>
           <p><em>by ${book.author}</em></p>
-          <!-- No 'Published' label, just year; no tags -->
           <p>${book.pageCount} pages | ${book.yearPublished || "Unknown"}</p>
           <p>${book.summary || ""}</p>
         </div>
       `;
-
-      // Toggle expanded view
+      // Toggle expanded view on click
       bookDiv.addEventListener("click", (e) => {
         bookDiv.classList.toggle("expanded");
         if (bookDiv.classList.contains("expanded")) {
@@ -260,17 +291,15 @@
         }
         e.stopPropagation();
       });
-
       return bookDiv;
     }
 
     /****************************************************
-     *  Render Books
+     * Render Books and Adjust Text Size
      ****************************************************/
     function renderBooks() {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
-
       if (!state.displayedBooks.length) {
         const message = document.createElement("div");
         message.className = "message";
@@ -278,13 +307,18 @@
         shelf.appendChild(message);
         return;
       }
-
       state.displayedBooks.forEach(book => {
         const bookElement = createBookElement(book);
         shelf.appendChild(bookElement);
       });
-
-      // Collapse expanded books if clicking outside
+      // After rendering, adjust the font-size of title and author elements so that no text overflows.
+      document.querySelectorAll('.book').forEach(book => {
+        const titleEl = book.querySelector('.book-title');
+        const authorEl = book.querySelector('.book-author');
+        if (titleEl) fitTextToContainer(titleEl);
+        if (authorEl) fitTextToContainer(authorEl);
+      });
+      // Collapse expanded books when clicking outside.
       document.addEventListener("click", (e) => {
         if (!e.target.closest(".book")) {
           document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
@@ -293,21 +327,17 @@
     }
 
     /****************************************************
-     *  Create Filter Buttons
+     * Create Filter Buttons
      ****************************************************/
     function createFilterButtons() {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
-
-      // Gather all unique tags
       const allTags = new Set();
       state.allBooks.forEach(book => {
         if (Array.isArray(book.contentTags)) {
           book.contentTags.forEach(tag => allTags.add(tag));
         }
       });
-
-      // Sort and create buttons
       Array.from(allTags).sort().forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
@@ -318,7 +348,7 @@
     }
 
     /****************************************************
-     *  Toggle Filter On/Off
+     * Toggle Filter On/Off
      ****************************************************/
     function toggleFilter(tag, buttonElement) {
       if (state.activeFilters.includes(tag)) {
@@ -333,13 +363,12 @@
     }
 
     /****************************************************
-     *  Apply Filters
+     * Apply Filters
      ****************************************************/
     function applyFilters() {
       if (!state.activeFilters.length) {
         state.displayedBooks = [...state.allBooks];
       } else {
-        // Book must contain ALL selected tags
         state.displayedBooks = state.allBooks.filter(book =>
           state.activeFilters.every(tag =>
             Array.isArray(book.contentTags) && book.contentTags.includes(tag)
@@ -350,33 +379,24 @@
     }
 
     /****************************************************
-     *  Load Data from Firestore
+     * Load Data from Firestore
      ****************************************************/
     async function loadBookData() {
       try {
         document.getElementById("bookshelf").innerHTML =
           "<div class='message'>Loading your book collection...</div>";
-
         const snapshot = await getDocs(collection(db, "books"));
-
         state.allBooks = snapshot.docs.map(doc => {
           const data = doc.data();
           return { id: doc.id, ...data };
         });
-
-        // Debug: Log page counts
         console.log("Loaded books:", state.allBooks.map(b => ({
           title: b.title,
           pageCount: b.pageCount
         })));
-
-        // Initialize displayed books
         state.displayedBooks = [...state.allBooks];
-
-        // Create UI
         createFilterButtons();
         renderBooks();
-
       } catch (error) {
         console.error("Error loading book data:", error);
         document.getElementById("bookshelf").innerHTML =
@@ -385,7 +405,7 @@
     }
 
     /****************************************************
-     *  Start the Application
+     * Start the Application
      ****************************************************/
     document.addEventListener("DOMContentLoaded", () => {
       loadBookData();
