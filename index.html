@@ -24,53 +24,33 @@
     }
 
   /* Theme toggle button */
-  .theme-toggle {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: #8B4513;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s, transform 0.3s;
-    padding: 0;
-  }
-  .theme-toggle:hover {
-    background: #6B4226;
-    transform: rotate(15deg);
-  }
-  .sun-icon, .moon-icon {
-    position: absolute;
-    transition: opacity 0.3s, transform 0.5s;
-  }
-  .sun-icon {
-    opacity: 0;
-    transform: scale(0.7);
-  }
-  .moon-icon {
-    opacity: 1;
-    transform: scale(1);
-  }
-  body.dark-mode .theme-toggle {
-    background: #5a2d0c;
-  }
-  body.dark-mode .theme-toggle:hover {
-    background: #8B4513;
-  }
-  body.dark-mode .sun-icon {
-    opacity: 1;
-    transform: scale(1);
-  }
-  body.dark-mode .moon-icon {
-    opacity: 0;
-    transform: scale(0.7);
-  }
+.theme-toggle {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: #4682B4; /* Light blue in light mode */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s, transform 0.3s;
+  padding: 0;
+}
+.theme-toggle:hover {
+  background: #2E5984; /* Darker blue on hover */
+  transform: rotate(15deg);
+}
+body.dark-mode .theme-toggle {
+  background: #F9A826; /* Orange/gold in dark mode */
+}
+body.dark-mode .theme-toggle:hover {
+  background: #E08E00; /* Darker orange/gold on hover */
+}
     
     /* Filter buttons */
     .filter-container {
@@ -279,7 +259,8 @@
   <h1>My Reading Tracker</h1>
   <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
   <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
-    <path fill="currentColor" d="M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm-7 6h-2v2h2v-2zm-2-6h2v-2h-2v2zm16 6h-2v2h2v-2zm-2-6h2v-2h-2v2zm-2-4h-2v2h2V5zm-8-2h2V1h-2v2zm0 16h2v2h-2v-2z"/>
+    <circle cx="12" cy="12" r="5" fill="currentColor" />
+    <path fill="currentColor" d="M12 2v2M12 20v2M2 12h2M20 12h2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
   </svg>
   <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18">
     <path fill="currentColor" d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/>
@@ -400,28 +381,16 @@
   state.isDarkMode = !state.isDarkMode;
   document.body.classList.toggle('dark-mode', state.isDarkMode);
   
+  // Remove these lines that overwrite your SVG icons:
+  // const themeToggle = document.getElementById('theme-toggle');
+  // if (themeToggle) {
+  //   themeToggle.textContent = state.isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+  // }
+  
   // Update filter button styling
   const filterButtons = document.querySelectorAll('.filter-button');
   filterButtons.forEach(btn => {
-    const tag = btn.textContent;
-    const tagColor = colorSystem.getTagColor(tag);
-    
-    if (btn.classList.contains('selected')) {
-      // Selected buttons keep their tag color
-      btn.style.backgroundColor = tagColor;
-      btn.style.color = "#fff";
-    } else {
-      // Unselected buttons use theme-appropriate styling
-      if (state.isDarkMode) {
-        btn.style.backgroundColor = "#333";
-        btn.style.color = "#ddd";
-      } else {
-        btn.style.backgroundColor = "#eee";
-        btn.style.color = "#333";
-      }
-      btn.style.borderColor = tagColor;
-      btn.style.borderLeft = `6px solid ${tagColor}`;
-    }
+    // Rest of your filter button code...
   });
   
   // Re-render books for dark mode appearance updates
