@@ -1,4 +1,4 @@
- <script type="module">
+// scripts.js
     /****************************************************
      * Firebase Setup
      ****************************************************/
@@ -396,4 +396,3 @@ function toggleFilter(tag, buttonElement) {
       // Load book data from Firestore
       loadBookData();
     });
-  </script>
