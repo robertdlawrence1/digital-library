@@ -129,15 +129,22 @@
     /****************************************************
      * Spine Width Calculation
      ****************************************************/
-    function calculateSpineWidth(pageCount) {
-      const pages = Math.max(1, Number(pageCount) || 200);
-      const MIN_WIDTH = 40;
-      const MAX_WIDTH = 250;
-      const MAX_PAGES = 2000;
-      const clampedPages = Math.min(pages, MAX_PAGES);
-      const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
-      const width = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
-      return Math.round(width);
+    
+function calculateSpineWidth(pageCount) {
+      const minSpineWidth = 30;
+      const maxSpineWidth = 90;
+      const minPages = 100;  // Minimum page count threshold
+      const maxPages = 1000;   // Max pages threshold
+    
+      if (!pageCount) return minSpineWidth;
+    
+      // Clamp page count to between minPages and maxPages
+      const normalizedPages = Math.min(Math.max(pageCount, minPages), maxPages);
+    
+      // Linear interpolation for spine width
+      const spineWidth = minSpineWidth + ((normalizedPageCount - minPages) / (maxPages - minPages)) * (maxSpineWidth - minSpineWidth);
+    
+      return Math.round(spineWidth);
     }
 
     /****************************************************
