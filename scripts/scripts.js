@@ -200,7 +200,7 @@ function improvedTextFitting(el, minFontSize = 9, maxFontSize = 16) {
 }
 
 /****************************************************
- * Create Book Element
+ * Create Book Element - Enhanced Version
  ****************************************************/
 function createBookElement(book) {
   const bookDiv = document.createElement("div");
@@ -224,10 +224,10 @@ function createBookElement(book) {
   bookDiv.style.background = bgColor;
   bookDiv.style.color = "#fff";
 
-  // Decide if title text should be vertical based on its length
-  const titleThreshold = 50;
-  const isLongTitle = book.title.length > titleThreshold;
-  const titleClass = isLongTitle ? "title-zone vertical" : "title-zone horizontal";
+  // Decide if title text should be vertical based on spine width and title length
+  const titleThreshold = spineWidth < 45 ? 12 : 25; // Different threshold based on spine width
+  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 40;
+  const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
 
   // Build the spine's HTML
   bookDiv.innerHTML = `
@@ -265,25 +265,14 @@ function createBookElement(book) {
     e.stopPropagation();
   });
 
-  // Decide if title text should be vertical based on spine width and title length
-  const spineWidth = calculateSpineWidth(book.pageCount);
-  const titleThreshold = spineWidth < 45 ? 12 : 25; // Different threshold based on spine width
-  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 40;
-  const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
-  
-  // ... rest of existing code ...
-  
-  // Call improved text fitting instead of the old fitTextToContainer
-  const titleEl = bookDiv.querySelector('.title-zone');
-  const authorEl = bookDiv.querySelector('.author-zone');
-  improvedTextFitting(titleEl);
-  improvedTextFitting(authorEl, 8, 14); // Slightly different params for author text
-  
+  // Apply improved text fitting to title and author text
+  // This needs to be done after the book is added to DOM, handled in renderBooks()
+
   return bookDiv;
 }
 
 /****************************************************
- * Render Books
+ * Render Books - Enhanced Version
  ****************************************************/
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
@@ -302,13 +291,15 @@ function renderBooks() {
     shelf.appendChild(bookElement);
   });
 
-  // Adjust text size if necessary to ensure it fits within the spine
+  // Apply improved text fitting to all books
   const allBooks = document.querySelectorAll('.book');
   allBooks.forEach(bookEl => {
     const titleEl = bookEl.querySelector('.title-zone');
     const authorEl = bookEl.querySelector('.author-zone');
-    fitTextToContainer(titleEl);
-    fitTextToContainer(authorEl);
+    
+    // Use our new improvedTextFitting function with appropriate parameters
+    improvedTextFitting(titleEl, 9, 16);
+    improvedTextFitting(authorEl, 8, 14); // Smaller font size range for authors
   });
 
   // Collapse expanded books when clicking outside
