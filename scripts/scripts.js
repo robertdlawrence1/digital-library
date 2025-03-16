@@ -85,35 +85,21 @@ function toggleDarkMode() {
  ****************************************************/
 
 function calculateSpineWidth(pageCount) {
-  // Base values
-  const minSpineWidth = 28;  // Thinnest possible spine
-  const maxSpineWidth = 85;  // Thickest possible spine
-  const minPages = 50;       // Minimum page count threshold
-  const maxPages = 1200;     // Maximum page count threshold
+  // Increase minimum spine width
+  const minSpineWidth = 35;  // Was 28
+  const maxSpineWidth = 90;  // Was 85
+  const minPages = 50;
+  const maxPages = 1200;
 
   if (!pageCount || pageCount < minPages) return minSpineWidth;
 
-  // Map the page count to our desired range
   let normalizedPages = Math.min(Math.max(pageCount, minPages), maxPages);
-  
-  // Use a non-linear scale with power curve instead of logarithmic
-  // This gives a more natural progression of spine widths
-  
-  // First, calculate the base percentage of the range
   const basePercentage = (normalizedPages - minPages) / (maxPages - minPages);
-  
-  // Then apply a power function to create a curve
-  // Values less than 1 create a curve that grows quickly at first, then slows down
-  // Values greater than 1 create a curve that starts slow, then accelerates
-  const curveStrength = 0.65; // Adjust this value to change the curve shape
+  const curveStrength = 0.65;
   const adjustedPercentage = Math.pow(basePercentage, curveStrength);
   
-  // Calculate spine width
   const spineWidth = minSpineWidth + adjustedPercentage * (maxSpineWidth - minSpineWidth);
-  
-  // Add a small random variation to make the bookshelf look more natural
-  // Range is +/- 2px but weighted toward center (multiplying random values)
-  const variation = (Math.random() - 0.5) * (Math.random() * 3);
+  const variation = (Math.random() - 0.5) * (Math.random() * 2); // Reduced variation
   
   return Math.round(spineWidth + variation);
 }
@@ -141,59 +127,50 @@ function averageHue(tags) {
 /****************************************************
  * Enhanced Text Fitting for Book Spines
  ****************************************************/
+
 function improvedTextFitting(el, minFontSize = 9, maxFontSize = 16) {
   if (!el) return;
   const container = el.parentElement;
   if (!container) return;
   
-  // Reset any existing font size to start fresh
+  // Reset font size
   el.style.fontSize = '';
   
-  // Get the original text content
   const originalText = el.textContent;
   const isVertical = el.classList.contains('vertical');
   
-  // Different approaches for vertical vs horizontal text
+  // Start with maximum font size
+  let fontSize = maxFontSize;
+  el.style.fontSize = fontSize + 'px';
+  
+  // For vertical text, prioritize height
   if (isVertical) {
-    // For vertical text, we focus more on height constraints
-    let fontSize = maxFontSize;
-    el.style.fontSize = fontSize + 'px';
-    
-    // Reduce font size until text fits
-    while ((el.scrollHeight > container.clientHeight * 0.75 || el.scrollWidth > container.clientWidth) && fontSize > minFontSize) {
+    // Give more space for vertical text - use more of available height
+    while ((el.scrollHeight > container.clientHeight * 0.85) && fontSize > minFontSize) {
       fontSize -= 0.5;
       el.style.fontSize = fontSize + 'px';
     }
     
-    // If text still doesn't fit, we need to truncate
-    if (el.scrollHeight > container.clientHeight * 0.75 && originalText.length > 12) {
-      // Calculate approximately how many characters we can fit
-      const approxCharsPerHeight = Math.floor((container.clientHeight * 0.75) / (fontSize * 1.2));
+    // Only truncate as a last resort and be more conservative
+    if (el.scrollHeight > container.clientHeight * 0.9 && originalText.length > 30) {
+      const approxCharsPerHeight = Math.floor((container.clientHeight * 0.9) / (fontSize * 0.9));
       if (approxCharsPerHeight < originalText.length) {
         el.textContent = originalText.substring(0, approxCharsPerHeight - 3) + '...';
       }
     }
   } else {
-    // For horizontal text, width is usually the constraint
-    let fontSize = maxFontSize;
-    el.style.fontSize = fontSize + 'px';
-    
-    // Check if title fits in container
-    while ((el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight * 0.75) && fontSize > minFontSize) {
+    // For horizontal text, ensure width fits
+    while ((el.scrollWidth > container.clientWidth * 0.95) && fontSize > minFontSize) {
       fontSize -= 0.5;
       el.style.fontSize = fontSize + 'px';
     }
     
-    // If font is at minimum and still overflowing, truncate with ellipsis
-    if ((el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight * 0.75) && originalText.length > 8) {
-      // Calculate approximately how many characters we can fit
-      const lineHeight = parseFloat(getComputedStyle(el).lineHeight) || fontSize * 1.2;
-      const availableLines = Math.floor((container.clientHeight * 0.75) / lineHeight);
-      const charsPerLine = Math.floor(container.clientWidth / (fontSize * 0.6));
-      const totalChars = availableLines * charsPerLine;
-      
-      if (totalChars < originalText.length) {
-        el.textContent = originalText.substring(0, totalChars - 3) + '...';
+    // Try to avoid truncation when possible
+    if (el.scrollWidth > container.clientWidth && originalText.length > 20) {
+      // Calculate approx chars that will fit
+      const charsPerWidth = Math.floor((container.clientWidth * 0.95) / (fontSize * 0.5));
+      if (charsPerWidth < originalText.length) {
+        el.textContent = originalText.substring(0, charsPerWidth - 3) + '...';
       }
     }
   }
@@ -202,34 +179,33 @@ function improvedTextFitting(el, minFontSize = 9, maxFontSize = 16) {
 /****************************************************
  * Create Book Element - Enhanced Version
  ****************************************************/
+
 function createBookElement(book) {
   const bookDiv = document.createElement("div");
   bookDiv.className = "book";
 
-  // Set spine width based on page count
   const spineWidth = calculateSpineWidth(book.pageCount);
   bookDiv.style.width = spineWidth + "px";
   bookDiv.style.minWidth = spineWidth + "px";
 
-  // Use hue averaging from contentTags for book color
+  // Color logic remains the same
   let bgColor;
   if (Array.isArray(book.contentTags) && book.contentTags.length > 0) {
     const avgHue = averageHue(book.contentTags);
-    // Adjust saturation and lightness as needed for legibility
     bgColor = `hsl(${avgHue}, 60%, 50%)`;
   } else {
-    // Fallback to a default color if no tags
     bgColor = colorSystem.defaultColors[Math.floor(Math.random() * colorSystem.defaultColors.length)];
   }
   bookDiv.style.background = bgColor;
   bookDiv.style.color = "#fff";
 
-  // Decide if title text should be vertical based on spine width and title length
-  const titleThreshold = spineWidth < 45 ? 12 : 25; // Different threshold based on spine width
-  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 40;
+  // Make more spines vertical for better title display
+  // Increase threshold to make more titles vertical
+  const titleThreshold = spineWidth < 50 ? 8 : 15; // More aggressive thresholds
+  const isVerticalTitle = book.title.length > titleThreshold || spineWidth < 45;
   const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
 
-  // Build the spine's HTML
+  // Build the spine's HTML (unchanged)
   bookDiv.innerHTML = `
     <div class="book-spine-text">
       <div class="${titleClass}">
@@ -252,7 +228,7 @@ function createBookElement(book) {
     </div>
   `;
 
-  // Toggle expanded view on click
+  // Click functionality remains the same
   bookDiv.addEventListener("click", (e) => {
     bookDiv.classList.toggle("expanded");
     if (bookDiv.classList.contains("expanded")) {
@@ -264,9 +240,6 @@ function createBookElement(book) {
     }
     e.stopPropagation();
   });
-
-  // Apply improved text fitting to title and author text
-  // This needs to be done after the book is added to DOM, handled in renderBooks()
 
   return bookDiv;
 }
