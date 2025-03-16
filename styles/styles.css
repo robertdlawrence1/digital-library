@@ -146,7 +146,9 @@ body.dark-mode .theme-toggle:hover {
   .filter-button {
     flex-shrink: 0;
   }
-}  /* <-- Close the media query here! */
+}  /* <-- Close the media query here */
+
+/* =============== Expanded View & Vertical Title =============== */
 
 /* Hides the expanded content by default */
 .book-expanded-content {
@@ -178,9 +180,11 @@ body.dark-mode .book.expanded {
   color: #e0e0e0;
   box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
+
 .book.expanded .book-spine-text {
   display: none;
 }
+
 .book.expanded .book-expanded-content {
   display: block;
 }
