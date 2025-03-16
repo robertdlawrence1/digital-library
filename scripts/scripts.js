@@ -128,58 +128,111 @@ function averageHue(tags) {
  * Text Fitting for Book Spines
  ****************************************************/
 
-function improvedTextFitting(el, minFontSize = 8, maxFontSize = 16) {
-  if (!el) return;
+function enhancedTextFitting(el, options = {}) {
+  if (!el || !el.parentElement) return;
+  
+  const defaults = {
+    minFontSize: 8,
+    maxFontSize: 16,
+    lineHeightRatio: 1.2,
+    padding: 5
+  };
+  
+  const settings = {...defaults, ...options};
   const container = el.parentElement;
-  if (!container) return;
-  
-  // Store original text and reset any previous modifications
   const originalText = el.textContent;
-  el.style.fontSize = '';
-  el.textContent = originalText;  // Restore original text in case it was truncated before
-  
   const isVertical = el.classList.contains('vertical');
   
-  // Start with a reasonable font size based on text length
-  // Longer text starts with smaller font size to avoid excessive resizing iterations
-  let fontSize = Math.max(
-    minFontSize, 
-    maxFontSize - (originalText.length > 20 ? 2 : 0)
-  );
+  // Reset any previous styling
+  el.style.fontSize = '';
+  el.style.lineHeight = '';
+  el.style.whiteSpace = 'normal';
+  el.style.wordBreak = 'normal';
+  el.style.overflowWrap = 'break-word';
+  el.style.hyphens = 'none'; // Prevent automatic hyphenation
+  el.textContent = originalText;
   
+  // Start with maximum font size and reduce until text fits
+  let fontSize = settings.maxFontSize;
   el.style.fontSize = fontSize + 'px';
+  el.style.lineHeight = (settings.lineHeightRatio) + '';
   
-  // For vertical text (on narrow spines)
-  if (isVertical) {
-    // Try smaller font sizes until text fits height
-    while (el.scrollHeight > container.clientHeight * 0.9 && fontSize > minFontSize) {
-      fontSize -= 0.5;
-      el.style.fontSize = fontSize + 'px';
-    }
+  const getContainerSize = () => {
+    const rect = container.getBoundingClientRect();
+    const computedStyle = window.getComputedStyle(container);
+    const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+    const paddingBottom = parseInt(computedStyle.paddingBottom, 10) || 0;
+    const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+    const paddingRight = parseInt(computedStyle.paddingRight, 10) || 0;
     
-    // Don't truncate text unless absolutely necessary
-    if (fontSize === minFontSize && el.scrollHeight > container.clientHeight * 0.95) {
-      // Only in extreme cases where even minimum font size doesn't fit
-      const estimatedCharsPerHeight = Math.floor((container.clientHeight * 0.95) / (fontSize * 1));
-      if (estimatedCharsPerHeight < originalText.length && estimatedCharsPerHeight > 10) {
-        el.textContent = originalText.substring(0, estimatedCharsPerHeight - 3) + '...';
-      }
-    }
-  } else {
-    // For horizontal text
-    while (el.scrollWidth > container.clientWidth * 0.95 && fontSize > minFontSize) {
-      fontSize -= 0.5;
-      el.style.fontSize = fontSize + 'px';
-    }
-    
-    // Only truncate as absolute last resort
-    if (fontSize === minFontSize && el.scrollWidth > container.clientWidth * 0.95) {
-      const estimatedCharsPerWidth = Math.floor((container.clientWidth * 0.95) / (fontSize * 0.5));
-      if (estimatedCharsPerWidth < originalText.length && estimatedCharsPerWidth > 8) {
-        el.textContent = originalText.substring(0, estimatedCharsPerWidth - 3) + '...';
-      }
-    }
+    return {
+      width: rect.width - paddingLeft - paddingRight - (settings.padding * 2),
+      height: rect.height - paddingTop - paddingBottom - (settings.padding * 2)
+    };
+  };
+  
+  const containerSize = getContainerSize();
+  const maxWidth = isVertical ? containerSize.width : containerSize.width;
+  const maxHeight = isVertical ? containerSize.height : containerSize.height;
+  
+  // Function that checks if text fits within container
+  const textFits = () => {
+    const overflows = (isVertical) ? 
+      (el.scrollHeight > maxHeight) : 
+      (el.scrollWidth > maxWidth);
+    return !overflows;
+  };
+
+  // Apply the right font size
+  while (!textFits() && fontSize > settings.minFontSize) {
+    fontSize -= 0.5;
+    el.style.fontSize = fontSize + 'px';
   }
+  
+  // If text still doesn't fit at minimum font size, we need to modify the text
+  if (!textFits() && fontSize <= settings.minFontSize) {
+    // For titles, prefer word wrapping over truncation
+    handleWordWrapping(el, originalText, maxWidth, maxHeight, isVertical);
+  }
+  
+  return fontSize;
+}
+
+/**
+ * Handles word wrapping for text that doesn't fit even at minimum font size
+ */
+function handleWordWrapping(el, originalText, maxWidth, maxHeight, isVertical) {
+  // Split text into words
+  const words = originalText.split(' ');
+  
+  // For short titles (1-2 words), allow hyphenation but only between syllables
+  if (words.length <= 2) {
+    el.style.hyphens = 'manual';
+    // For single long words, add zero-width spaces at strategic positions
+    if (words.length === 1 && words[0].length > 8) {
+      // Add soft break opportunities every few characters
+      // Try to break between vowels and consonants when possible
+      const withBreakOpportunities = words[0].replace(
+        /([aeiou])([bcdfghjklmnpqrstvwxyz])/gi, 
+        '$1\u200B$2'
+      );
+      el.textContent = withBreakOpportunities;
+    }
+    return;
+  }
+  
+  // For vertical text, optimize line breaks differently
+  if (isVertical) {
+    // Use standard wrapping for vertical text, but with tighter line height
+    el.style.lineHeight = '1.1';
+    el.style.textAlign = 'center';
+    return;
+  }
+  
+  // For horizontal text with multiple words, ensure better wrapping
+  el.style.lineHeight = '1.2';
+  el.style.wordSpacing = '-0.05em'; // Slightly tighter word spacing
+  el.style.textAlign = 'center';
 }
 
 /****************************************************
@@ -205,22 +258,21 @@ function createBookElement(book) {
   bookDiv.style.background = bgColor;
   bookDiv.style.color = "#fff";
 
-  // Better decision logic for vertical/horizontal text
-  // Use spine width and title length to decide orientation
-  const titleLength = book.title.length;
-  let isVerticalTitle = false;
-  
-  // Decision tree for vertical text
-  if (spineWidth < 40) {
-    // Very narrow books almost always need vertical text
-    isVerticalTitle = true;
-  } else if (spineWidth < 60) {
-    // Medium width books use vertical for longer titles
-    isVerticalTitle = titleLength > 12;
-  } else {
-    // Wider books can fit more horizontal text
-    isVerticalTitle = titleLength > 20;
-  }
+  // More sophisticated orientation logic
+const titleLength = book.title.length;
+let isVerticalTitle = false;
+
+// Decision tree for vertical text
+if (spineWidth < 45) {
+  // Very narrow books use vertical text
+  isVerticalTitle = true;
+} else if (spineWidth < 65) {
+  // Medium width books use vertical for longer titles
+  isVerticalTitle = titleLength > 15;
+} else {
+  // Wider books can handle more horizontal text
+  isVerticalTitle = titleLength > 25;
+}
   
   const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
 
@@ -283,16 +335,26 @@ function renderBooks() {
     shelf.appendChild(bookElement);
   });
 
-  // Apply improved text fitting to all books
-  const allBooks = document.querySelectorAll('.book');
-  allBooks.forEach(bookEl => {
-    const titleEl = bookEl.querySelector('.title-zone');
-    const authorEl = bookEl.querySelector('.author-zone');
-    
-    // Use our new improvedTextFitting function with appropriate parameters
-    improvedTextFitting(titleEl, 9, 16);
-    improvedTextFitting(authorEl, 8, 14); // Smaller font size range for authors
+  // Apply enhanced text fitting to all books
+const allBooks = document.querySelectorAll('.book');
+allBooks.forEach(bookEl => {
+  const titleEl = bookEl.querySelector('.title-zone');
+  const authorEl = bookEl.querySelector('.author-zone');
+  const isVertical = titleEl.classList.contains('vertical');
+  
+  // Use our new enhancedTextFitting function with appropriate parameters
+  enhancedTextFitting(titleEl, {
+    minFontSize: isVertical ? 9 : 10,
+    maxFontSize: isVertical ? 14 : 16,
+    lineHeightRatio: isVertical ? 1.1 : 1.2
   });
+  
+  enhancedTextFitting(authorEl, {
+    minFontSize: 8,
+    maxFontSize: 12,
+    lineHeightRatio: 1.1
+  });
+});
 
   // Collapse expanded books when clicking outside
   document.addEventListener("click", (e) => {
