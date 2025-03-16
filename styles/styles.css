@@ -190,14 +190,9 @@ body.dark-mode .book.expanded {
 }
 
 /* Title orientation classes */
-.title-zone.horizontal {
-  writing-mode: horizontal-tb; /* normal text flow */
-  white-space: normal;
-}
-
+.title-zone.horizontal,
 .title-zone.vertical {
-  writing-mode: vertical-rl; /* rotates text bottom-to-top */
-  text-orientation: sideways-lr;
-  white-space: nowrap;        /* prevent line breaks */
-  overflow-wrap: normal;
+  white-space: normal;        /* can wrap at spaces */
+  word-break: normal;         /* do not break words */
+  overflow-wrap: normal;      /* do not forcibly break words */
 }
