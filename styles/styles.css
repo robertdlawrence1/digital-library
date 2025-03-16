@@ -109,14 +109,18 @@ body.dark-mode .theme-toggle:hover {
 .author-zone {
   white-space: normal;
   overflow-wrap: break-word;
-  word-break: normal;
+  word-break: keep-all;
   text-align: center;
   padding: 5px;
+  hyphens: none;
 }
 .title-zone {
   font-family: 'Georgia', serif;
   font-weight: 600;
-  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 .author-zone {
   font-family: 'Helvetica', sans-serif;
@@ -197,13 +201,15 @@ body.dark-mode .book.expanded {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 85%; /* Increased from 80% */
+  height: 82%;
   font-family: 'Georgia', serif;
-  padding: 3px 1px; /* Minimal horizontal padding */
+  padding: 3px 1px;
   margin: 3px auto;
-  line-height: 1;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   overflow: hidden;
-  width: 90%; /* Control width to prevent overflow */
+  width: 90%;
+  word-break: keep-all;
 }
 
 /* Make sure horizontal text is well-styled too */
@@ -212,10 +218,11 @@ body.dark-mode .book.expanded {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 5px 3px;
+  padding: 4px 2px;
   height: 75%;
-  line-height: 1.1;
+  line-height: 1.2;
   overflow: hidden;
+  word-break: keep-all;
 }
 
 /* Author zone needs to be carefully placed with vertical titles */
@@ -228,11 +235,13 @@ body.dark-mode .book.expanded {
 }
 
 .author-zone {
-  padding: 3px 2px;
-  font-size: 0.8em; /* Slightly smaller */
-  height: 15%; /* Reduced from 20% */
+  padding: 2px;
+  font-size: 0.85em;
+  height: 15%;
   text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  word-break: keep-all;
 }
