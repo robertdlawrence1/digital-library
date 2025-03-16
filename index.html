@@ -17,7 +17,9 @@
       flex-direction: column;
       justify-content: flex-start;
     }
-    h1 { margin-top: 0; }
+    h1 {
+      margin-top: 0;
+    }
 
     /* Filter buttons */
     .filter-container {
@@ -64,7 +66,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      height: 400px;
+      height: 400px;                /* Spine height is fixed at 400px */
       border-radius: 4px;
       box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
       cursor: pointer;
@@ -73,16 +75,16 @@
       color: #fff;
       background-color: #8B4513;
       text-align: center;
-      font-size: 14px;
+      font-size: 14px;             /* This is the initial base font size */
       flex-shrink: 0;
       transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-      /* The width will be set inline via JS */
+      /* The spine width is set inline via JS (calculateSpineWidth) */
     }
 
     /****************************************************
      * SPINE TEXT LAYOUT
-     * The spine text container holds a title section (top 2/3)
-     * and an author section (bottom 1/3).
+     * - The spine text container has a top "title zone" (2/3)
+     *   and a bottom "author zone" (1/3).
      ****************************************************/
     .book-spine-text {
       display: flex;
@@ -90,52 +92,41 @@
       height: 100%;
     }
 
-    /* Title section for horizontal titles (<= 50 characters) */
-    .book-title.horizontal {
-      flex: 2;
+    /* Title zone (2/3 of the spine height).
+       For short titles (<= 50 chars), we keep it horizontal.
+       For long titles (> 50 chars), we make it vertical. */
+    .title-zone {
+      flex: 2;                     /* top 2/3 of the spine */
       display: flex;
-      justify-content: center;
       align-items: center;
-      white-space: normal;         /* Allow wrapping at spaces */
-      overflow: visible;            /* Show all text */
-      word-break: normal;
-      overflow-wrap: break-word;
+      justify-content: center;
       padding: 5px;
+      overflow: visible;          /* let text flow, but we rely on JS to shrink it if needed */
+    }
+    /* Horizontal title: normal left-to-right text. */
+    .horizontal {
+      writing-mode: horizontal-tb;   /* normal text flow */
+      white-space: normal;           /* wrap at spaces if needed */
+      word-break: break-word;        /* wrap long words if absolutely needed (rare) */
+    }
+    /* Vertical title: each letter is sideways-lr, reading bottom-to-top. */
+    .vertical {
+      writing-mode: vertical-rl;     /* flows top-to-bottom on the page, read bottom-to-top */
+      text-orientation: sideways-lr; /* each letter is rotated 90° */
+      white-space: normal;           /* can wrap across multiple lines if needed */
+      word-break: break-word;
     }
 
-    /* Title section for long titles (> 50 characters) displayed vertically.
-       The entire element is rotated so the letters are rotated as well.
-       Text is allowed to wrap (without splitting words) to fit in the allocated space. */
-    .book-title.vertical {
-      flex: 2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      /* Rotate the text block - this rotates the letters too */
-      transform: rotate(-90deg);
-      /* Adjust the origin so that the rotated block fits within its container */
-      transform-origin: left top;
-      white-space: normal;         /* Allow wrapping */
-      overflow: visible;            /* Ensure no text is hidden */
-      word-break: normal;
-      overflow-wrap: break-word;
-      padding: 5px;
-      font-size: 14px;              /* Starting font size (subject to scaling) */
-    }
-
-    /* Author section: horizontal with wrapping.
-       Words are not split; if needed, they break between words. */
-    .book-author {
+    /* Author zone (1/3 of the spine height), always horizontal, wrapping if needed. */
+    .author-zone {
       flex: 1;
       display: flex;
-      justify-content: center;
       align-items: center;
-      white-space: normal;
-      overflow: visible;
-      word-break: normal;
-      overflow-wrap: break-word;
-      font-size: 12px;
+      justify-content: center;
       padding: 5px;
+      white-space: normal;          /* wrap if needed */
+      word-break: break-word;       /* do not cut words in the middle unless absolutely necessary */
+      overflow: visible;
     }
 
     /* Expanded book details */
@@ -189,7 +180,7 @@
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
-      apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
+      apiKey: "AIzaSyA...",
       authDomain: "digital-library-4f53e.firebaseapp.com",
       projectId: "digital-library-4f53e",
       storageBucket: "digital-library-4f53e.firebasestorage.app",
@@ -218,9 +209,9 @@
      ****************************************************/
     function calculateSpineWidth(pageCount) {
       const pages = Math.max(1, Number(pageCount) || 200);
-      const MIN_WIDTH = 10;    
-      const MAX_WIDTH = 200;   
-      const MAX_PAGES = 2000;  
+      const MIN_WIDTH = 10;
+      const MAX_WIDTH = 200;
+      const MAX_PAGES = 2000;
       const clampedPages = Math.min(pages, MAX_PAGES);
       const ratio = (clampedPages - 1) / (MAX_PAGES - 1);
       const width = MIN_WIDTH + ratio * (MAX_WIDTH - MIN_WIDTH);
@@ -228,23 +219,27 @@
     }
 
     /****************************************************
-     * fitTextToContainer: Adjusts font-size of an element until its
-     * bounding box fits within its parent container.
-     * This prevents text overflow without splitting words.
+     * fitTextToContainer: Reduce font-size if the content
+     * is larger than its container. We keep shrinking until
+     * it fits or we hit a minimum font size.
      ****************************************************/
-    function fitTextToContainer(el) {
-      const parent = el.parentElement;
-      if (!parent) return;
-      const parentRect = parent.getBoundingClientRect();
-      let style = window.getComputedStyle(el);
-      let fontSize = parseFloat(style.fontSize);
-      const minFontSize = 8; // Minimum font size to avoid unreadable text
-      let elRect = el.getBoundingClientRect();
-      // Loop until the element's bounding box fits inside its parent's or until we hit the minimum font size.
-      while ((elRect.width > parentRect.width || elRect.height > parentRect.height) && fontSize > minFontSize) {
+    function fitTextToContainer(el, minFontSize = 8) {
+      if (!el) return;
+      const container = el.parentElement; // The immediate parent zone
+      if (!container) return;
+
+      // We'll do a quick while-loop that checks if the text overflows the container
+      // by comparing scrollWidth/scrollHeight to clientWidth/clientHeight.
+      let fontSize = parseFloat(window.getComputedStyle(el).fontSize);
+
+      // We allow up to 50 iterations to avoid any infinite loops
+      for (let i = 0; i < 50; i++) {
+        const overflows = (el.scrollWidth > container.clientWidth || el.scrollHeight > container.clientHeight);
+        if (!overflows || fontSize <= minFontSize) {
+          break; // It's either fitting or we've hit the minimum size
+        }
         fontSize -= 1;
         el.style.fontSize = fontSize + "px";
-        elRect = el.getBoundingClientRect();
       }
     }
 
@@ -254,21 +249,24 @@
     function createBookElement(book) {
       const bookDiv = document.createElement("div");
       bookDiv.className = "book";
-      // Set the width based on page count
+
+      // Spine width
       const spineWidth = calculateSpineWidth(book.pageCount);
       bookDiv.style.width = spineWidth + "px";
       bookDiv.style.minWidth = spineWidth + "px";
-      // Determine if the title should be vertical or horizontal.
-      // Threshold is 50 characters.
+
+      // Title threshold
       const titleThreshold = 50;
-      const titleClass = (book.title.length > titleThreshold) ? "book-title vertical" : "book-title horizontal";
-      // Construct the spine text with title and author.
+      const isLongTitle = book.title.length > titleThreshold;
+      const titleClass = isLongTitle ? "title-zone vertical" : "title-zone horizontal";
+
+      // Build spine
       bookDiv.innerHTML = `
         <div class="book-spine-text">
           <div class="${titleClass}">
             ${book.title}
           </div>
-          <div class="book-author">
+          <div class="author-zone">
             ${book.author}
           </div>
         </div>
@@ -279,7 +277,8 @@
           <p>${book.summary || ""}</p>
         </div>
       `;
-      // Toggle expanded view on click
+
+      // Toggle expanded view
       bookDiv.addEventListener("click", (e) => {
         bookDiv.classList.toggle("expanded");
         if (bookDiv.classList.contains("expanded")) {
@@ -291,15 +290,17 @@
         }
         e.stopPropagation();
       });
+
       return bookDiv;
     }
 
     /****************************************************
-     * Render Books and Adjust Text Size
+     * Render Books
      ****************************************************/
     function renderBooks() {
       const shelf = document.getElementById("bookshelf");
       shelf.innerHTML = "";
+
       if (!state.displayedBooks.length) {
         const message = document.createElement("div");
         message.className = "message";
@@ -307,18 +308,25 @@
         shelf.appendChild(message);
         return;
       }
+
+      // Create each book
       state.displayedBooks.forEach(book => {
         const bookElement = createBookElement(book);
         shelf.appendChild(bookElement);
       });
-      // After rendering, adjust the font-size of title and author elements so that no text overflows.
-      document.querySelectorAll('.book').forEach(book => {
-        const titleEl = book.querySelector('.book-title');
-        const authorEl = book.querySelector('.book-author');
-        if (titleEl) fitTextToContainer(titleEl);
-        if (authorEl) fitTextToContainer(authorEl);
+
+      // After creation, fit text in each zone
+      const allBooks = document.querySelectorAll('.book');
+      allBooks.forEach(bookEl => {
+        const titleEl = bookEl.querySelector('.title-zone');
+        const authorEl = bookEl.querySelector('.author-zone');
+
+        // Adjust the font-size until there's no overflow
+        fitTextToContainer(titleEl);
+        fitTextToContainer(authorEl);
       });
-      // Collapse expanded books when clicking outside.
+
+      // Collapse expanded books when clicking outside
       document.addEventListener("click", (e) => {
         if (!e.target.closest(".book")) {
           document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
@@ -327,17 +335,19 @@
     }
 
     /****************************************************
-     * Create Filter Buttons
+     * Filter Logic
      ****************************************************/
     function createFilterButtons() {
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
+
       const allTags = new Set();
       state.allBooks.forEach(book => {
         if (Array.isArray(book.contentTags)) {
           book.contentTags.forEach(tag => allTags.add(tag));
         }
       });
+
       Array.from(allTags).sort().forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
@@ -347,9 +357,6 @@
       });
     }
 
-    /****************************************************
-     * Toggle Filter On/Off
-     ****************************************************/
     function toggleFilter(tag, buttonElement) {
       if (state.activeFilters.includes(tag)) {
         state.activeFilters = state.activeFilters.filter(t => t !== tag);
@@ -362,9 +369,6 @@
       applyFilters();
     }
 
-    /****************************************************
-     * Apply Filters
-     ****************************************************/
     function applyFilters() {
       if (!state.activeFilters.length) {
         state.displayedBooks = [...state.allBooks];
@@ -385,18 +389,22 @@
       try {
         document.getElementById("bookshelf").innerHTML =
           "<div class='message'>Loading your book collection...</div>";
+
         const snapshot = await getDocs(collection(db, "books"));
         state.allBooks = snapshot.docs.map(doc => {
           const data = doc.data();
           return { id: doc.id, ...data };
         });
+
         console.log("Loaded books:", state.allBooks.map(b => ({
           title: b.title,
           pageCount: b.pageCount
         })));
+
         state.displayedBooks = [...state.allBooks];
         createFilterButtons();
         renderBooks();
+
       } catch (error) {
         console.error("Error loading book data:", error);
         document.getElementById("bookshelf").innerHTML =
