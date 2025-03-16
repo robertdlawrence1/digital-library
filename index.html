@@ -11,16 +11,36 @@
       text-align: center;
       margin: 0;
       padding: 20px;
-      background-color: #f5f5f5;
+      background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+      color: #333;
       height: 100vh;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
+      transition: background 0.3s ease, color 0.3s ease;
     }
     h1 {
       margin-top: 0;
     }
 
+    /* Theme toggle button */
+    .theme-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: #8B4513;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    .theme-toggle:hover {
+      background: #6B4226;
+    }
+    
     /* Filter buttons */
     .filter-container {
       display: flex;
@@ -52,12 +72,13 @@
       gap: 10px;
       scroll-behavior: smooth;
       align-items: flex-start;
-      background-color: #e0e0e0;
+      background: linear-gradient(to bottom, #e0e0e0, #d1d1d1);
       border-radius: 5px;
       min-height: 550px;
       flex-grow: 1;
       box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
       margin-top: 10px;
+      transition: background 0.3s ease;
     }
 
     /* Book styling */
@@ -73,12 +94,15 @@
       padding: 15px;
       position: relative;
       color: #fff;
-      background-color: #8B4513;
       text-align: center;
       font-size: 14px;    /* Base font size */
       flex-shrink: 0;
-      transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+      transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
       /* Spine width is set inline via JS */
+    }
+    .book:hover {
+      transform: translateY(-5px);
+      box-shadow: 2px 7px 10px rgba(0,0,0,0.2);
     }
 
     /****************************************************
@@ -101,6 +125,8 @@
       justify-content: center;
       padding: 5px;
       overflow: visible;      /* We'll rely on JS to shrink the text if needed */
+      font-family: 'Georgia', serif;
+      font-weight: 600;
     }
     /* Horizontal title: normal text flow, wrapping at spaces. */
     .horizontal {
@@ -129,6 +155,8 @@
       word-break: normal;
       overflow-wrap: normal;
       overflow: visible;
+      font-family: 'Helvetica', sans-serif;
+      font-weight: 400;
     }
 
     /* Expanded book details */
@@ -152,6 +180,12 @@
       overflow-y: auto;
       padding: 20px;
       color: #000;
+      transform: translateY(0);
+    }
+    body.dark-mode .book.expanded {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
     .book.expanded .book-expanded-content {
       display: block;
@@ -159,16 +193,59 @@
     .book.expanded .book-spine-text {
       display: none;
     }
+    
+    /* Book tags in expanded view */
+    .book-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 10px;
+    }
+    .book-tag {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-size: 12px;
+      color: white;
+    }
 
     /* Message styling */
     .message {
       padding: 20px;
       color: #555;
     }
+    
+    /* Dark mode styles */
+    body.dark-mode {
+      background: linear-gradient(to bottom, #121212, #1e1e1e);
+      color: #e0e0e0;
+    }
+    body.dark-mode .shelf-container {
+      background: linear-gradient(to bottom, #2d2d2d, #252525);
+      box-shadow: inset 0 5px 15px rgba(0,0,0,0.2);
+    }
+    body.dark-mode .filter-button {
+      background-color: #333;
+      color: #ddd;
+      border-color: #555;
+    }
+    body.dark-mode .filter-button.selected {
+      background-color: #5a2d0c;
+      color: #fff;
+    }
+    body.dark-mode .message {
+      color: #bbb;
+    }
+    body.dark-mode .theme-toggle {
+      background: #5a2d0c;
+    }
+    body.dark-mode .theme-toggle:hover {
+      background: #8B4513;
+    }
   </style>
 </head>
 <body>
   <h1>My Reading Tracker</h1>
+  <button class="theme-toggle" id="theme-toggle">Toggle Dark Mode</button>
   <div class="filter-container" id="filter-buttons"></div>
   <div class="shelf-container" id="bookshelf"></div>
 
@@ -203,12 +280,99 @@
       allBooks: [],
       displayedBooks: [],
       activeFilters: [],
-      maxFilters: 3
+      maxFilters: 3,
+      isDarkMode: false
     };
 
     /****************************************************
+     * Color Theme System
+     ****************************************************/
+    const colorSystem = {
+      // Map for tag colors - will be populated dynamically
+      tagColors: {},
+      
+      // Colorful palette for tag assignments
+      colorPalette: [
+        "#3d5a80", // Blue
+        "#7d4e57", // Burgundy
+        "#41729f", // Steel blue
+        "#5e3023", // Brown
+        "#354f52", // Forest green
+        "#5e548e", // Purple
+        "#028090", // Teal
+        "#d62828", // Red
+        "#4a4e69", // Slate
+        "#687864", // Olive
+        "#5f0f40", // Wine
+        "#9e2a2b", // Crimson
+        "#323031", // Dark gray
+        "#540b0e", // Dark red
+        "#e09f3e", // Gold
+        "#335c67"  // Navy
+      ],
+  
+      // Default colors for books with no matching tags
+      defaultColors: ["#8B4513", "#A0522D", "#6B4226", "#855E42"],
+      
+      // Initialize tag colors from available tags
+      initializeTagColors(tags) {
+        // Reset the tag colors map
+        this.tagColors = {};
+        
+        // Assign colors to tags
+        tags.forEach((tag, index) => {
+          this.tagColors[tag] = this.colorPalette[index % this.colorPalette.length];
+        });
+      },
+      
+      // Generate color for a book based on its tags
+      generateBookColor(tags) {
+        if (!Array.isArray(tags) || tags.length === 0) {
+          return this.defaultColors[Math.floor(Math.random() * this.defaultColors.length)];
+        }
+        
+        // Get colors for this book's tags
+        const colors = tags
+          .map(tag => this.tagColors[tag])
+          .filter(color => color !== undefined);
+        
+        if (colors.length === 0) {
+          return this.defaultColors[Math.floor(Math.random() * this.defaultColors.length)];
+        }
+        
+        if (colors.length === 1) {
+          return colors[0];
+        }
+        
+        // For multiple colors, create a gradient
+        return `linear-gradient(135deg, ${colors.join(', ')})`;
+      },
+      
+      // Get the color for a specific tag (for filter buttons)
+      getTagColor(tag) {
+        return this.tagColors[tag] || "#8B4513";
+      }
+    };
+
+    /****************************************************
+     * Theme Management
+     ****************************************************/
+    function toggleDarkMode() {
+      state.isDarkMode = !state.isDarkMode;
+      document.body.classList.toggle('dark-mode', state.isDarkMode);
+      
+      // Update the theme toggle button text
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.textContent = state.isDarkMode ? 'Toggle Light Mode' : 'Toggle Dark Mode';
+      }
+      
+      // Re-render books for dark mode appearance updates
+      renderBooks();
+    }
+
+    /****************************************************
      * Spine Width Calculation
-     *  - Increased MIN_WIDTH to 40, MAX_WIDTH to 250
      ****************************************************/
     function calculateSpineWidth(pageCount) {
       const pages = Math.max(1, Number(pageCount) || 200);
@@ -254,10 +418,14 @@
       const bookDiv = document.createElement("div");
       bookDiv.className = "book";
 
-      // Spine width
+      // Spine width based on page count
       const spineWidth = calculateSpineWidth(book.pageCount);
       bookDiv.style.width = spineWidth + "px";
       bookDiv.style.minWidth = spineWidth + "px";
+      
+      // Apply tag-based colors
+      const bookColor = colorSystem.generateBookColor(book.contentTags);
+      bookDiv.style.background = bookColor;
 
       // Title threshold
       const titleThreshold = 50;
@@ -279,6 +447,11 @@
           <p><em>by ${book.author}</em></p>
           <p>${book.pageCount} pages | ${book.yearPublished || "Unknown"}</p>
           <p>${book.summary || ""}</p>
+          <div class="book-tags">
+            ${Array.isArray(book.contentTags) ? book.contentTags.map(tag => 
+              `<span class="book-tag" style="background-color: ${colorSystem.getTagColor(tag)}">${tag}</span>`
+            ).join('') : ''}
+          </div>
         </div>
       `;
 
@@ -343,6 +516,7 @@
       const container = document.getElementById("filter-buttons");
       container.innerHTML = "";
 
+      // Extract all unique tags from books
       const allTags = new Set();
       state.allBooks.forEach(book => {
         if (Array.isArray(book.contentTags)) {
@@ -350,10 +524,22 @@
         }
       });
 
-      Array.from(allTags).sort().forEach(tag => {
+      // Sort tags alphabetically
+      const sortedTags = Array.from(allTags).sort();
+      
+      // Initialize color system with all available tags
+      colorSystem.initializeTagColors(sortedTags);
+
+      // Create filter buttons
+      sortedTags.forEach(tag => {
         const btn = document.createElement("button");
         btn.className = "filter-button";
         btn.textContent = tag;
+        btn.style.borderColor = colorSystem.getTagColor(tag);
+        
+        // Add a subtle indicator of the tag color
+        btn.style.borderLeft = `6px solid ${colorSystem.getTagColor(tag)}`;
+        
         btn.addEventListener("click", () => toggleFilter(tag, btn));
         container.appendChild(btn);
       });
@@ -418,6 +604,16 @@
      * Start the Application
      ****************************************************/
     document.addEventListener("DOMContentLoaded", () => {
+      // Initialize theme toggle
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      themeToggleBtn.addEventListener('click', toggleDarkMode);
+      
+      // Apply initial theme based on user preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        toggleDarkMode();
+      }
+      
+      // Load book data from Firestore
       loadBookData();
     });
   </script>
