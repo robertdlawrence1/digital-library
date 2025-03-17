@@ -171,16 +171,20 @@ function enhancedTextFitting(el, options = {}) {
     };
   };
   
-  const containerSize = getContainerSize();
-  const maxWidth = isVertical ? containerSize.width : containerSize.width;
-  const maxHeight = isVertical ? containerSize.height : containerSize.height;
+const containerSize = getContainerSize();
+const maxWidth = isVertical 
+  ? containerSize.width 
+  : containerSize.width * 0.9;  // allow horizontal text to use ~90% width
+
+const maxHeight = containerSize.height;
   
   // Function that checks if text fits within container
   const textFits = () => {
-    const overflows = (isVertical) ? 
-      (el.scrollHeight > maxHeight) : 
-      (el.scrollWidth > maxWidth);
-    return !overflows;
+    if (isVertical) {
+      return el.scrollHeight <= maxHeight;
+    } else {
+      return el.scrollWidth <= maxWidth && el.scrollHeight <= maxHeight;
+    }
   };
 
   // Apply the right font size
@@ -363,6 +367,10 @@ allBooks.forEach(bookEl => {
       minFontSize = 8;
       maxFontSize = 17;
     }
+  }
+
+  if (!isVertical && spineWidthPx >= 60) {
+  maxFontSize += 1.5; // slightly boost large spines
   }
 
   // Then apply text fitting:
