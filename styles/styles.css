@@ -373,15 +373,13 @@ body.dark-mode .book.expanded {
 
 /* Make sure horizontal text is well-styled too */
 .title-zone.horizontal {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: block; /* swap from flex */
     text-align: center;
-    padding: 2px 1px; /* reduce padding further */
-    height: 80%; /* increase from 75% */
-    line-height: 1.1; /* tighten up */
+    padding: 2px;
+    width: 100%;
+    height: 80%;
+    line-height: 1.1;
     overflow: hidden;
-    word-break: keep-all;
 }
 
 .title-zone.horizontal {
