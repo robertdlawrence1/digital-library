@@ -58,6 +58,17 @@ function toggleFilter(tag, btn) {
   renderBooks();
 }
 
+function enhancedTextFitting(el, isVertical) {
+  if (!el || !el.parentElement) return;
+  let fontSize = isVertical ? 15 : 17;
+  el.style.fontSize = fontSize + 'px';
+  const container = el.parentElement.getBoundingClientRect();
+  while ((el.scrollHeight > container.height || el.scrollWidth > container.width) && fontSize > 8) {
+    fontSize -= 0.5;
+    el.style.fontSize = fontSize + 'px';
+  }
+}
+
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
@@ -77,7 +88,8 @@ function renderBooks() {
     const titleEl = document.createElement("div");
     titleEl.className = "title-zone";
     titleEl.textContent = book.title;
-    if (width < 55 && book.title.length > 15) titleEl.classList.add("vertical");
+    const isVertical = width < 55 && book.title.length > 15;
+    if (isVertical) titleEl.classList.add("vertical");
     div.appendChild(titleEl);
 
     const authorEl = document.createElement("div");
@@ -94,6 +106,10 @@ function renderBooks() {
       div.classList.toggle("expanded");
       e.stopPropagation();
     });
+
+    // Apply text fitting
+    enhancedTextFitting(titleEl, isVertical);
+    enhancedTextFitting(authorEl, false);
 
     shelf.appendChild(div);
   });
