@@ -1,3 +1,4 @@
+/* Color Palette */
 :root {
   --auburn: #D98C88;
   --airforce-blue: #9BBBC7;
@@ -33,12 +34,17 @@ body.dark-mode {
 
 h1 {
   text-align: center;
+  margin-bottom: 10px;
+}
+
+#controls {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 #theme-toggle {
-  display: block;
-  margin: 0 auto 20px auto;
   padding: 8px 16px;
+  margin-bottom: 15px;
   font-weight: bold;
   cursor: pointer;
   border: none;
@@ -52,7 +58,6 @@ h1 {
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 20px;
 }
 
 .filter-button {
@@ -69,11 +74,15 @@ h1 {
   outline: 2px solid #333;
 }
 
+#bookshelf-container {
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 20px 0;
+}
+
 #bookshelf {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
   gap: 12px;
-  justify-content: center;
 }
 
 .book {
@@ -88,6 +97,7 @@ h1 {
   overflow: hidden;
   padding: 5px;
   color: white;
+  flex-shrink: 0;
 }
 
 .book.expanded {
