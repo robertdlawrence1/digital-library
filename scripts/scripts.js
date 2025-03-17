@@ -370,6 +370,13 @@ allBooks.forEach(bookEl => {
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
   container.innerHTML = "";
+  
+  // Add a heading
+  const heading = document.createElement("h3");
+  heading.className = "filter-heading";
+  heading.textContent = "Filter by Tags";
+  container.appendChild(heading);
+
 
   // Extract all unique tags from books
   const allTags = new Set();
@@ -390,6 +397,18 @@ function createFilterButtons() {
     btn.className = "filter-button";
     btn.textContent = tag;
     
+    sortedTags.forEach(tag => {
+  const btn = document.createElement("button");
+  btn.className = "filter-button";
+  
+  // Count how many books have this tag
+  const taggedBooks = state.allBooks.filter(book => 
+    Array.isArray(book.contentTags) && book.contentTags.includes(tag)
+  );
+  
+  // Create the button text with tag name and count badge
+  btn.innerHTML = `${tag} <span class="count">${taggedBooks.length}</span>`;
+
     const tagColor = colorSystem.getTagColor(tag);
     btn.style.borderColor = tagColor;
     btn.style.borderLeft = `6px solid ${tagColor}`;
@@ -417,7 +436,13 @@ function toggleFilter(tag, buttonElement) {
     buttonElement.style.borderColor = colorSystem.getTagColor(tag);
     buttonElement.style.borderLeft = `6px solid ${colorSystem.getTagColor(tag)}`;
   } else {
-    if (state.activeFilters.length >= state.maxFilters) return;
+    if (state.activeFilters.length >= state.maxFilters){
+    buttonElement.classList.add("shake");
+      setTimeout(() => {
+        buttonElement.classList.remove("shake");
+      }, 300);
+      return;
+    }
     state.activeFilters.push(tag);
     buttonElement.classList.add("selected");
     const tagColor = colorSystem.getTagColor(tag);
