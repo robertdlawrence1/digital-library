@@ -49,13 +49,162 @@ body.dark-mode .theme-toggle:hover {
   background: #8B4513;
 }
 
+/* Enhanced Filter System */
+.filter-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px 0 30px;
+  padding: 5px;
+}
+.filter-button {
+  background: #f0f0f0;
+  border: none;
+  border-left: 6px solid #8B4513;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.filter-button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background-color: currentColor;
+  opacity: 0.1;
+  transition: width 0.2s ease;
+  z-index: 0;
+}
+.filter-button:hover::before {
+  width: 100%;
+}
+.filter-button.selected {
+  color: white;
+  font-weight: 600;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+/* Counter badge for number of matching books */
+.filter-button .count {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+/* Dark mode */
+body.dark-mode .filter-button {
+  background: #333;
+  color: #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+body.dark-mode .filter-button:hover {
+  background: #3a3a3a;
+}
+/* Filter section heading */
+.filter-heading {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #555;
+}
+body.dark-mode .filter-heading {
+  color: #bbb;
+}
+/* Add animation for when max filters reached */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+.filter-button.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 /* Filter buttons container */
 .filter-container {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin: 20px 0 30px;
+  padding: 5px;
+}
+
+.filter-button {
+  background: #f0f0f0;
+  border: none;
+  border-left: 6px solid #8B4513;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  overflow: hidden;
+}
+.filter-button::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 100%;
+  background-color: currentColor;
+  opacity: 0.1;
+  transition: width 0.2s ease;
+  z-index: 0;
+}
+.filter-button:hover::before {
+  width: 100%;
+}
+.filter-button.selected {
+  color: white;
+  font-weight: 600;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+/* Counter badge for number of matching books */
+.filter-button .count {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  margin-left: 5px;
+}
+/* Dark mode */
+body.dark-mode .filter-button {
+  background: #333;
+  color: #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+body.dark-mode .filter-button:hover {
+  background: #3a3a3a;
+}
+/* Filter section heading */
+.filter-heading {
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #555;
+}
+body.dark-mode .filter-heading {
+  color: #bbb;
 }
 
 /* Shelf container */
@@ -141,11 +290,21 @@ body.dark-mode .theme-toggle:hover {
     height: auto !important;
     min-height: 150px;
     margin-bottom: 15px;
-  }
+ 
+    @media (max-width: 768px) {
+  /* Other responsive styles... */
+  
   .filter-container {
     flex-wrap: nowrap;
     overflow-x: auto;
     justify-content: flex-start;
+    padding-bottom: 10px;
+  }
+  .filter-button {
+    flex-shrink: 0;
+    margin-bottom: 5px;
+  }
+}
   }
   .filter-button {
     flex-shrink: 0;
