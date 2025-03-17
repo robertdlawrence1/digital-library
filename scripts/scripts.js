@@ -367,6 +367,7 @@ allBooks.forEach(bookEl => {
 /****************************************************
  * Filter Logic
  ****************************************************/
+
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
   container.innerHTML = "";
@@ -376,7 +377,6 @@ function createFilterButtons() {
   heading.className = "filter-heading";
   heading.textContent = "Filter by Tags";
   container.appendChild(heading);
-
 
   // Extract all unique tags from books
   const allTags = new Set();
@@ -395,19 +395,14 @@ function createFilterButtons() {
   sortedTags.forEach(tag => {
     const btn = document.createElement("button");
     btn.className = "filter-button";
-    btn.textContent = tag;
     
-    sortedTags.forEach(tag => {
-  const btn = document.createElement("button");
-  btn.className = "filter-button";
-  
-  // Count how many books have this tag
-  const taggedBooks = state.allBooks.filter(book => 
-    Array.isArray(book.contentTags) && book.contentTags.includes(tag)
-  );
-  
-  // Create the button text with tag name and count badge
-  btn.innerHTML = `${tag} <span class="count">${taggedBooks.length}</span>`;
+    // Count how many books have this tag
+    const taggedBooks = state.allBooks.filter(book => 
+      Array.isArray(book.contentTags) && book.contentTags.includes(tag)
+    );
+    
+    // Create the button text with tag name and count badge
+    btn.innerHTML = `${tag} <span class="count">${taggedBooks.length}</span>`;
 
     const tagColor = colorSystem.getTagColor(tag);
     btn.style.borderColor = tagColor;
