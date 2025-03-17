@@ -373,15 +373,20 @@ body.dark-mode .book.expanded {
 
 /* Make sure horizontal text is well-styled too */
 .title-zone.horizontal {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 4px 2px;
-  height: 75%;
-  line-height: 1.2;
-  overflow: hidden;
-  word-break: keep-all;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2px 1px; /* reduce padding further */
+    height: 80%; /* increase from 75% */
+    line-height: 1.1; /* tighten up */
+    overflow: hidden;
+    word-break: keep-all;
+}
+
+.title-zone.horizontal {
+    max-width: 100%;
+    white-space: normal; /* let text wrap */
 }
 
 /* Author zone needs to be carefully placed with vertical titles */
