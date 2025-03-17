@@ -1,4 +1,3 @@
-/* Base styling */
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   text-align: center;
@@ -6,263 +5,47 @@ body {
   padding: 20px;
   background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
   color: #333;
-  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* Heading */
-h1 {
-  margin-top: 0;
-}
-
-/* Theme toggle button */
-.theme-toggle {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: #4682B4;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s, transform 0.3s;
-  padding: 0;
-}
-.theme-toggle:hover {
-  background: #2E5984;
-  transform: rotate(15deg);
-}
-
-/* Dark mode styling */
-body.dark-mode {
-  background: linear-gradient(to bottom, #121212, #1e1e1e);
-  color: #e0e0e0;
-}
-body.dark-mode .theme-toggle {
-  background: #5a2d0c;
-}
-body.dark-mode .theme-toggle:hover {
-  background: #8B4513;
-}
-
-/* Enhanced Filter System */
-.filter-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0 30px;
-  padding: 5px;
-}
-.filter-button {
-  background: #f0f0f0;
-  border: none;
-  border-left: 6px solid #8B4513;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
-}
-.filter-button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 100%;
-  background-color: currentColor;
-  opacity: 0.1;
-  transition: width 0.2s ease;
-  z-index: 0;
-}
-.filter-button:hover::before {
-  width: 100%;
-}
-.filter-button.selected {
-  color: white;
-  font-weight: 600;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-/* Counter badge for number of matching books */
-.filter-button .count {
-  display: inline-block;
-  background: rgba(255,255,255,0.2);
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  margin-left: 5px;
-}
-/* Dark mode */
-body.dark-mode .filter-button {
-  background: #333;
-  color: #ddd;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-body.dark-mode .filter-button:hover {
-  background: #3a3a3a;
-}
-/* Filter section heading */
-.filter-heading {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  font-weight: 500;
-  color: #555;
-}
-body.dark-mode .filter-heading {
-  color: #bbb;
-}
-/* Add animation for when max filters reached */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-.filter-button.shake {
-  animation: shake 0.3s ease-in-out;
-}
-
-/* Filter buttons container */
-.filter-container {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0 30px;
-  padding: 5px;
-}
-
-.filter-button {
-  background: #f0f0f0;
-  border: none;
-  border-left: 6px solid #8B4513;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  position: relative;
-  overflow: hidden;
-}
-.filter-button::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 100%;
-  background-color: currentColor;
-  opacity: 0.1;
-  transition: width 0.2s ease;
-  z-index: 0;
-}
-.filter-button:hover::before {
-  width: 100%;
-}
-.filter-button.selected {
-  color: white;
-  font-weight: 600;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-/* Counter badge for number of matching books */
-.filter-button .count {
-  display: inline-block;
-  background: rgba(255,255,255,0.2);
-  border-radius: 10px;
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  margin-left: 5px;
-}
-/* Dark mode */
-body.dark-mode .filter-button {
-  background: #333;
-  color: #ddd;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-body.dark-mode .filter-button:hover {
-  background: #3a3a3a;
-}
-/* Filter section heading */
-.filter-heading {
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  font-weight: 500;
-  color: #555;
-}
-body.dark-mode .filter-heading {
-  color: #bbb;
-}
-
-/* Shelf container */
 .shelf-container {
   display: flex;
   overflow-x: auto;
   padding: 20px;
-  gap: 10px;
-  scroll-behavior: smooth;
+  gap: 12px;
   align-items: flex-start;
-  background: linear-gradient(to bottom, #e0e0e0, #d1d1d1);
+  background: #e0e0e0;
   border-radius: 5px;
-  min-height: 33vh; /* ensures room for a book spine */
-  box-shadow: inset 0 5px 15px rgba(0,0,0,0.1);
-  transition: background 0.3s ease;
+  min-height: 35vh;
 }
 
-/* Book spine styling */
 .book {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 35vh; /* Changed from 33vh */
-  min-width: 50px;
+  height: 35vh;
   box-sizing: border-box;
   border-radius: 4px;
   box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
   cursor: pointer;
-  padding: 10px;
-  margin: 0 5px;
+  padding: 5px;
   overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
 .book:hover {
   transform: translateY(-5px);
   box-shadow: 2px 7px 10px rgba(0,0,0,0.2);
 }
 
-/* Spine text container */
 .book-spine-text {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  justify-content: space-between;
   height: 100%;
   width: 100%;
 }
 
-/* Title and Author zones */
-.title-zone,
-.author-zone {
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: keep-all;
-  text-align: center;
-  padding: 5px;
-  hyphens: none;
-}
 .title-zone {
   font-family: 'Georgia', serif;
   font-weight: 600;
@@ -270,78 +53,53 @@ body.dark-mode .filter-heading {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  word-break: keep-all;
 }
+
+.title-zone.horizontal {
+  padding: 4px 2px;
+  height: 75%;
+  width: 95%;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.title-zone.vertical {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  transform: rotate(180deg);
+  height: 85%;
+  width: 90%;
+  line-height: 1.05;
+  text-align: center;
+  margin: auto;
+}
+
 .author-zone {
-  font-family: 'Helvetica', sans-serif;
-  font-weight: 400;
-  font-size: 0.9em;
+  padding: 2px;
+  font-size: 0.85em;
+  height: 15%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  word-break: keep-all;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .shelf-container {
-    flex-direction: column;
-    overflow-y: auto;
-    overflow-x: hidden;
-    align-items: center;
-  }
-  .book {
-    width: 85% !important;
-    height: auto !important;
-    min-height: 150px;
-    margin-bottom: 15px;
- 
-    @media (max-width: 768px) {
-  /* Other responsive styles... */
-  
-  .filter-container {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    justify-content: flex-start;
-    padding-bottom: 10px;
-  }
-  .filter-button {
-    flex-shrink: 0;
-    margin-bottom: 5px;
-  }
-}
-  }
-  .filter-button {
-    flex-shrink: 0;
-  }
-}  /* <-- Close the media query here */
-
-/* =============== Expanded View & Vertical Title =============== */
-
-/* Hides the expanded content by default */
 .book-expanded-content {
   display: none;
-  text-align: left;
-  white-space: normal;
-  word-break: normal;
-  max-width: 380px;
-  max-height: 360px;
-  overflow-y: auto;
-  margin: 0 auto; /* Center in expanded view, optional */
 }
 
-/* When .expanded is applied, show expanded content and hide the spine text */
 .book.expanded {
   width: 400px !important;
   min-width: 400px !important;
   z-index: 100;
-  background: #fff; /* Light background for readability */
+  background: #fff;
   border-radius: 5px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   overflow-y: auto;
   padding: 20px;
   color: #000;
-  transform: translateY(0);
-}
-body.dark-mode .book.expanded {
-  background: #2d2d2d;
-  color: #e0e0e0;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
 }
 
 .book.expanded .book-spine-text {
@@ -350,60 +108,4 @@ body.dark-mode .book.expanded {
 
 .book.expanded .book-expanded-content {
   display: block;
-}
-
-/* Improved vertical text styling */
-.title-zone.vertical {
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 82%;
-  font-family: 'Georgia', serif;
-  padding: 3px 1px;
-  margin: 3px auto;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  overflow: hidden;
-  width: 90%;
-  word-break: keep-all;
-}
-
-/* Make sure horizontal text is well-styled too */
-.title-zone.horizontal {
-    display: block; /* swap from flex */
-    text-align: center;
-    padding: 2px;
-    width: 100%;
-    height: 80%;
-    line-height: 1.1;
-    overflow: hidden;
-}
-
-.title-zone.horizontal {
-    max-width: 100%;
-    white-space: normal; /* let text wrap */
-}
-
-/* Author zone needs to be carefully placed with vertical titles */
-.book-spine-text {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; /* Changed from space-around for better positioning */
-  height: 100%;
-  width: 100%;
-}
-
-.author-zone {
-  padding: 2px;
-  font-size: 0.85em;
-  height: 15%;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  word-break: keep-all;
 }
