@@ -17,7 +17,11 @@ getAnalytics(app);
 const db = getFirestore(app);
 
 const state = { allBooks: [], displayedBooks: [], activeFilters: [], maxFilters: 3, isDarkMode: false };
-const tagList = ["auburn", "airforce-blue", "eggplant", "princeton-orange", "pistachio", "slate-blue", "indigo", "forest-green", "rosewood", "teal", "cobalt", "tangerine", "butter", "lavender", "sage", "crimson"];
+
+const colorSystem = {
+  palette: ["auburn", "airforce-blue", "eggplant", "princeton-orange", "pistachio", "slate-blue", "indigo", "forest-green", "rosewood", "teal", "cobalt", "tangerine", "butter", "lavender", "sage", "crimson"],
+  tagMap: {}
+};
 
 document.getElementById("theme-toggle").addEventListener("click", () => {
   state.isDarkMode = !state.isDarkMode;
@@ -34,10 +38,10 @@ function calculateSpineWidth(pageCount) {
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
   container.innerHTML = "";
-  tagList.forEach(tag => {
+  Object.keys(colorSystem.tagMap).forEach(tag => {
     const btn = document.createElement("button");
     btn.className = "filter-button";
-    btn.style.background = `var(--${tag})`;
+    btn.style.background = `var(--${colorSystem.tagMap[tag]})`;
     btn.textContent = tag;
     btn.addEventListener("click", () => toggleFilter(tag, btn));
     container.appendChild(btn);
@@ -47,6 +51,7 @@ function createFilterButtons() {
 function toggleFilter(tag, btn) {
   if (state.activeFilters.includes(tag)) {
     state.activeFilters = state.activeFilters.filter(t => t !== tag);
+    btn.classList.remove("selected");
   } else {
     if (state.activeFilters.length >= state.maxFilters) {
       btn.classList.add("shake");
@@ -54,6 +59,7 @@ function toggleFilter(tag, btn) {
       return;
     }
     state.activeFilters.push(tag);
+    btn.classList.add("selected");
   }
   renderBooks();
 }
@@ -82,7 +88,7 @@ function renderBooks() {
     const width = calculateSpineWidth(book.pageCount);
     div.style.width = width + "px";
     div.style.minWidth = width + "px";
-    const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${tag})`).join(", ");
+    const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.background = `linear-gradient(to bottom, ${gradient})`;
 
     const titleEl = document.createElement("div");
@@ -107,7 +113,6 @@ function renderBooks() {
       e.stopPropagation();
     });
 
-    // Apply text fitting
     enhancedTextFitting(titleEl, isVertical);
     enhancedTextFitting(authorEl, false);
 
@@ -123,9 +128,17 @@ function renderBooks() {
 
 async function loadBookData() {
   const snapshot = await getDocs(collection(db, "books"));
-  state.allBooks = snapshot.docs.map(doc => doc.data());
-  renderBooks();
+  const tags = new Set();
+  state.allBooks = snapshot.docs.map(doc => {
+    const data = doc.data();
+    (data.contentTags || []).forEach(tag => tags.add(tag));
+    return data;
+  });
+  [...tags].forEach((tag, index) => {
+    colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
+  });
   createFilterButtons();
+  renderBooks();
 }
 
 loadBookData();
