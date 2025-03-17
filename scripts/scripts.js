@@ -86,8 +86,8 @@ function toggleDarkMode() {
 
 function calculateSpineWidth(pageCount) {
   // Increase minimum spine width
-  const minSpineWidth = 35;  // Was 28
-  const maxSpineWidth = 90;  // Was 85
+  const minSpineWidth = 45;
+  const maxSpineWidth = 100;
   const minPages = 50;
   const maxPages = 1200;
 
