@@ -1,21 +1,54 @@
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  text-align: center;
-  margin: 0;
-  padding: 20px;
-  background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-  color: #333;
+:root {
+  --auburn: #D98C88;
+  --airforce-blue: #9BBBC7;
+  --eggplant: #B499B1;
+  --princeton-orange: #F6BB75;
+  --pistachio: #A8CDA3;
+  --slate-blue: #95A6B3;
+  --indigo: #8C99B5;
+  --forest-green: #8BAF9E;
+  --rosewood: #C47A7A;
+  --teal: #80C1BA;
+  --cobalt: #7C9EC0;
+  --tangerine: #F5A285;
+  --butter: #F0D49A;
+  --lavender: #B8A3C9;
+  --sage: #AEC9C1;
+  --crimson: #CE7C86;
 }
 
-.shelf-container {
+body {
+  font-family: sans-serif;
+  background: #f9f9f9;
+  color: #333;
+  transition: background 0.3s, color 0.3s;
+}
+
+body.dark-mode {
+  background: #1e1e1e;
+  color: #eee;
+}
+
+#filter-buttons {
   display: flex;
-  overflow-x: auto;
-  padding: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.filter-button {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  color: #fff;
+}
+
+#bookshelf {
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: flex-start;
-  background: #e0e0e0;
-  border-radius: 5px;
-  min-height: 35vh;
 }
 
 .book {
@@ -23,87 +56,46 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 35vh;
-  box-sizing: border-box;
   border-radius: 4px;
-  box-shadow: 2px 2px 5px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  position: relative;
   cursor: pointer;
-  padding: 5px;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 5px;
 }
 
-.book:hover {
-  transform: translateY(-5px);
-  box-shadow: 2px 7px 10px rgba(0,0,0,0.2);
-}
-
-.book-spine-text {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
-  width: 100%;
+.book.expanded {
+  z-index: 2;
+  transform: scale(1.1);
+  transition: transform 0.2s;
 }
 
 .title-zone {
-  font-family: 'Georgia', serif;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  word-break: keep-all;
-}
-
-.title-zone.horizontal {
-  padding: 4px 2px;
-  height: 75%;
-  width: 95%;
-  line-height: 1.2;
+  font-weight: bold;
   text-align: center;
+  white-space: normal;
+  word-wrap: break-word;
 }
 
 .title-zone.vertical {
   writing-mode: vertical-rl;
-  text-orientation: mixed;
-  transform: rotate(180deg);
-  height: 85%;
-  width: 90%;
-  line-height: 1.05;
-  text-align: center;
-  margin: auto;
 }
 
 .author-zone {
-  padding: 2px;
-  font-size: 0.85em;
-  height: 15%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  word-break: keep-all;
+  font-size: 0.6em;
+  text-align: center;
 }
 
 .book-expanded-content {
   display: none;
-}
-
-.book.expanded {
-  width: 400px !important;
-  min-width: 400px !important;
-  z-index: 100;
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  overflow-y: auto;
-  padding: 20px;
-  color: #000;
-}
-
-.book.expanded .book-spine-text {
-  display: none;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(255,255,255,0.9);
+  color: #333;
+  font-size: 0.7em;
+  padding: 5px;
 }
 
 .book.expanded .book-expanded-content {
