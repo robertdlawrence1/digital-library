@@ -330,28 +330,54 @@ function renderBooks() {
     return;
   }
 
-  state.displayedBooks.forEach(book => {
-    const bookElement = createBookElement(book);
-    shelf.appendChild(bookElement);
-  });
+state.displayedBooks.forEach(book => {
+  const bookElement = createBookElement(book);
+  shelf.appendChild(bookElement);
+});
 
-  // Apply enhanced text fitting to all books
+// Now, apply enhanced text fitting to all books
 const allBooks = document.querySelectorAll('.book');
 allBooks.forEach(bookEl => {
   const titleEl = bookEl.querySelector('.title-zone');
   const authorEl = bookEl.querySelector('.author-zone');
   const isVertical = titleEl.classList.contains('vertical');
-  
-  // Use our new enhancedTextFitting function with appropriate parameters
+
+  // START dynamic sizing logic HERE:
+  const spineWidthPx = parseInt(bookEl.style.width);  // extract px value as integer
+
+  let minFontSize, maxFontSize;
+
+  if (isVertical) {
+    if (spineWidthPx < 45) {
+      minFontSize = 7;
+      maxFontSize = 13;
+    } else {
+      minFontSize = 8;
+      maxFontSize = 15;
+    }
+  } else {
+    if (spineWidthPx < 55) {
+      minFontSize = 7;
+      maxFontSize = 14;
+    } else {
+      minFontSize = 8;
+      maxFontSize = 17;
+    }
+  }
+
+  // Then apply text fitting:
   enhancedTextFitting(titleEl, {
-    minFontSize: isVertical ? 9 : 10,
-    maxFontSize: isVertical ? 14 : 16,
-    lineHeightRatio: isVertical ? 1.1 : 1.2
+    minFontSize,
+    maxFontSize,
+    lineHeightRatio: isVertical ? 1.05 : 1.1
   });
-  
+
+  let authorFontMin = spineWidthPx < 55 ? 7 : 8;
+  let authorFontMax = spineWidthPx < 55 ? 11 : 12;
+
   enhancedTextFitting(authorEl, {
-    minFontSize: 8,
-    maxFontSize: 12,
+    minFontSize: authorFontMin,
+    maxFontSize: authorFontMax,
     lineHeightRatio: 1.1
   });
 });
