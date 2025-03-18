@@ -42,7 +42,7 @@ function updateThemeIcon() {
       </g>
     </svg>`;
   } else {
-    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="black">
       <path d="M21 12.79A9 9 0 0 1 12.21 3a9 9 0 1 0 8.79 9.79z"/>
     </svg>`;
   }
