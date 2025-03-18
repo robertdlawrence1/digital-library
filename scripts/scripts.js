@@ -26,29 +26,25 @@ const colorSystem = {
   tagMap: {}
 };
 
-const sunIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
-  <circle cx="12" cy="12" r="5" fill="white"/>
-  <g>
-    <line x1="12" y1="1" x2="12" y2="4"/>
-    <line x1="12" y1="20" x2="12" y2="23"/>
-    <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
-    <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-    <line x1="1" y1="12" x2="4" y2="12"/>
-    <line x1="20" y1="12" x2="23" y2="12"/>
-    <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
-    <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
-  </g>
-</svg>`;
-
-const moonIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white">
-  <path d="M21 12.79A9 9 0 0 1 12.21 3a9 9 0 1 0 8.79 9.79z"/>
-</svg>`;
-
 function updateThemeIcon() {
   if (document.body.classList.contains('dark-mode')) {
-    themeToggleBtn.innerHTML = sunIcon;
+    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
+      <circle cx="12" cy="12" r="5" fill="white"/>
+      <g>
+        <line x1="12" y1="1" x2="12" y2="4"/>
+        <line x1="12" y1="20" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+        <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="4" y2="12"/>
+        <line x1="20" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+        <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+      </g>
+    </svg>`;
   } else {
-    themeToggleBtn.innerHTML = moonIcon;
+    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+      <path d="M21 12.79A9 9 0 0 1 12.21 3a9 9 0 1 0 8.79 9.79z"/>
+    </svg>`;
   }
 }
 
@@ -59,7 +55,6 @@ themeToggleBtn.addEventListener('click', () => {
 
 bookshelf.style.scrollBehavior = "smooth";
 
-// Updated spine width calculation
 function calculateSpineWidth(pageCount) {
   const minSpineWidth = 60;
   const maxSpineWidth = 160;
@@ -88,35 +83,6 @@ async function loadBookData() {
     colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
   });
   createFilterButtons();
-  renderBooks();
-}
-
-function createFilterButtons() {
-  const container = document.getElementById("filter-buttons");
-  container.innerHTML = "";
-  Object.keys(colorSystem.tagMap).forEach(tag => {
-    const btn = document.createElement("button");
-    btn.className = "filter-button";
-    btn.style.background = `var(--${colorSystem.tagMap[tag]})`;
-    btn.textContent = tag;
-    btn.addEventListener("click", () => toggleFilter(tag, btn));
-    container.appendChild(btn);
-  });
-}
-
-function toggleFilter(tag, btn) {
-  if (state.activeFilters.includes(tag)) {
-    state.activeFilters = state.activeFilters.filter(t => t !== tag);
-    btn.classList.remove("selected");
-  } else {
-    if (state.activeFilters.length >= state.maxFilters) {
-      btn.classList.add("shake");
-      setTimeout(() => btn.classList.remove("shake"), 300);
-      return;
-    }
-    state.activeFilters.push(tag);
-    btn.classList.add("selected");
-  }
   renderBooks();
 }
 
