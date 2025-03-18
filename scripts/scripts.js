@@ -1,396 +1,175 @@
-/****************************************************
- * Firebase Setup
- ****************************************************/
+// Firebase & Firestore setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
   authDomain: "digital-library-4f53e.firebaseapp.com",
   projectId: "digital-library-4f53e",
-  storageBucket: "digital-library-4f53e.firebasestorage.app",
+  storageBucket: "digital-library-4f53e.appspot.com",
   messagingSenderId: "775289018267",
   appId: "1:775289018267:web:86ea3e5cad787a2a0e733e",
   measurementId: "G-4BVT6LVMHX"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-/****************************************************
- * Application State
- ****************************************************/
-const state = {
-  allBooks: [],
-  displayedBooks: [],
-  activeFilters: [],
-  maxFilters: 3,
-  isDarkMode: false
-};
+const themeToggleBtn = document.getElementById('theme-toggle');
+const bookshelf = document.getElementById("bookshelf-container");
+const state = { allBooks: [], displayedBooks: [], activeFilters: [], maxFilters: 3 };
 
-/****************************************************
- * Color Theme System (for filters, etc.)
- ****************************************************/
 const colorSystem = {
-  // Map for tag colors - will be populated dynamically
-  tagColors: {},
-  
-  // Colorful palette for tag assignments
-  colorPalette: [
-    "#3d5a80", "#7d4e57", "#41729f", "#5e3023", "#354f52", "#5e548e",
-    "#028090", "#d62828", "#4a4e69", "#687864", "#5f0f40", "#9e2a2b",
-    "#323031", "#540b0e", "#e09f3e", "#335c67"
-  ],
-
-  // Default colors for books with no matching tags
-  defaultColors: ["#8B4513", "#A0522D", "#6B4226", "#855E42"],
-  
-  // Initialize tag colors from available tags
-  initializeTagColors(tags) {
-    this.tagColors = {};
-    tags.forEach((tag, index) => {
-      this.tagColors[tag] = this.colorPalette[index % this.colorPalette.length];
-    });
-  },
-  
-  // Get the color for a specific tag (for filter buttons)
-  getTagColor(tag) {
-    return this.tagColors[tag] || "#8B4513";
-  }
+  palette: ["auburn", "airforce-blue", "eggplant", "princeton-orange", "pistachio", "slate-blue", "indigo", "forest-green", "rosewood", "teal", "cobalt", "tangerine", "butter", "lavender", "sage", "crimson"],
+  tagMap: {}
 };
 
-/****************************************************
- * Theme Management
- ****************************************************/
-function toggleDarkMode() {
-  state.isDarkMode = !state.isDarkMode;
-  document.body.classList.toggle('dark-mode', state.isDarkMode);
-  
-  // Update filter button styling (if needed)
-  const filterButtons = document.querySelectorAll('.filter-button');
-  filterButtons.forEach(btn => {
-    // Additional styling adjustments can be placed here.
-  });
-  
-  // Re-render books for dark mode appearance updates
-  renderBooks();
+function updateThemeIcon() {
+  if (document.body.classList.contains('dark-mode')) {
+    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
+      <circle cx="12" cy="12" r="5" fill="white"/>
+      <g>
+        <line x1="12" y1="1" x2="12" y2="4"/>
+        <line x1="12" y1="20" x2="12" y2="23"/>
+        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+        <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+        <line x1="1" y1="12" x2="4" y2="12"/>
+        <line x1="20" y1="12" x2="23" y2="12"/>
+        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+        <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+      </g>
+    </svg>`;
+  } else {
+    themeToggleBtn.innerHTML = `<svg viewBox="0 0 24 24" width="24" height="24" fill="black">
+      <path d="M21 12.79A9 9 0 0 1 12.21 3a9 9 0 1 0 8.79 9.79z"/>
+    </svg>`;
+  }
 }
 
-/****************************************************
- * Spine Width Calculation
- ****************************************************/
+themeToggleBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  updateThemeIcon();
+});
+
+bookshelf.style.scrollBehavior = "smooth";
 
 function calculateSpineWidth(pageCount) {
-  // Increase minimum spine width
-  const minSpineWidth = 50;
-  const maxSpineWidth = 120;
-  const minPages = 50;
+  const minSpineWidth = 60;
+  const maxSpineWidth = 160;
+  const minPages = 100;
   const maxPages = 1200;
 
   if (!pageCount || pageCount < minPages) return minSpineWidth;
 
-  let normalizedPages = Math.min(Math.max(pageCount, minPages), maxPages);
-  const basePercentage = (normalizedPages - minPages) / (maxPages - minPages);
-  const curveStrength = 0.65;
-  const adjustedPercentage = Math.pow(basePercentage, curveStrength);
-  
-  const spineWidth = minSpineWidth + adjustedPercentage * (maxSpineWidth - minSpineWidth);
-  const variation = (Math.random() - 0.5) * (Math.random() * 2); // Reduced variation
-  
-  return Math.round(spineWidth + variation);
+  const clampedPages = Math.min(pageCount, maxPages);
+  const scale = (clampedPages - minPages) / (maxPages - minPages);
+  const easedScale = Math.pow(scale, 0.65);
+
+  const width = minSpineWidth + easedScale * (maxSpineWidth - minSpineWidth);
+  return Math.round(width);
 }
 
-/****************************************************
- * Helper: Averaging Hues for Tag-Based Colors
- ****************************************************/
-function tagToHue(tag) {
-  let hash = 0;
-  for (let i = 0; i < tag.length; i++) {
-    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash) % 360;
-}
+function createFilterButtons() {
+  const container = document.getElementById("filter-buttons");
+  container.innerHTML = "";
+  const tags = Object.keys(colorSystem.tagMap);
 
-function averageHue(tags) {
-  if (!Array.isArray(tags) || tags.length === 0) {
-    return 0;
-  }
-  const hues = tags.map(tagToHue);
-  const sum = hues.reduce((acc, hue) => acc + hue, 0);
-  return Math.round(sum / hues.length);
-}
+  tags.forEach(tag => {
+    const button = document.createElement("button");
+    button.className = "filter-button";
+    button.textContent = tag;
+    button.style.backgroundColor = `var(--${colorSystem.tagMap[tag]})`;
 
-/****************************************************
- * Text Fitting for Book Spines
- ****************************************************/
-
-function enhancedTextFitting(el, options = {}) {
-  if (!el || !el.parentElement) return;
-  
-  const defaults = {
-    minFontSize: 8,
-    maxFontSize: 16,
-    lineHeightRatio: 1.2,
-    padding: 5
-  };
-  
-  const settings = {...defaults, ...options};
-  const container = el.parentElement;
-  const originalText = el.textContent;
-  const isVertical = el.classList.contains('vertical');
-  
-  // Reset any previous styling
-  el.style.fontSize = '';
-  el.style.lineHeight = '';
-  el.style.whiteSpace = 'normal';
-  el.style.wordBreak = 'normal';
-  el.style.overflowWrap = 'break-word';
-  el.style.hyphens = 'none'; // Prevent automatic hyphenation
-  el.textContent = originalText;
-  
-  // Start with maximum font size and reduce until text fits
-  let fontSize = settings.maxFontSize;
-  el.style.fontSize = fontSize + 'px';
-  el.style.lineHeight = (settings.lineHeightRatio) + '';
-  
-  const getContainerSize = () => {
-    const rect = container.getBoundingClientRect();
-    const computedStyle = window.getComputedStyle(container);
-    const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
-    const paddingBottom = parseInt(computedStyle.paddingBottom, 10) || 0;
-    const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
-    const paddingRight = parseInt(computedStyle.paddingRight, 10) || 0;
-    
-    return {
-      width: rect.width - paddingLeft - paddingRight - (settings.padding * 2),
-      height: rect.height - paddingTop - paddingBottom - (settings.padding * 2)
-    };
-  };
-  
-const containerSize = getContainerSize();
-const maxWidth = isVertical 
-  ? containerSize.width 
-  : containerSize.width * 0.9;  // allow horizontal text to use ~90% width
-
-const maxHeight = containerSize.height;
-  
-  // Function that checks if text fits within container
-  const textFits = () => {
-    if (isVertical) {
-      return el.scrollHeight <= maxHeight;
-    } else {
-      return el.scrollWidth <= maxWidth && el.scrollHeight <= maxHeight;
-    }
-  };
-
-  // Apply the right font size
-  while (!textFits() && fontSize > settings.minFontSize) {
-    fontSize -= 0.5;
-    el.style.fontSize = fontSize + 'px';
-  }
-  
-  // If text still doesn't fit at minimum font size, we need to modify the text
-  if (!textFits() && fontSize <= settings.minFontSize) {
-    // For titles, prefer word wrapping over truncation
-    handleWordWrapping(el, originalText, maxWidth, maxHeight, isVertical);
-  }
-  
-  return fontSize;
-}
-
-/**
- * Handles word wrapping for text that doesn't fit even at minimum font size
- */
-function handleWordWrapping(el, originalText, maxWidth, maxHeight, isVertical) {
-  // Split text into words
-  const words = originalText.split(' ');
-  
-  // For short titles (1-2 words), allow hyphenation but only between syllables
-  if (words.length <= 2) {
-    el.style.hyphens = 'manual';
-    // For single long words, add zero-width spaces at strategic positions
-    if (words.length === 1 && words[0].length > 8) {
-      // Add soft break opportunities every few characters
-      // Try to break between vowels and consonants when possible
-      const withBreakOpportunities = words[0].replace(
-        /([aeiou])([bcdfghjklmnpqrstvwxyz])/gi, 
-        '$1\u200B$2'
-      );
-      el.textContent = withBreakOpportunities;
-    }
-    return;
-  }
-  
-  // For vertical text, optimize line breaks differently
-  if (isVertical) {
-    // Use standard wrapping for vertical text, but with tighter line height
-    el.style.lineHeight = '1.1';
-    el.style.textAlign = 'center';
-    return;
-  }
-  
-  // For horizontal text with multiple words, ensure better wrapping
-  el.style.lineHeight = '1.2';
-  el.style.wordSpacing = '-0.05em'; // Slightly tighter word spacing
-  el.style.textAlign = 'center';
-}
-
-/****************************************************
- * Create Book Element
- ****************************************************/
-
-function createBookElement(book) {
-  const bookDiv = document.createElement("div");
-  bookDiv.className = "book";
-
-  const spineWidth = calculateSpineWidth(book.pageCount);
-  bookDiv.style.width = spineWidth + "px";
-  bookDiv.style.minWidth = spineWidth + "px";
-
-  // Color logic (unchanged)
-  let bgColor;
-  if (Array.isArray(book.contentTags) && book.contentTags.length > 0) {
-    const avgHue = averageHue(book.contentTags);
-    bgColor = `hsl(${avgHue}, 60%, 50%)`;
-  } else {
-    bgColor = colorSystem.defaultColors[Math.floor(Math.random() * colorSystem.defaultColors.length)];
-  }
-  bookDiv.style.background = bgColor;
-  bookDiv.style.color = "#fff";
-
-  // More sophisticated orientation logic
-const titleLength = book.title.length;
-let isVerticalTitle = false;
-
-// Decision tree for vertical text
-if (spineWidth < 45) {
-  // Very narrow books use vertical text
-  isVerticalTitle = true;
-} else if (spineWidth < 65) {
-  // Medium width books use vertical for longer titles
-  isVerticalTitle = titleLength > 15;
-} else {
-  // Wider books can handle more horizontal text
-  isVerticalTitle = titleLength > 25;
-}
-  
-  const titleClass = isVerticalTitle ? "title-zone vertical" : "title-zone horizontal";
-
-  // Build the spine's HTML (unchanged)
-  bookDiv.innerHTML = `
-    <div class="book-spine-text">
-      <div class="${titleClass}">
-        ${book.title}
-      </div>
-      <div class="author-zone">
-        ${book.author}
-      </div>
-    </div>
-    <div class="book-expanded-content">
-      <h3>${book.title}</h3>
-      <p><em>by ${book.author}</em></p>
-      <p>${book.pageCount} pages | ${book.yearPublished || "Unknown"}</p>
-      <p>${book.summary || ""}</p>
-      <div class="book-tags">
-        ${Array.isArray(book.contentTags) ? book.contentTags.map(tag => 
-          `<span class="book-tag" style="background-color: ${colorSystem.getTagColor(tag)}">${tag}</span>`
-        ).join('') : ''}
-      </div>
-    </div>
-  `;
-
-  // Click event handler (unchanged)
-  bookDiv.addEventListener("click", (e) => {
-    bookDiv.classList.toggle("expanded");
-    if (bookDiv.classList.contains("expanded")) {
-      document.querySelectorAll(".book.expanded").forEach(expandedBook => {
-        if (expandedBook !== bookDiv) {
-          expandedBook.classList.remove("expanded");
+    button.addEventListener("click", () => {
+      if (state.activeFilters.includes(tag)) {
+        state.activeFilters = state.activeFilters.filter(t => t !== tag);
+        button.classList.remove("selected");
+      } else {
+        if (state.activeFilters.length < state.maxFilters) {
+          state.activeFilters.push(tag);
+          button.classList.add("selected");
+        } else {
+          button.classList.add("shake");
+          setTimeout(() => button.classList.remove("shake"), 300);
         }
-      });
-    }
-    e.stopPropagation();
-  });
+      }
+      renderBooks();
+    });
 
-  return bookDiv;
+    container.appendChild(button);
+  });
 }
 
-/****************************************************
- * Render Books - Enhanced Version
- ****************************************************/
+async function loadBookData() {
+  const snapshot = await getDocs(collection(db, "books"));
+  const tags = new Set();
+  state.allBooks = snapshot.docs.map(doc => {
+    const data = doc.data();
+    (data.contentTags || []).forEach(tag => tags.add(tag));
+    return data;
+  });
+  [...tags].forEach((tag, index) => {
+    colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
+  });
+  createFilterButtons();
+  renderBooks();
+}
+
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
+  const booksToShow = state.activeFilters.length ?
+    state.allBooks.filter(book => state.activeFilters.every(tag => book.contentTags.includes(tag))) :
+    [...state.allBooks];
 
-  if (!state.displayedBooks.length) {
-    const message = document.createElement("div");
-    message.className = "message";
-    message.textContent = "No books found matching these filters.";
-    shelf.appendChild(message);
-    return;
-  }
+  booksToShow.forEach(book => {
+    const div = document.createElement("div");
+    div.className = "book";
+    const spineWidth = calculateSpineWidth(book.pageCount);
+    div.style.width = spineWidth + "px";
+    div.style.minWidth = spineWidth + "px";
+    div.style.setProperty('--spine-width', `${spineWidth}px`);
+    const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
+    div.style.setProperty('--gradient-colors', gradient);
 
-state.displayedBooks.forEach(book => {
-  const bookElement = createBookElement(book);
-  shelf.appendChild(bookElement);
-});
+    const titleEl = document.createElement("div");
+    titleEl.className = "title-zone";
+    titleEl.textContent = book.title;
 
-// Now, apply enhanced text fitting to all books
-const allBooks = document.querySelectorAll('.book');
-allBooks.forEach(bookEl => {
-  const titleEl = bookEl.querySelector('.title-zone');
-  const authorEl = bookEl.querySelector('.author-zone');
-  const isVertical = titleEl.classList.contains('vertical');
+    const authorEl = document.createElement("div");
+    authorEl.className = "author-zone";
+    authorEl.textContent = book.author;
 
-  // START dynamic sizing logic HERE:
-  const spineWidthPx = parseInt(bookEl.style.width);  // extract px value as integer
+    const expanded = document.createElement("div");
+    expanded.className = "book-expanded-content";
+    expanded.innerHTML = `<h3>${book.title}</h3><p><em>by ${book.author}</em></p><p>${book.pageCount} pages | ${book.yearPublished || 'Unknown'}</p><p>${book.summary || ''}</p>`;
 
-  let minFontSize, maxFontSize;
+    div.appendChild(titleEl);
+    div.appendChild(authorEl);
+    div.appendChild(expanded);
 
-  if (isVertical) {
-    if (spineWidthPx < 45) {
-      minFontSize = 7;
-      maxFontSize = 13;
-    } else {
-      minFontSize = 8;
-      maxFontSize = 15;
-    }
-  } else {
-    if (spineWidthPx < 55) {
-      minFontSize = 7;
-      maxFontSize = 14;
-    } else {
-      minFontSize = 8;
-      maxFontSize = 17;
-    }
-  }
+    div.addEventListener("click", (e) => {
+      div.classList.toggle("expanded");
+      e.stopPropagation();
+    });
 
-  if (!isVertical && spineWidthPx >= 60) {
-  maxFontSize += 1.5; // slightly boost large spines
-  }
+    div.addEventListener("mouseenter", () => {
+      if (window.innerWidth > 768) {
+        div.classList.add("expanded");
+      }
+    });
 
-  // Then apply text fitting:
-  enhancedTextFitting(titleEl, {
-    minFontSize,
-    maxFontSize,
-    lineHeightRatio: isVertical ? 1.05 : 1.1
+    div.addEventListener("mouseleave", () => {
+      if (window.innerWidth > 768) {
+        div.classList.remove("expanded");
+      }
+    });
+
+    shelf.appendChild(div);
   });
 
-  let authorFontMin = spineWidthPx < 55 ? 7 : 8;
-  let authorFontMax = spineWidthPx < 55 ? 11 : 12;
-
-  enhancedTextFitting(authorEl, {
-    minFontSize: authorFontMin,
-    maxFontSize: authorFontMax,
-    lineHeightRatio: 1.1
-  });
-});
-
-  // Collapse expanded books when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".book")) {
       document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
@@ -398,145 +177,7 @@ allBooks.forEach(bookEl => {
   });
 }
 
-/****************************************************
- * Filter Logic
- ****************************************************/
-
-function createFilterButtons() {
-  const container = document.getElementById("filter-buttons");
-  container.innerHTML = "";
-  
-  // Add a heading
-  const heading = document.createElement("h3");
-  heading.className = "filter-heading";
-  heading.textContent = "Filter by Tags";
-  container.appendChild(heading);
-
-  // Extract all unique tags from books
-  const allTags = new Set();
-  state.allBooks.forEach(book => {
-    if (Array.isArray(book.contentTags)) {
-      book.contentTags.forEach(tag => allTags.add(tag));
-    }
-  });
-
-  const sortedTags = Array.from(allTags).sort();
-  
-  // Initialize color system for filter buttons
-  colorSystem.initializeTagColors(sortedTags);
-
-  // Create filter buttons
-  sortedTags.forEach(tag => {
-    const btn = document.createElement("button");
-    btn.className = "filter-button";
-    
-    // Count how many books have this tag
-    const taggedBooks = state.allBooks.filter(book => 
-      Array.isArray(book.contentTags) && book.contentTags.includes(tag)
-    );
-    
-    // Create the button text with tag name and count badge
-    btn.innerHTML = `${tag} <span class="count">${taggedBooks.length}</span>`;
-
-    const tagColor = colorSystem.getTagColor(tag);
-    btn.style.borderColor = tagColor;
-    btn.style.borderLeft = `6px solid ${tagColor}`;
-    
-    // Set appearance based on theme
-    if (state.isDarkMode) {
-      btn.style.backgroundColor = "#333";
-      btn.style.color = "#ddd";
-    } else {
-      btn.style.backgroundColor = "#eee";
-      btn.style.color = "#333";
-    }
-    
-    btn.addEventListener("click", () => toggleFilter(tag, btn));
-    container.appendChild(btn);
-  });
-}
-
-function toggleFilter(tag, buttonElement) {
-  if (state.activeFilters.includes(tag)) {
-    state.activeFilters = state.activeFilters.filter(t => t !== tag);
-    buttonElement.classList.remove("selected");
-    buttonElement.style.backgroundColor = state.isDarkMode ? "#333" : "#eee";
-    buttonElement.style.color = state.isDarkMode ? "#ddd" : "#333";
-    buttonElement.style.borderColor = colorSystem.getTagColor(tag);
-    buttonElement.style.borderLeft = `6px solid ${colorSystem.getTagColor(tag)}`;
-  } else {
-    if (state.activeFilters.length >= state.maxFilters){
-    buttonElement.classList.add("shake");
-      setTimeout(() => {
-        buttonElement.classList.remove("shake");
-      }, 300);
-      return;
-    }
-    state.activeFilters.push(tag);
-    buttonElement.classList.add("selected");
-    const tagColor = colorSystem.getTagColor(tag);
-    buttonElement.style.backgroundColor = tagColor;
-    buttonElement.style.color = "#fff";
-    buttonElement.style.borderColor = tagColor;
-  }
-  applyFilters();
-}
-
-function applyFilters() {
-  if (!state.activeFilters.length) {
-    state.displayedBooks = [...state.allBooks];
-  } else {
-    state.displayedBooks = state.allBooks.filter(book =>
-      state.activeFilters.every(tag =>
-        Array.isArray(book.contentTags) && book.contentTags.includes(tag)
-      )
-    );
-  }
-  renderBooks();
-}
-
-/****************************************************
- * Load Data from Firestore
- ****************************************************/
-async function loadBookData() {
-  try {
-    document.getElementById("bookshelf").innerHTML =
-      "<div class='message'>Loading your book collection...</div>";
-
-    const snapshot = await getDocs(collection(db, "books"));
-    state.allBooks = snapshot.docs.map(doc => {
-      const data = doc.data();
-      return { id: doc.id, ...data };
-    });
-
-    console.log("Loaded books:", state.allBooks.map(b => ({
-      title: b.title,
-      pageCount: b.pageCount
-    })));
-
-    state.displayedBooks = [...state.allBooks];
-    createFilterButtons();
-    renderBooks();
-
-  } catch (error) {
-    console.error("Error loading book data:", error);
-    document.getElementById("bookshelf").innerHTML =
-      "<div class='message'>Error loading books. Please check your connection and try again.</div>";
-  }
-}
-
-/****************************************************
- * Start the Application
- ****************************************************/
 document.addEventListener("DOMContentLoaded", () => {
-  const themeToggleBtn = document.getElementById('theme-toggle');
-  themeToggleBtn.addEventListener('click', toggleDarkMode);
-  
-  // Apply initial theme based on system preference
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    toggleDarkMode();
-  }
-  
-  // Load book data from Firestore
+  updateThemeIcon();
   loadBookData();
 });
