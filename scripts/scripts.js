@@ -71,6 +71,37 @@ function calculateSpineWidth(pageCount) {
   return Math.round(width);
 }
 
+function createFilterButtons() {
+  const container = document.getElementById("filter-buttons");
+  container.innerHTML = "";
+  const tags = Object.keys(colorSystem.tagMap);
+
+  tags.forEach(tag => {
+    const button = document.createElement("button");
+    button.className = "filter-button";
+    button.textContent = tag;
+    button.style.backgroundColor = `var(--${colorSystem.tagMap[tag]})`;
+
+    button.addEventListener("click", () => {
+      if (state.activeFilters.includes(tag)) {
+        state.activeFilters = state.activeFilters.filter(t => t !== tag);
+        button.classList.remove("selected");
+      } else {
+        if (state.activeFilters.length < state.maxFilters) {
+          state.activeFilters.push(tag);
+          button.classList.add("selected");
+        } else {
+          button.classList.add("shake");
+          setTimeout(() => button.classList.remove("shake"), 300);
+        }
+      }
+      renderBooks();
+    });
+
+    container.appendChild(button);
+  });
+}
+
 async function loadBookData() {
   const snapshot = await getDocs(collection(db, "books"));
   const tags = new Set();
