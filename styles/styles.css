@@ -81,7 +81,7 @@ h1 {
 }
 
 .book {
-  height: 65vh; /* take up 65% of viewport height */
+  height: 50vh; /* take up 50% of viewport height */
   min-height: 400px;
   background: #ccc;
   border-radius: 8px;
