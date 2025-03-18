@@ -44,7 +44,6 @@ themeToggleBtn.addEventListener('click', () => {
 
 bookshelf.style.scrollBehavior = "smooth";
 
-// Load books
 async function loadBookData() {
   const snapshot = await getDocs(collection(db, "books"));
   const tags = new Set();
@@ -147,19 +146,7 @@ function renderBooks() {
   });
 }
 
-async function loadBookData() {
-  const snapshot = await getDocs(collection(db, "books"));
-  const tags = new Set();
-  state.allBooks = snapshot.docs.map(doc => {
-    const data = doc.data();
-    (data.contentTags || []).forEach(tag => tags.add(tag));
-    return data;
-  });
-  [...tags].forEach((tag, index) => {
-    colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
-  });
-  createFilterButtons();
-  renderBooks();
-}
-
-loadBookData();
+document.addEventListener("DOMContentLoaded", () => {
+  updateThemeIcon();
+  loadBookData();
+});
