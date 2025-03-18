@@ -83,8 +83,21 @@ h1 {
 .book {
   height: 50vh;
   min-height: 400px;
-  max-height: 90vh; /* optional limit for ultra-tall screens */
+  max-height: 90vh;
   transition: width 0.4s ease, min-width 0.4s ease, transform 0.3s ease;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  min-width: 50px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  cursor: pointer;
+  padding: 10px;
+  margin: 0 5px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
