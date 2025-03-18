@@ -81,19 +81,64 @@ h1 {
 }
 
 .book {
-  height: 50vh; /* take up 50% of viewport height */
-  min-height: 400px;
-  background: #ccc;
-  border-radius: 8px;
-  color: #fff;
+  transition: width 0.4s ease, min-width 0.4s ease, transform 0.3s ease;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+/* Smooth hover effect */
+@media (hover: hover) {
+  .book:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+}
+
+/* Expanded spine */
+.book.expanded {
+  width: 320px !important;
+  min-width: 320px !important;
+  z-index: 2;
+}
+
+/* Expanded card container */
+.book-expanded-content {
+  display: block;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+
   padding: 0.5rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  transition: all 0.4s ease;
-  position: relative;
-  cursor: pointer;
+  background: #fff;
+  color: #333;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+
+  height: calc(100% - 1rem);
+  max-height: calc(100% - 1rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Animate content in smoothly */
+.book.expanded .book-expanded-content {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Styling inner content inside expanded card */
+.book-expanded-content p,
+.book-expanded-content h3,
+.book-expanded-content em {
+  font-size: clamp(0.7rem, 1vw, 0.9rem);
+  line-height: 1.3;
+  margin: 0.5rem 0;
 }
 
 .book .title-zone {
@@ -123,50 +168,9 @@ h1 {
   hyphens: none;
 }
 
-.book-expanded-content {
-  display: block;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  padding: 0.5rem;
-  background: #fff;
-  color: #333;
-  border-radius: 4px;
-  margin-top: 0.5rem;
-
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-break: normal;
-}
-
-.book-expanded-content p {
-  margin: 0.5rem 0;
-  line-height: 1.4;
-}
-
-.book.expanded {
-  width: 260px !important;
-  min-width: 260px !important;
-  z-index: 2;
-}
-
-.book.expanded .book-expanded-content {
-  display: block;
-  opacity: 1;
-}
-
 .book.expanded .title-zone,
 .book.expanded .author-zone {
   display: none;
-}
-
-@media (hover: hover) {
-  .book:hover {
-    transform: scale(1.02); /* keep this */
-  }
-}
-
-.shake {
-  animation: shake 0.3s;
 }
 
 @keyframes shake {
