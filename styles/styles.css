@@ -48,9 +48,18 @@ h1 {
   font-weight: bold;
   cursor: pointer;
   border: none;
-  background: #555;
-  color: white;
-  border-radius: 4px;
+  background: transparent;
+  font-size: 1.5rem;
+  color: #555;
+  transition: transform 0.3s ease;
+}
+
+#theme-toggle:hover {
+  transform: scale(1.2);
+}
+
+body.dark-mode #theme-toggle {
+  color: #ddd;
 }
 
 #filter-buttons {
@@ -100,11 +109,13 @@ h1 {
   color: white;
   flex-shrink: 0;
   height: 320px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, width 0.4s ease, box-shadow 0.3s ease;
 }
 
 .book.expanded {
-  transform: scale(1.08);
+  transform: scale(1.02);
+  width: 200px !important;
+  min-width: 200px !important;
   z-index: 2;
 }
 
@@ -138,6 +149,7 @@ h1 {
 
 .book-expanded-content {
   display: none;
+  opacity: 0;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -150,13 +162,11 @@ h1 {
   z-index: 5;
   overflow-y: auto;
   max-height: 60%;
-  opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-.book.expanded .book-expanded-content,
-.book:hover .book-expanded-content {
+.book.expanded .book-expanded-content {
   display: block;
   opacity: 1;
   transform: translateY(0);
@@ -164,7 +174,7 @@ h1 {
 
 @media (hover: hover) {
   .book:hover {
-    transform: scale(1.08);
+    transform: scale(1.02);
   }
 }
 
