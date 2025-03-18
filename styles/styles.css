@@ -126,17 +126,13 @@ h1 {
 }
 
 .title-zone {
-  font-weight: bold;
-  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1.15;
+  padding: 8px 5px 0 5px;
   white-space: normal;
-  word-wrap: break-word;
-  padding: 4px;
-  margin-top: 4px;
-  max-height: 50%;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  word-break: break-word;
+  text-align: center;
+  margin-bottom: auto;
 }
 
 .title-zone.vertical {
@@ -144,13 +140,13 @@ h1 {
 }
 
 .author-zone {
-  font-size: 0.7em;
+  font-size: 0.75rem;
+  line-height: 1.1;
+  margin-top: auto;
+  padding: 0 5px 5px 5px;
+  white-space: normal;
+  word-break: break-word;
   text-align: center;
-  margin-bottom: 4px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-height: 30px;
 }
 
 .book-expanded-content {
