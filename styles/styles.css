@@ -81,7 +81,7 @@ h1 {
 }
 
 .book {
-  height: 65vh;
+  height: 50vh;
   min-height: 400px;
   max-height: 90vh; /* optional limit for ultra-tall screens */
   transition: width 0.4s ease, min-width 0.4s ease, transform 0.3s ease;
