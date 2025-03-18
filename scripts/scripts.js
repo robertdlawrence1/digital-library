@@ -1,3 +1,4 @@
+// Firebase & Firestore setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -13,28 +14,53 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-getAnalytics(app);
+const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
-const state = { allBooks: [], displayedBooks: [], activeFilters: [], maxFilters: 3, isDarkMode: false };
+const themeToggleBtn = document.getElementById('theme-toggle');
+const bookshelf = document.getElementById("bookshelf-container");
+const state = { allBooks: [], displayedBooks: [], activeFilters: [], maxFilters: 3 };
 
 const colorSystem = {
   palette: ["auburn", "airforce-blue", "eggplant", "princeton-orange", "pistachio", "slate-blue", "indigo", "forest-green", "rosewood", "teal", "cobalt", "tangerine", "butter", "lavender", "sage", "crimson"],
   tagMap: {}
 };
 
-document.getElementById("theme-toggle").addEventListener("click", () => {
-  state.isDarkMode = !state.isDarkMode;
-  document.body.classList.toggle("dark-mode", state.isDarkMode);
-});
+const sunIcon = `<svg viewBox="0 0 24 24"><path d="M12 4.5a1 1 0 0 1 1 1v1.5a1 1 0 0 1-2 0V5.5a1 1 0 0 1 1-1zm0 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm7.5-4a1 1 0 0 1 1 1h1.5a1 1 0 0 1 0 2H20.5a1 1 0 0 1-1-1v-1.5a1 1 0 0 1 1-1zm-15 0a1 1 0 0 1 1 1v1.5a1 1 0 0 1-1 1H3.5a1 1 0 0 1 0-2H4.5a1 1 0 0 1 1-1zm10.6 5.9a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 1 1-1.4 1.4l-1.1-1.1a1 1 0 0 1 0-1.4zM6.4 6.4a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1-1.4 1.4L6.4 7.8a1 1 0 0 1 0-1.4zm10.6 0a1 1 0 0 1 0 1.4l-1.1 1.1a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 0zM6.4 17.6a1 1 0 0 1 0 1.4l-1.1 1.1a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 0z"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 0 1 12.21 3c-.32 0-.64.02-.95.05a7 7 0 1 0 9.69 9.69c.03-.31.05-.63.05-.95z"/></svg>`;
 
-function calculateSpineWidth(pageCount) {
-  const minSpineWidth = 50, maxSpineWidth = 120, minPages = 50, maxPages = 1200;
-  if (!pageCount || pageCount < minPages) return minSpineWidth;
-  const normalized = Math.min(Math.max(pageCount, minPages), maxPages);
-  return Math.round(minSpineWidth + Math.pow((normalized - minPages) / (maxPages - minPages), 0.65) * (maxSpineWidth - minSpineWidth));
+function updateThemeIcon() {
+  if (document.body.classList.contains('dark-mode')) {
+    themeToggleBtn.innerHTML = sunIcon;
+  } else {
+    themeToggleBtn.innerHTML = moonIcon;
+  }
 }
 
+themeToggleBtn.addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  updateThemeIcon();
+});
+
+bookshelf.style.scrollBehavior = "smooth";
+
+// Load books
+async function loadBookData() {
+  const snapshot = await getDocs(collection(db, "books"));
+  const tags = new Set();
+  state.allBooks = snapshot.docs.map(doc => {
+    const data = doc.data();
+    (data.contentTags || []).forEach(tag => tags.add(tag));
+    return data;
+  });
+  [...tags].forEach((tag, index) => {
+    colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
+  });
+  createFilterButtons();
+  renderBooks();
+}
+
+// Filter buttons
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
   container.innerHTML = "";
@@ -64,17 +90,7 @@ function toggleFilter(tag, btn) {
   renderBooks();
 }
 
-function enhancedTextFitting(el, isVertical) {
-  if (!el || !el.parentElement) return;
-  let fontSize = isVertical ? 15 : 17;
-  el.style.fontSize = fontSize + 'px';
-  const container = el.parentElement.getBoundingClientRect();
-  while ((el.scrollHeight > container.height || el.scrollWidth > container.width) && fontSize > 8) {
-    fontSize -= 0.5;
-    el.style.fontSize = fontSize + 'px';
-  }
-}
-
+// Render books
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
@@ -85,27 +101,23 @@ function renderBooks() {
   booksToShow.forEach(book => {
     const div = document.createElement("div");
     div.className = "book";
-    const width = calculateSpineWidth(book.pageCount);
-    div.style.width = width + "px";
-    div.style.minWidth = width + "px";
     const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.background = `linear-gradient(to bottom, ${gradient})`;
 
     const titleEl = document.createElement("div");
     titleEl.className = "title-zone";
     titleEl.textContent = book.title;
-    const isVertical = width < 55 && book.title.length > 15;
-    if (isVertical) titleEl.classList.add("vertical");
-    div.appendChild(titleEl);
 
     const authorEl = document.createElement("div");
     authorEl.className = "author-zone";
     authorEl.textContent = book.author;
-    div.appendChild(authorEl);
 
     const expanded = document.createElement("div");
     expanded.className = "book-expanded-content";
     expanded.innerHTML = `<h3>${book.title}</h3><p><em>by ${book.author}</em></p><p>${book.pageCount} pages | ${book.yearPublished || 'Unknown'}</p><p>${book.summary || ''}</p>`;
+
+    div.appendChild(titleEl);
+    div.appendChild(authorEl);
     div.appendChild(expanded);
 
     div.addEventListener("click", (e) => {
@@ -124,9 +136,6 @@ function renderBooks() {
         div.classList.remove("expanded");
       }
     });
-
-    enhancedTextFitting(titleEl, isVertical);
-    enhancedTextFitting(authorEl, false);
 
     shelf.appendChild(div);
   });
