@@ -127,10 +127,9 @@ h1 {
   overflow-wrap: break-word;
   word-break: normal;
 
-  height: calc(100% - 1rem);
-  max-height: calc(100% - 1rem);
+  height: auto;
+  max-height: 90%;
   overflow-y: auto;
-  box-sizing: border-box;
 }
 
 /* Animate content in smoothly */
