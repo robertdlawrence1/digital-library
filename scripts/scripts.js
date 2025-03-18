@@ -40,7 +40,9 @@ const sunIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white" st
   </g>
 </svg>`;
 
-const moonIcon = `<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 0 1 12.21 3c-.32 0-.64.02-.95.05a7 7 0 1 0 9.69 9.69c.03-.31.05-.63.05-.95z"/></svg>`;
+const moonIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white">
+  <path d="M21 12.79A9 9 0 0 1 12.21 3a9 9 0 1 0 8.79 9.79z"/>
+</svg>`;
 
 function updateThemeIcon() {
   if (document.body.classList.contains('dark-mode')) {
@@ -57,6 +59,23 @@ themeToggleBtn.addEventListener('click', () => {
 
 bookshelf.style.scrollBehavior = "smooth";
 
+// Updated spine width calculation
+function calculateSpineWidth(pageCount) {
+  const minSpineWidth = 60;
+  const maxSpineWidth = 160;
+  const minPages = 100;
+  const maxPages = 1200;
+
+  if (!pageCount || pageCount < minPages) return minSpineWidth;
+
+  const clampedPages = Math.min(pageCount, maxPages);
+  const scale = (clampedPages - minPages) / (maxPages - minPages);
+  const easedScale = Math.pow(scale, 0.65);
+
+  const width = minSpineWidth + easedScale * (maxSpineWidth - minSpineWidth);
+  return Math.round(width);
+}
+
 async function loadBookData() {
   const snapshot = await getDocs(collection(db, "books"));
   const tags = new Set();
@@ -72,7 +91,6 @@ async function loadBookData() {
   renderBooks();
 }
 
-// Filter buttons
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
   container.innerHTML = "";
@@ -102,7 +120,6 @@ function toggleFilter(tag, btn) {
   renderBooks();
 }
 
-// Render books
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
@@ -113,6 +130,9 @@ function renderBooks() {
   booksToShow.forEach(book => {
     const div = document.createElement("div");
     div.className = "book";
+    const spineWidth = calculateSpineWidth(book.pageCount);
+    div.style.width = spineWidth + "px";
+    div.style.minWidth = spineWidth + "px";
     const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.background = `linear-gradient(to bottom, ${gradient})`;
 
