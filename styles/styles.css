@@ -96,29 +96,21 @@ h1 {
   cursor: pointer;
 }
 
-.book .title-zone {
+.book .title-zone,
+.book .author-zone {
   font-weight: bold;
-  font-size: clamp(0.9rem, 1vw + 0.4rem, 1.2rem); /* responsive typography */
+  font-size: clamp(0.9rem, 1vw + 0.4rem, 1.2rem);
   line-height: 1.2;
   margin-bottom: auto;
   margin-top: 0.5rem;
   text-align: center;
-  overflow-wrap: break-word;
-  white-space: normal;
   padding: 0 0.3rem;
-  hyphens: manual; /* disables automatic hyphenation */
-  word-break: normal; /* ensure words don’t break mid-way */
-}
 
-.book .author-zone {
-  font-size: 0.85rem;
-  text-align: center;
-  margin-top: auto;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  hyphens: auto;
-  padding: 0 0.3rem;
-  white-space: normal;
+  /* Anti-word-break logic */
+  white-space: normal; /* multi-line wrapping enabled */
+  word-break: keep-all; /* DO NOT break inside words */
+  overflow-wrap: normal; /* Only break at normal word boundaries */
+  hyphens: none; /* Fully disables hyphenation */
 }
 
 .book-expanded-content {
