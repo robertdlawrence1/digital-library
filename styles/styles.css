@@ -81,11 +81,18 @@ h1 {
 }
 
 .book {
+  height: 65vh;
+  min-height: 400px;
+  max-height: 90vh; /* optional limit for ultra-tall screens */
   transition: width 0.4s ease, min-width 0.4s ease, transform 0.3s ease;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
+  /* restore your gradient overlay */
+  background: linear-gradient(to bottom, var(--gradient-colors));
+  border-radius: 8px;
 }
 
 /* Smooth hover effect */
