@@ -124,7 +124,7 @@ h1 {
 }
 
 .book-expanded-content {
-  display: none;
+  display: block;
   opacity: 0;
   transition: opacity 0.3s ease;
   padding: 0.5rem;
@@ -132,6 +132,15 @@ h1 {
   color: #333;
   border-radius: 4px;
   margin-top: 0.5rem;
+
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.book-expanded-content p {
+  margin: 0.5rem 0;
+  line-height: 1.4;
 }
 
 .book.expanded {
