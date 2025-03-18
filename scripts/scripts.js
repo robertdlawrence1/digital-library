@@ -130,6 +130,7 @@ function renderBooks() {
     const spineWidth = calculateSpineWidth(book.pageCount);
     div.style.width = spineWidth + "px";
     div.style.minWidth = spineWidth + "px";
+    div.style.setProperty('--spine-width', `${spineWidth}px`);
     const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.background = `linear-gradient(to bottom, ${gradient})`;
 
