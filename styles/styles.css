@@ -228,7 +228,8 @@ body.dark-mode .filter-heading {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  height: 35vh; /* Changed from 33vh */
+  height: 60vh; 
+  
   min-width: 50px;
   box-sizing: border-box;
   border-radius: 4px;
