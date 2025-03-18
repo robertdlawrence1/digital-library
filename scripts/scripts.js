@@ -26,9 +26,9 @@ const colorSystem = {
   tagMap: {}
 };
 
-const sunIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
-  <circle cx="12" cy="12" r="5"/>
-  <g stroke="currentColor" stroke-width="2">
+const sunIcon = `<svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
+  <circle cx="12" cy="12" r="5" fill="white"/>
+  <g>
     <line x1="12" y1="1" x2="12" y2="4"/>
     <line x1="12" y1="20" x2="12" y2="23"/>
     <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
