@@ -113,6 +113,18 @@ function renderBooks() {
       e.stopPropagation();
     });
 
+    div.addEventListener("mouseenter", () => {
+      if (window.innerWidth > 768) {
+        div.classList.add("expanded");
+      }
+    });
+
+    div.addEventListener("mouseleave", () => {
+      if (window.innerWidth > 768) {
+        div.classList.remove("expanded");
+      }
+    });
+
     enhancedTextFitting(titleEl, isVertical);
     enhancedTextFitting(authorEl, false);
 
