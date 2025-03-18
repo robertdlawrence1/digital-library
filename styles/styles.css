@@ -81,6 +81,8 @@ h1 {
 }
 
 .book {
+  height: 65vh; /* take up 65% of viewport height */
+  min-height: 400px;
   background: #ccc;
   border-radius: 8px;
   color: #fff;
@@ -140,7 +142,7 @@ h1 {
 
 @media (hover: hover) {
   .book:hover {
-    transform: scale(1.02);
+    transform: scale(1.02); /* keep this */
   }
 }
 
