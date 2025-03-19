@@ -149,6 +149,10 @@ async function loadBookData() {
 
 // Function to update book status in Firestore
 async function updateBookStatus(bookId, newStatus) {
+  console.log("Attempting to update book:", bookId);
+  console.log("User is admin?", state.isAdmin);
+  console.log("User email:", state.user ? state.user.email : "Not logged in");
+  
   if (!state.isAdmin) {
     console.log("Sorry, only admins can update book status!");
     return;
@@ -320,11 +324,12 @@ function signOutUser() {
 }
 
 // Check if user is an admin
-// This is a basic version - you'll want to store admin emails in Firestore for real apps
 function checkAdminStatus(email) {
-  // Replace with your email to give yourself the power! ⚡
+  console.log("Checking if admin:", email);
   const adminEmails = ["robertdlawrence1@gmail.com"]; 
-  return adminEmails.includes(email);
+  const isAdmin = adminEmails.includes(email);
+  console.log("Is admin?", isAdmin);
+  return isAdmin;
 }
 
 // Update UI based on auth state
