@@ -276,6 +276,8 @@ function renderBooks() {
           });
           
           // Send the update to Firestore
+          console.log("Current user:", state.user ? state.user.email : "Not logged in");
+          console.log("Admin check result:", state.isAdmin);
           updateBookStatus(bookId, newStatus);
           e.stopPropagation();
         }
