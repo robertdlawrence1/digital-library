@@ -1,0 +1,146 @@
+/* Add these to your styles.css file */
+
+/* Auth UI Styles */
+#auth-container {
+  margin: 0.5rem 0 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-btn {
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.auth-btn:hover {
+  background-color: #3367D6;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-badge {
+  background-color: #FF5722;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+}
+
+#sign-out-btn {
+  background-color: #757575;
+}
+
+#sign-out-btn:hover {
+  background-color: #616161;
+}
+
+/* Status indicator styles */
+.status-indicator {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.status-indicator.read {
+  background-color: #4CAF50; /* Green for completed */
+}
+
+.status-indicator.reading {
+  background-color: #2196F3; /* Blue for in progress */
+}
+
+.status-indicator.unread {
+  background-color: #9E9E9E; /* Gray for not started */
+}
+
+/* Status selection in expanded view */
+.status-selector {
+  margin-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding-top: 0.5rem;
+}
+
+.status-selector h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.status-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.status-btn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-btn:hover {
+  background: #e9e9e9;
+}
+
+.status-btn.active {
+  border-color: #333;
+  background: #333;
+  color: white;
+}
+
+/* Status display for non-admins */
+.book-status {
+  font-style: italic;
+  margin-top: 0.5rem;
+}
+
+/* Dark mode adjustments */
+.dark-mode .status-btn {
+  background: #444;
+  border-color: #555;
+  color: #eee;
+}
+
+.dark-mode .status-btn:hover {
+  background: #555;
+}
+
+.dark-mode .status-btn.active {
+  background: #7C9EC0;
+  border-color: #7C9EC0;
+  color: #1e1e1e;
+}
+
+.dark-mode .status-selector {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Animation for status change */
+@keyframes statusPulse {
+  0% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.3); }
+  100% { transform: translateX(-50%) scale(1); }
+}
+
+.status-indicator.status-updated {
+  animation: statusPulse 0.6s ease-in-out;
+}
