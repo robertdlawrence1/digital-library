@@ -122,7 +122,6 @@ async function loadBookData() {
     
     state.allBooks = snapshot.docs.map(doc => {
       const data = doc.data();
-      // Add the document ID to the book object
       data.id = doc.id;
       
       // Make sure contentTags exists (defensive coding)
@@ -223,18 +222,19 @@ function renderBooks() {
     // Only show status controls if user is admin
     if (state.isAdmin) {
       expandedContent += `
-        <div class="status-selector">
-          <h4>Reading Status:</h4>
-          <div class="status-buttons">
-            <button class="status-btn ${book.status === 'read' ? 'active' : ''}" 
-                    data-status="read" data-book-id="${book.id}">Read</button>
-            <button class="status-btn ${book.status === 'reading' ? 'active' : ''}" 
-                    data-status="reading" data-book-id="${book.id}">Reading</button>
-            <button class="status-btn ${book.status === 'unread' || !book.status ? 'active' : ''}" 
-                    data-status="unread" data-book-id="${book.id}">Unread</button>
-          </div>
+      <div class="status-selector">
+        <h4>Reading Status:</h4>
+        <div class="status-buttons">
+          <button class="status-btn ${book.status === 'read' ? 'active' : ''}" 
+                  data-status="read" data-book-id="${book.id}">Read</button>
+          <button class="status-btn ${book.status === 'reading' ? 'active' : ''}" 
+                  data-status="reading" data-book-id="${book.id}">Reading</button>
+          <button class="status-btn ${book.status === 'unread' || !book.status ? 'active' : ''}" 
+                  data-status="unread" data-book-id="${book.id}">Unread</button>
         </div>
-      `;
+      </div>
+    `;
+    
     } else {
       // For non-admins, just display the status
       const statusText = book.status ? book.status.charAt(0).toUpperCase() + book.status.slice(1) : "Unread";
