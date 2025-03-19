@@ -323,7 +323,7 @@ function signOutUser() {
 // This is a basic version - you'll want to store admin emails in Firestore for real apps
 function checkAdminStatus(email) {
   // Replace with your email to give yourself the power! ⚡
-  const adminEmails = ["youremail@gmail.com"]; 
+  const adminEmails = ["robertdlawrence1@gmail.com"]; 
   return adminEmails.includes(email);
 }
 
