@@ -1,7 +1,7 @@
 // Firebase & Firestore setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -160,10 +160,10 @@ async function updateBookStatus(bookId, newStatus) {
   
   try {
     const bookRef = doc(db, "books", bookId);
-    // Use setDoc with merge option instead of updateDoc
+    // This is the magical part - setDoc with merge:true will create the field if it doesn't exist
     await setDoc(bookRef, {
       readingStatus: newStatus
-    }, { merge: true });  // This is the magic part!
+    }, { merge: true });
     
     console.log(`Book ${bookId} status updated to ${newStatus}`);
     
@@ -176,7 +176,6 @@ async function updateBookStatus(bookId, newStatus) {
     console.error("Error updating book status:", error);
   }
 }
-
 // Updated renderBooks function to include status indicators and buttons
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
