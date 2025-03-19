@@ -1,7 +1,8 @@
 // Firebase & Firestore setup
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
@@ -17,9 +18,20 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const db = getFirestore(app);
 
+// Create auth instance and provider
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
 const themeToggleBtn = document.getElementById('theme-toggle');
 const bookshelf = document.getElementById("bookshelf-container");
-const state = { allBooks: [], displayedBooks: [], activeFilters: [], maxFilters: 3 };
+const state = { 
+  allBooks: [], 
+  displayedBooks: [], 
+  activeFilters: [], 
+  maxFilters: 3, 
+  user: null,
+  isAdmin: false
+};
 
 const colorSystem = {
   palette: ["auburn", "airforce-blue", "eggplant", "princeton-orange", "pistachio", "slate-blue", "indigo", "forest-green", "rosewood", "teal", "cobalt", "tangerine", "butter", "lavender", "sage", "crimson"],
@@ -102,21 +114,64 @@ function createFilterButtons() {
   });
 }
 
+// Updated loadBookData function 
 async function loadBookData() {
-  const snapshot = await getDocs(collection(db, "books"));
-  const tags = new Set();
-  state.allBooks = snapshot.docs.map(doc => {
-    const data = doc.data();
-    (data.contentTags || []).forEach(tag => tags.add(tag));
-    return data;
-  });
-  [...tags].forEach((tag, index) => {
-    colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
-  });
-  createFilterButtons();
-  renderBooks();
+  try {
+    const snapshot = await getDocs(collection(db, "books"));
+    const tags = new Set();
+    
+    state.allBooks = snapshot.docs.map(doc => {
+      const data = doc.data();
+      // Add the document ID to the book object
+      data.id = doc.id;
+      
+      // Make sure contentTags exists (defensive coding)
+      data.contentTags = data.contentTags || [];
+      data.contentTags.forEach(tag => tags.add(tag));
+      
+      // Make sure status has a default value if not set
+      data.status = data.status || "unread";
+      
+      return data;
+    });
+    
+    // Set up the color mapping for tags
+    [...tags].forEach((tag, index) => {
+      colorSystem.tagMap[tag] = colorSystem.palette[index % colorSystem.palette.length];
+    });
+    
+    createFilterButtons();
+    renderBooks();
+  } catch (error) {
+    console.error("Error loading books:", error);
+  }
 }
 
+// Function to update book status in Firestore
+async function updateBookStatus(bookId, newStatus) {
+  if (!state.isAdmin) {
+    console.log("Sorry, only admins can update book status!");
+    return;
+  }
+  
+  try {
+    const bookRef = doc(db, "books", bookId);
+    await updateDoc(bookRef, {
+      status: newStatus
+    });
+    console.log(`Book ${bookId} status updated to ${newStatus}`);
+    
+    // Also update the local data so we don't need to refresh
+    const bookIndex = state.allBooks.findIndex(b => b.id === bookId);
+    if (bookIndex >= 0) {
+      state.allBooks[bookIndex].status = newStatus;
+    }
+  } catch (error) {
+    console.error("Error updating book status:", error);
+  }
+}
+
+// Updated renderBooks function to include status indicators and buttons
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
@@ -127,12 +182,21 @@ function renderBooks() {
   booksToShow.forEach(book => {
     const div = document.createElement("div");
     div.className = "book";
+    div.dataset.id = book.id; // Store the book ID in the element
+    
     const spineWidth = calculateSpineWidth(book.pageCount);
     div.style.width = spineWidth + "px";
     div.style.minWidth = spineWidth + "px";
     div.style.setProperty('--spine-width', `${spineWidth}px`);
+    
     const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.setProperty('--gradient-colors', gradient);
+
+    // Add status indicator on the spine
+    const statusIndicator = document.createElement("div");
+    statusIndicator.className = "status-indicator";
+    statusIndicator.classList.add(book.status || "unread");
+    div.appendChild(statusIndicator);
 
     const titleEl = document.createElement("div");
     titleEl.className = "title-zone";
@@ -144,17 +208,75 @@ function renderBooks() {
 
     const expanded = document.createElement("div");
     expanded.className = "book-expanded-content";
-    expanded.innerHTML = `<h3>${book.title}</h3><p><em>by ${book.author}</em></p><p>${book.pageCount} pages | ${book.yearPublished || 'Unknown'}</p><p>${book.summary || ''}</p>`;
+    
+    // Basic book info
+    let expandedContent = `
+      <h3>${book.title}</h3>
+      <p><em>by ${book.author}</em></p>
+      <p>${book.pageCount} pages | ${book.yearPublished || 'Unknown'}</p>
+    `;
+    
+    // Only show status controls if user is admin
+    if (state.isAdmin) {
+      expandedContent += `
+        <div class="status-selector">
+          <h4>Reading Status:</h4>
+          <div class="status-buttons">
+            <button class="status-btn ${book.status === 'read' ? 'active' : ''}" 
+                    data-status="read" data-book-id="${book.id}">Read</button>
+            <button class="status-btn ${book.status === 'reading' ? 'active' : ''}" 
+                    data-status="reading" data-book-id="${book.id}">Reading</button>
+            <button class="status-btn ${book.status === 'unread' || !book.status ? 'active' : ''}" 
+                    data-status="unread" data-book-id="${book.id}">Unread</button>
+          </div>
+        </div>
+      `;
+    } else {
+      // For non-admins, just display the status
+      const statusText = book.status ? book.status.charAt(0).toUpperCase() + book.status.slice(1) : "Unread";
+      expandedContent += `<p class="book-status">Status: ${statusText}</p>`;
+    }
+    
+    // Add summary if it exists
+    if (book.summary) {
+      expandedContent += `<p class="book-summary">${book.summary}</p>`;
+    }
+    
+    expanded.innerHTML = expandedContent;
 
     div.appendChild(titleEl);
     div.appendChild(authorEl);
     div.appendChild(expanded);
 
+    // Toggle expansion on click
     div.addEventListener("click", (e) => {
-      div.classList.toggle("expanded");
-      e.stopPropagation();
+      if (!e.target.classList.contains('status-btn')) {
+        div.classList.toggle("expanded");
+        e.stopPropagation();
+      }
     });
+    
+    // Add event listeners for status buttons
+    if (state.isAdmin) {
+      div.addEventListener("click", (e) => {
+        if (e.target.classList.contains('status-btn')) {
+          const newStatus = e.target.dataset.status;
+          const bookId = e.target.dataset.bookId;
+          
+          // Update UI immediately for a snappier feel
+          div.querySelector('.status-indicator').className = `status-indicator ${newStatus}`;
+          div.querySelectorAll('.status-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.status === newStatus);
+          });
+          
+          // Send the update to Firestore
+          updateBookStatus(bookId, newStatus);
+          e.stopPropagation();
+        }
+      });
+    }
 
+    // Hover effects (for desktop)
     div.addEventListener("mouseenter", () => {
       if (window.innerWidth > 768) {
         div.classList.add("expanded");
@@ -170,6 +292,7 @@ function renderBooks() {
     shelf.appendChild(div);
   });
 
+  // Close any open books when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".book")) {
       document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
@@ -177,7 +300,83 @@ function renderBooks() {
   });
 }
 
+// Authentication functions
+function signInWithGoogle() {
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      // Success! You're in!
+      console.log("Signed in!", result.user.email);
+    })
+    .catch((error) => {
+      // Oops, something went wrong
+      console.error("Auth error:", error);
+    });
+}
+
+function signOutUser() {
+  auth.signOut().then(() => {
+    console.log("Signed out!");
+  });
+}
+
+// Check if user is an admin
+// This is a basic version - you'll want to store admin emails in Firestore for real apps
+function checkAdminStatus(email) {
+  // Replace with your email to give yourself the power! ⚡
+  const adminEmails = ["youremail@gmail.com"]; 
+  return adminEmails.includes(email);
+}
+
+// Update UI based on auth state
+function updateAuthUI() {
+  const authContainer = document.getElementById("auth-container");
+  if (!authContainer) {
+    // Create the auth container if it doesn't exist
+    const container = document.createElement("div");
+    container.id = "auth-container";
+    document.getElementById("controls").appendChild(container);
+  }
+  
+  const container = document.getElementById("auth-container");
+  
+  if (state.user) {
+    container.innerHTML = `
+      <div class="user-info">
+        <span>Hi, ${state.user.displayName || state.user.email}</span>
+        ${state.isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
+        <button id="sign-out-btn" class="auth-btn">Sign Out</button>
+      </div>
+    `;
+    document.getElementById("sign-out-btn").addEventListener("click", signOutUser);
+  } else {
+    container.innerHTML = `
+      <button id="sign-in-btn" class="auth-btn">Sign In with Google</button>
+    `;
+    document.getElementById("sign-in-btn").addEventListener("click", signInWithGoogle);
+  }
+}
+
+// Listen for authentication state changes
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in
+    state.user = user;
+    state.isAdmin = checkAdminStatus(user.email);
+    updateAuthUI();
+    // Refresh books to show edit controls if admin
+    renderBooks();
+  } else {
+    // User is signed out
+    state.user = null;
+    state.isAdmin = false;
+    updateAuthUI();
+    renderBooks();
+  }
+});
+
+// Initialize everything when the page loads
 document.addEventListener("DOMContentLoaded", () => {
   updateThemeIcon();
   loadBookData();
+  updateAuthUI(); // Add auth UI
 });
