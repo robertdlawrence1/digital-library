@@ -123,7 +123,8 @@ async function loadBookData() {
     state.allBooks = snapshot.docs.map(doc => {
       const data = doc.data();
       data.id = doc.id;
-      
+      console.log("Loaded book:", data.id, data.title);
+
       // Make sure contentTags exists (defensive coding)
       data.contentTags = data.contentTags || [];
       data.contentTags.forEach(tag => tags.add(tag));
@@ -159,6 +160,7 @@ async function updateBookStatus(bookId, newStatus) {
   
   try {
     const bookRef = doc(db, "books", bookId);
+    console.log("Updating book with ID:", bookId);
     await updateDoc(bookRef, {
       status: newStatus
     });
@@ -171,6 +173,7 @@ async function updateBookStatus(bookId, newStatus) {
     }
   } catch (error) {
     console.error("Error updating book status:", error);
+    console.error("Error details:", error.code, error.message);
   }
 }
 
