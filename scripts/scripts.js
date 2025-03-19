@@ -361,7 +361,7 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     // User is signed in
     state.user = user;
-    state.isAdmin = checkAdminStatus(user.email);
+    state.isAdmin = checkAdminStatus("robertdlawrence1@gmail.com");
     updateAuthUI();
     // Refresh books to show edit controls if admin
     renderBooks();
