@@ -160,15 +160,17 @@ async function updateBookStatus(bookId, newStatus) {
   
   try {
     const bookRef = doc(db, "books", bookId);
-    await updateDoc(bookRef, {
-      readingStatus: newStatus  // Changed from status to readingStatus
-    });
+    // Use setDoc with merge option instead of updateDoc
+    await setDoc(bookRef, {
+      readingStatus: newStatus
+    }, { merge: true });  // This is the magic part!
+    
     console.log(`Book ${bookId} status updated to ${newStatus}`);
     
     // Also update local data
     const bookIndex = state.allBooks.findIndex(b => b.id === bookId);
     if (bookIndex >= 0) {
-      state.allBooks[bookIndex].readingStatus = newStatus;  // Changed from status
+      state.allBooks[bookIndex].readingStatus = newStatus;
     }
   } catch (error) {
     console.error("Error updating book status:", error);
