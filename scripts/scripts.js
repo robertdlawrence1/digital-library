@@ -130,7 +130,7 @@ async function loadBookData() {
       data.contentTags.forEach(tag => tags.add(tag));
       
       // Make sure status has a default value if not set
-      data.status = data.status || "unread";
+      data.readingStatus = data.readingStatus || "unread";
       
       return data;
     });
@@ -160,20 +160,18 @@ async function updateBookStatus(bookId, newStatus) {
   
   try {
     const bookRef = doc(db, "books", bookId);
-    console.log("Updating book with ID:", bookId);
     await updateDoc(bookRef, {
-      status: newStatus
+      readingStatus: newStatus  // Changed from status to readingStatus
     });
     console.log(`Book ${bookId} status updated to ${newStatus}`);
     
-    // Also update the local data so we don't need to refresh
+    // Also update local data
     const bookIndex = state.allBooks.findIndex(b => b.id === bookId);
     if (bookIndex >= 0) {
-      state.allBooks[bookIndex].status = newStatus;
+      state.allBooks[bookIndex].readingStatus = newStatus;  // Changed from status
     }
   } catch (error) {
     console.error("Error updating book status:", error);
-    console.error("Error details:", error.code, error.message);
   }
 }
 
@@ -201,7 +199,7 @@ function renderBooks() {
     // Add status indicator on the spine
     const statusIndicator = document.createElement("div");
     statusIndicator.className = "status-indicator";
-    statusIndicator.classList.add(book.status || "unread");
+    statusIndicator.classList.add(book.readingStatus || "unread");
     div.appendChild(statusIndicator);
 
     const titleEl = document.createElement("div");
@@ -228,11 +226,11 @@ function renderBooks() {
       <div class="status-selector">
         <h4>Reading Status:</h4>
         <div class="status-buttons">
-          <button class="status-btn ${book.status === 'read' ? 'active' : ''}" 
+          <button class="status-btn ${book.readingStatus === 'read' ? 'active' : ''}" 
                   data-status="read" data-book-id="${book.id}">Read</button>
-          <button class="status-btn ${book.status === 'reading' ? 'active' : ''}" 
+          <button class="status-btn ${book.readingStatus === 'reading' ? 'active' : ''}" 
                   data-status="reading" data-book-id="${book.id}">Reading</button>
-          <button class="status-btn ${book.status === 'unread' || !book.status ? 'active' : ''}" 
+          <button class="status-btn ${book.readingStatus === 'unread' || !book.readingStatus ? 'active' : ''}" 
                   data-status="unread" data-book-id="${book.id}">Unread</button>
         </div>
       </div>
@@ -240,7 +238,7 @@ function renderBooks() {
     
     } else {
       // For non-admins, just display the status
-      const statusText = book.status ? book.status.charAt(0).toUpperCase() + book.status.slice(1) : "Unread";
+      const statusText = book.readingStatus ? book.readingStatus.charAt(0).toUpperCase() + book.readingStatus.slice(1) : "Unread";
       expandedContent += `<p class="book-status">Status: ${statusText}</p>`;
     }
     
