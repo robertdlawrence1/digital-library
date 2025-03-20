@@ -112,6 +112,9 @@ function createFilterButtons() {
 
     container.appendChild(button);
   });
+  
+  // Make sure the filter buttons are initially hidden
+  container.classList.add('hidden');
 }
 
 // Updated loadBookData function 
@@ -145,6 +148,23 @@ async function loadBookData() {
   } catch (error) {
     console.error("Error loading books:", error);
   }
+}
+
+// Function to toggle filter buttons visibility
+function setupFilterToggle() {
+  const filterToggle = document.getElementById('filter-toggle');
+  const filterButtons = document.getElementById('filter-buttons');
+  
+  filterToggle.addEventListener('click', () => {
+    filterButtons.classList.toggle('hidden');
+    
+    // Update button text based on state
+    if (filterButtons.classList.contains('hidden')) {
+      filterToggle.textContent = 'Filter by Topic';
+    } else {
+      filterToggle.textContent = 'Hide Filters';
+    }
+  });
 }
 
 // Function to update book status in Firestore
@@ -373,4 +393,5 @@ document.addEventListener("DOMContentLoaded", () => {
   updateThemeIcon();
   loadBookData();
   updateAuthUI(); // Add auth UI
+  setupFilterToggle(); // Add this line to set up the filter toggle
 });
