@@ -87,7 +87,6 @@ function calculateSpineWidth(pageCount, title) {
   
   return Math.round(width);
 }
-}
 
 function createFilterButtons() {
   const container = document.getElementById("filter-buttons");
