@@ -44,32 +44,6 @@
   background-color: #616161;
 }
 
-/* Status indicator styles */
-.status-indicator {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s ease;
-}
-
-.status-indicator.read {
-  background-color: #4CAF50; /* Green for completed */
-}
-
-.status-indicator.reading {
-  background-color: #2196F3; /* Blue for in progress */
-}
-
-.status-indicator.unread {
-  background-color: #9E9E9E; /* Gray for not started */
-}
-
 /* Status selection in expanded view */
 .status-selector {
   margin-top: 1rem;
@@ -132,15 +106,4 @@
 
 .dark-mode .status-selector {
   border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Animation for status change */
-@keyframes statusPulse {
-  0% { transform: translateX(-50%) scale(1); }
-  50% { transform: translateX(-50%) scale(1.3); }
-  100% { transform: translateX(-50%) scale(1); }
-}
-
-.status-indicator.status-updated {
-  animation: statusPulse 0.6s ease-in-out;
 }
