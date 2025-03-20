@@ -187,6 +187,16 @@ h1 {
   hyphens: none;
 }
 
+.book .title-zone.long-title {
+  font-size: clamp(0.6rem, calc(var(--spine-width) * 0.03), 0.9rem);
+  line-height: 1;
+}
+
+.book .title-zone.medium-title {
+  font-size: clamp(0.65rem, calc(var(--spine-width) * 0.035), 1rem);
+  line-height: 1.05;
+}
+
 .book .author-zone {
   font-size: clamp(0.75rem, 0.8vw, 1rem);
   text-align: center;
@@ -282,7 +292,7 @@ h1 {
 .dark-mode #filter-toggle:hover {
   background-color: #95A6B3;
 }
-
+s
 body {
   margin: 0;
   font-family: 'Helvetica Neue', sans-serif;
@@ -310,15 +320,17 @@ h1 {
 .book .title-zone {
   font-family: lust-text, serif;
   font-weight: 400;
-  font-size: clamp(0.8rem, calc(var(--spine-width) * 0.05), 1.2rem);
-  line-height: 1.2;
-  margin-top: 0.5rem;
+  font-size: clamp(0.7rem, calc(var(--spine-width) * 0.04), 1.1rem);
+  line-height: 1.1;
+  margin: 0.5rem 4px;
   text-align: center;
-  padding: 0 0.3rem;
+  padding: 0 0.2rem;
   white-space: normal;
-  word-break: keep-all;
-  overflow-wrap: normal;
-  hyphens: none;
+  word-break: break-word;  /* Changed from keep-all */
+  overflow-wrap: break-word;
+  hyphens: auto;  /* Enable automatic hyphenation */
+  max-height: 60%;  /* Limit height to prevent overlap with author */
+  overflow: hidden;
 }
 
 /* Author Typography */
