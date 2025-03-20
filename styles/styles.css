@@ -245,3 +245,40 @@ h1 {
 #controls {
   padding: 0 1rem;
 }
+
+/* Filter toggle button styles */
+#filter-toggle {
+  background-color: #4285F4;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  transition: background-color 0.2s;
+}
+
+#filter-toggle:hover {
+  background-color: #3367D6;
+}
+
+/* Hidden class for filter buttons */
+.hidden {
+  display: none !important;
+}
+
+/* Adjust the filter buttons container when visible */
+#filter-buttons {
+  margin-top: 1rem;
+}
+
+/* Dark mode styles for filter toggle */
+.dark-mode #filter-toggle {
+  background-color: #7C9EC0;
+  color: #1e1e1e;
+}
+
+.dark-mode #filter-toggle:hover {
+  background-color: #95A6B3;
+}
