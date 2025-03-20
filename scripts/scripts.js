@@ -332,17 +332,9 @@ function checkAdminStatus(email) {
 // Update UI based on auth state
 function updateAuthUI() {
   const authContainer = document.getElementById("auth-container");
-  if (!authContainer) {
-    // Create the auth container if it doesn't exist
-    const container = document.createElement("div");
-    container.id = "auth-container";
-    document.getElementById("controls").appendChild(container);
-  }
-  
-  const container = document.getElementById("auth-container");
   
   if (state.user) {
-    container.innerHTML = `
+    authContainer.innerHTML = `
       <div class="user-info">
         <span>Hi, ${state.user.displayName || state.user.email}</span>
         ${state.isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
@@ -351,7 +343,7 @@ function updateAuthUI() {
     `;
     document.getElementById("sign-out-btn").addEventListener("click", signOutUser);
   } else {
-    container.innerHTML = `
+    authContainer.innerHTML = `
       <button id="sign-in-btn" class="auth-btn">Sign In with Google</button>
     `;
     document.getElementById("sign-in-btn").addEventListener("click", signInWithGoogle);
