@@ -67,7 +67,7 @@ themeToggleBtn.addEventListener('click', () => {
 
 bookshelf.style.scrollBehavior = "smooth";
 
-function calculateSpineWidth(pageCount) {
+function calculateSpineWidth(pageCount, title) {
   const minSpineWidth = 60;
   const maxSpineWidth = 160;
   const minPages = 100;
@@ -80,7 +80,13 @@ function calculateSpineWidth(pageCount) {
   const easedScale = Math.pow(scale, 0.65);
 
   const width = minSpineWidth + easedScale * (maxSpineWidth - minSpineWidth);
+
+  if (title && title.length > 30) {
+    return Math.max(minSpineWidth + 10, Math.round(width));
+  }
+  
   return Math.round(width);
+}
 }
 
 function createFilterButtons() {
@@ -209,7 +215,7 @@ function renderBooks() {
     div.className = "book";
     div.dataset.id = book.id; // Store the book ID in the element
     
-    const spineWidth = calculateSpineWidth(book.pageCount);
+    const spineWidth = calculateSpineWidth(book.pageCount, book.title);
     div.style.width = spineWidth + "px";
     div.style.minWidth = spineWidth + "px";
     div.style.setProperty('--spine-width', `${spineWidth}px`);
@@ -263,6 +269,12 @@ function renderBooks() {
     }
     
     expanded.innerHTML = expandedContent;
+
+    if (book.title.length > 25) {
+      titleEl.classList.add('long-title');
+    } else if (book.title.length > 15) {
+      titleEl.classList.add('medium-title');
+    }
 
     div.appendChild(titleEl);
     div.appendChild(authorEl);
