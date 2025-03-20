@@ -176,7 +176,7 @@ async function updateBookStatus(bookId, newStatus) {
     console.error("Error updating book status:", error);
   }
 }
-// Updated renderBooks function to include status indicators and buttons
+// Updated renderBooks function
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
   shelf.innerHTML = "";
@@ -196,12 +196,6 @@ function renderBooks() {
     
     const gradient = book.contentTags.slice(0, 3).map(tag => `var(--${colorSystem.tagMap[tag]})`).join(", ");
     div.style.setProperty('--gradient-colors', gradient);
-
-    // Add status indicator on the spine
-    const statusIndicator = document.createElement("div");
-    statusIndicator.className = "status-indicator";
-    statusIndicator.classList.add(book.readingStatus || "unread");
-    div.appendChild(statusIndicator);
 
     const titleEl = document.createElement("div");
     titleEl.className = "title-zone";
@@ -270,7 +264,6 @@ function renderBooks() {
           const bookId = e.target.dataset.bookId;
           
           // Update UI immediately for a snappier feel
-          div.querySelector('.status-indicator').className = `status-indicator ${newStatus}`;
           div.querySelectorAll('.status-btn').forEach(btn => {
             btn.classList.toggle('active', btn.dataset.status === newStatus);
           });
