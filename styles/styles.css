@@ -212,3 +212,36 @@ h1 {
   75% { transform: translateX(-5px); }
   100% { transform: translateX(0); }
 }
+
+/* Header layout */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.app-header h1 {
+  margin: 0.5rem 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Update theme toggle button */
+#theme-toggle {
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* Override previous control styles */
+#controls {
+  padding: 0 1rem;
+}
