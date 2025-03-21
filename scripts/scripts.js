@@ -212,6 +212,7 @@ async function updateBookStatus(bookId, newStatus) {
     console.error("Error updating book status:", error);
   }
 }
+ 
 // Updated renderBooks function
 function renderBooks() {
   const shelf = document.getElementById("bookshelf");
@@ -295,10 +296,6 @@ function renderBooks() {
       titleEl.style.fontSize = `${fontSize}px`;
     }
     
-    // ... rest of the code ...
-  });
-  
-
     div.appendChild(titleEl);
     div.appendChild(authorEl);
     div.appendChild(expanded);
@@ -346,7 +343,7 @@ function renderBooks() {
     });
 
     shelf.appendChild(div);
-  };
+  });
 
   // Close any open books when clicking outside
   document.addEventListener("click", (e) => {
@@ -354,6 +351,7 @@ function renderBooks() {
       document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
     }
   });
+} // THIS CLOSING BRACE WAS MISSING
 
 // Authentication functions
 function signInWithGoogle() {
