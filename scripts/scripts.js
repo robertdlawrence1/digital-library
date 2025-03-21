@@ -68,21 +68,32 @@ themeToggleBtn.addEventListener('click', () => {
 bookshelf.style.scrollBehavior = "smooth";
 
 function calculateSpineWidth(pageCount, title) {
-  const minSpineWidth = 60;
+  const minSpineWidth = 70; // Increased from 60 to allow more space for text
   const maxSpineWidth = 160;
   const minPages = 100;
   const maxPages = 1200;
 
-  if (!pageCount || pageCount < minPages) return minSpineWidth;
+  // Base width from page count
+  let width = minSpineWidth;
+  if (pageCount && pageCount >= minPages) {
+    const clampedPages = Math.min(pageCount, maxPages);
+    const scale = (clampedPages - minPages) / (maxPages - minPages);
+    const easedScale = Math.pow(scale, 0.65);
+    width = minSpineWidth + easedScale * (maxSpineWidth - minSpineWidth);
+  }
 
-  const clampedPages = Math.min(pageCount, maxPages);
-  const scale = (clampedPages - minPages) / (maxPages - minPages);
-  const easedScale = Math.pow(scale, 0.65);
-
-  const width = minSpineWidth + easedScale * (maxSpineWidth - minSpineWidth);
-
-  if (title && title.length > 30) {
-    return Math.max(minSpineWidth + 10, Math.round(width));
+  // Adjust width for long titles
+  if (title) {
+    if (title.length > 40) {
+      // For very long titles, increase width by up to 20%
+      width *= Math.min(1.2, 1 + (title.length - 40) * 0.005);
+    } else if (title.length > 30) {
+      // For long titles, increase width by up to 15%
+      width *= Math.min(1.15, 1 + (title.length - 30) * 0.005);
+    } else if (title.length > 20) {
+      // For medium titles, increase width by up to 10%
+      width *= Math.min(1.1, 1 + (title.length - 20) * 0.005);
+    }
   }
   
   return Math.round(width);
@@ -269,11 +280,24 @@ function renderBooks() {
     
     expanded.innerHTML = expandedContent;
 
-    if (book.title.length > 25) {
+    if (book.title.length > 40) {
       titleEl.classList.add('long-title');
-    } else if (book.title.length > 15) {
+    } else if (book.title.length > 20) {
       titleEl.classList.add('medium-title');
     }
+
+    const titleLength = book.title.length;
+    const maxFontSize = Math.min(spineWidth * 0.15, 22); // Cap at 22px
+    const fontSizeAdjustment = Math.max(0.7, 1 - (titleLength * 0.01)); // Reduce size more for longer titles
+    const fontSize = maxFontSize * fontSizeAdjustment;
+
+    if (titleLength > 30) {
+      titleEl.style.fontSize = `${fontSize}px`;
+    }
+    
+    // ... rest of the code ...
+  });
+  
 
     div.appendChild(titleEl);
     div.appendChild(authorEl);
@@ -322,7 +346,7 @@ function renderBooks() {
     });
 
     shelf.appendChild(div);
-  });
+  };
 
   // Close any open books when clicking outside
   document.addEventListener("click", (e) => {
@@ -330,7 +354,6 @@ function renderBooks() {
       document.querySelectorAll(".book.expanded").forEach(b => b.classList.remove("expanded"));
     }
   });
-}
 
 // Authentication functions
 function signInWithGoogle() {
