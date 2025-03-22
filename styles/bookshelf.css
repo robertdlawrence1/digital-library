@@ -7,7 +7,7 @@
 
 #bookshelf {
   display: inline-flex;
-  gap: 1rem;
+  gap: 1.2rem;
   padding: 1rem 0;
   scroll-behavior: smooth;
 }
@@ -32,17 +32,25 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-/* Auto dynamic width when collapsed */
+/* Desktop-specific: reduce spine height */
+@media (min-width: 768px) {
+  .book {
+    height: 50vh;
+    min-height: 300px;
+  }
+}
+
+/* Dynamic spine width based on JS */
 .book {
   width: var(--spine-width);
   min-width: var(--spine-width);
 }
 
-/* Hover expand to a standard fixed width on desktop */
+/* Hover expand to a wider standard fixed width on desktop */
 @media (hover: hover) {
   .book:hover {
-    width: 320px; 
-    min-width: 320px;
+    width: 360px; /* expanded width */
+    min-width: 360px;
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   }
@@ -61,8 +69,8 @@
 
 /* Tap to expand on mobile */
 .book.expanded {
-  width: 320px !important; 
-  min-width: 320px !important;
+  width: 360px !important;
+  min-width: 360px !important;
 }
 
 .book.expanded .book-expanded-content {
@@ -85,7 +93,7 @@
   padding: 0.5rem;
   color: var(--default-text);
 
-  /* Smooth wrapping, no hyphens, no ellipses */
+  /* No ellipses or hyphenation */
   overflow: hidden;
   white-space: normal;
   word-wrap: normal;
