@@ -32,23 +32,26 @@
   display: none !important;
 }
 
+/* Filter buttons pull from palette */
 .filter-button {
-  padding: 0.5rem 1rem;
+  padding: 0.4rem 0.9rem;
   border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
   font-weight: 500;
+  color: #1e1e1e;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
-  100% { transform: translateX(0); }
+.filter-button:hover {
+  transform: translateY(-2px);
+}
+
+.filter-button.selected {
+  border: 2px solid #1e1e1e;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
 }
 
 .shake {
