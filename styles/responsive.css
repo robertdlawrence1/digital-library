@@ -1,0 +1,81 @@
+/* MOBILE & TABLET OPTIMIZATION */
+
+@media (max-width: 768px) {
+  /* Bookshelf spacing */
+  #bookshelf-container {
+    padding: 0 0.5rem;
+  }
+
+  #bookshelf {
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+
+  /* Book spines */
+  .book {
+    min-width: 40px;
+    min-height: 300px;
+  }
+
+  .book.expanded {
+    width: 90vw !important;
+    min-width: 90vw !important;
+  }
+
+  /* Book title */
+  .book .title-zone {
+    margin: 0.5rem 0.2rem;
+    padding: 0 0.3rem;
+    font-size: clamp(0.8rem, 3vw, 1.2rem);
+    max-height: 55%;
+  }
+
+  /* Author */
+  .book .author-zone {
+    margin-bottom: 0.4rem;
+    font-size: clamp(0.7rem, 2.5vw, 1rem);
+  }
+
+  /* Expanded content */
+  .book-expanded-content {
+    padding: 1rem;
+  }
+
+  /* Header layout */
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-controls {
+    justify-content: flex-start;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  /* Filter buttons */
+  .filter-button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  #filter-toggle {
+    width: 100%;
+  }
+
+  /* Auth button smaller */
+  .auth-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  /* Status buttons spacing */
+  .status-buttons {
+    gap: 0.4rem;
+  }
+
+  .status-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+}
