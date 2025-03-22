@@ -1,10 +1,12 @@
-export function initFilters() {
+let onFilterChange = null;
+
+export function initFilters(callback) {
   const filterToggle = document.getElementById('filter-toggle');
   const filterButtons = document.getElementById('filter-buttons');
+  onFilterChange = callback;
 
   const tags = ['Fiction', 'Non-fiction', 'Sci-fi', 'History', 'Biography', 'Philosophy'];
 
-  // Generate filter buttons dynamically
   tags.forEach(tag => {
     const btn = document.createElement('button');
     btn.className = 'filter-button';
@@ -19,26 +21,24 @@ export function initFilters() {
   });
 }
 
-// Max tag selection logic (limit = 3)
 function handleFilterClick(btn) {
   const selected = document.querySelectorAll('.filter-button.selected');
 
   if (btn.classList.contains('selected')) {
-    // Deselect button
     btn.classList.remove('selected');
   } else if (selected.length < 3) {
-    // Select button if under the limit
     btn.classList.add('selected');
   } else {
-    // Shake animation if over limit
     btn.classList.add('shake');
     setTimeout(() => btn.classList.remove('shake'), 300);
   }
 
-  logSelectedTags();
+  notifyBookshelf();
 }
 
-function logSelectedTags() {
+function notifyBookshelf() {
   const selectedTags = [...document.querySelectorAll('.filter-button.selected')].map(btn => btn.innerText);
-  console.log('Active filters:', selectedTags);
+  if (onFilterChange) {
+    onFilterChange(selectedTags);
+  }
 }
