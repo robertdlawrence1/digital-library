@@ -1,16 +1,21 @@
+import { db } from './auth.js';
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
 let onFilterChange = null;
 
-export function initFilters(callback) {
+export async function initFilters(callback) {
   const filterToggle = document.getElementById('filter-toggle');
   const filterButtons = document.getElementById('filter-buttons');
   onFilterChange = callback;
 
-  const tags = ['Fiction', 'Non-fiction', 'Sci-fi', 'History', 'Biography', 'Philosophy'];
+  const allTags = await fetchUniqueTags();
 
-  tags.forEach(tag => {
+  allTags.forEach(tag => {
+    const formatted = tag.replace(/\s+/g, '-'); // convert "Social Commentary" -> Social-Commentary
     const btn = document.createElement('button');
     btn.className = 'filter-button';
     btn.innerText = tag;
+    btn.style.backgroundColor = `var(--${formatted})`;
     filterButtons.appendChild(btn);
 
     btn.addEventListener('click', () => handleFilterClick(btn));
@@ -18,7 +23,20 @@ export function initFilters(callback) {
 
   filterToggle.addEventListener('click', () => {
     filterButtons.classList.toggle('hidden');
+    filterToggle.innerText = filterButtons.classList.contains('hidden') ? 'Filter by Topic' : 'Hide Filters';
   });
+}
+
+async function fetchUniqueTags() {
+  const querySnapshot = await getDocs(collection(db, "books"));
+  const tagSet = new Set();
+
+  querySnapshot.forEach((docSnap) => {
+    const tags = docSnap.data().contentTags || [];
+    tags.forEach(tag => tagSet.add(tag));
+  });
+
+  return Array.from(tagSet).sort();
 }
 
 function handleFilterClick(btn) {
