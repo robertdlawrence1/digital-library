@@ -41,8 +41,8 @@
 /* Hover expand to a standard fixed width on desktop */
 @media (hover: hover) {
   .book:hover {
-    width: 280px;
-    min-width: 280px;
+    width: 320px; 
+    min-width: 320px;
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
   }
@@ -61,8 +61,8 @@
 
 /* Tap to expand on mobile */
 .book.expanded {
-  width: 280px !important;
-  min-width: 280px !important;
+  width: 320px !important; 
+  min-width: 320px !important;
 }
 
 .book.expanded .book-expanded-content {
