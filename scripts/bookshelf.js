@@ -17,7 +17,14 @@ export function initBookshelf() {
 
       // Dynamic width based on pageCount (min 80px, max 160px)
       const pages = bookData.pageCount || 200;
-      const width = Math.min(160, Math.max(80, pages / 3)); // Example ratio
+      
+      // New: adjustable scale factor
+      const baseWidth = 70; // minimum base width
+      const scaleFactor = 0.12; // fine-tune this for how "fast" spines widen
+      const calculatedWidth = baseWidth + (pages * scaleFactor);
+      
+      // Clamp result between 80px and 160px:
+      const width = Math.min(160, Math.max(80, calculatedWidth));
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book';
