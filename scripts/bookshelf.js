@@ -15,12 +15,12 @@ export function initBookshelf() {
       const formattedTags = bookTags.map(tag => tag.replace(/\s+/g, '-'));
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
 
-      // Adjusted dynamic width based on pageCount
+      // Dynamic spine width when collapsed
       const pages = bookData.pageCount || 200;
-      const baseWidth = 70; // base starting width in px
-      const scaleFactor = 0.12; // how much width increases per page
+      const baseWidth = 70;
+      const scaleFactor = 0.12;
       const calculatedWidth = baseWidth + (pages * scaleFactor);
-      const width = Math.min(160, Math.max(80, calculatedWidth)); // clamp
+      const width = Math.min(160, Math.max(80, calculatedWidth));
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book';
@@ -47,16 +47,16 @@ export function initBookshelf() {
         </div>
       `;
 
-      // Mobile expand on click
+      // Click-to-expand on mobile (forces standard width on tap)
       bookDiv.addEventListener('click', (e) => {
-        if (window.matchMedia('(hover: hover)').matches) return;
+        if (window.matchMedia('(hover: hover)').matches) return; // ignore desktop
         if (e.target.closest('.status-btn')) return;
         bookDiv.classList.toggle('expanded');
       });
 
       bookshelf.appendChild(bookDiv);
 
-      // Pre-select reading status
+      // Reading status logic
       const statusBtns = bookDiv.querySelectorAll('.status-btn');
       if (bookData.readingStatus) {
         statusBtns.forEach(btn => {
@@ -66,7 +66,6 @@ export function initBookshelf() {
         });
       }
 
-      // Save status to Firestore
       statusBtns.forEach((btn) => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
