@@ -1,0 +1,38 @@
+.dark-mode {
+  background: #1e1e1e;
+  color: #f0f0f0;
+}
+
+.dark-mode .book-expanded-content {
+  background: rgba(40, 40, 40, 0.95);
+  color: #f0f0f0;
+}
+
+.dark-mode .status-btn {
+  background: #444;
+  border-color: #555;
+  color: #eee;
+}
+
+.dark-mode .status-btn:hover {
+  background: #555;
+}
+
+.dark-mode .status-btn.active {
+  background: #7C9EC0;
+  border-color: #7C9EC0;
+  color: #1e1e1e;
+}
+
+.dark-mode .app-header {
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.dark-mode #filter-toggle {
+  background-color: #7C9EC0;
+  color: #1e1e1e;
+}
+
+.dark-mode #filter-toggle:hover {
+  background-color: #95A6B3;
+}
