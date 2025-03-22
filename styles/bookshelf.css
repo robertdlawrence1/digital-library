@@ -1,5 +1,4 @@
-/* --- BOOKSHELF LAYOUT --- */
-
+/* Bookshelf Layout */
 #bookshelf-container {
   overflow-x: auto;
   white-space: nowrap;
@@ -8,83 +7,101 @@
 
 #bookshelf {
   display: inline-flex;
-  gap: 0.75rem;
+  gap: 1rem;
   padding: 1rem 0;
   scroll-behavior: smooth;
 }
 
-/* --- BOOK SPINE STYLING --- */
-
+/* Book Spine */
 .book {
   position: relative;
-  height: 50vh;
+  height: 65vh;
   min-height: 400px;
   max-height: 90vh;
-  min-width: 50px;
-  padding: 10px;
+  min-width: 60px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
   border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
   cursor: pointer;
   overflow: hidden;
   background: linear-gradient(to bottom, var(--gradient-colors));
   transition: width 0.4s ease, min-width 0.4s ease, transform 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
-/* --- TITLE + AUTHOR --- */
+/* Default Spine Width */
+.book {
+  width: 80px;
+  min-width: 80px;
+}
+
+/* Hover expand on desktop */
+@media (hover: hover) {
+  .book:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  }
+
+  .book:hover .book-expanded-content {
+    display: block;
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .book:hover .title-zone,
+  .book:hover .author-zone {
+    display: none;
+  }
+}
+
+/* Expand click on mobile */
+.book.expanded .book-expanded-content {
+  display: block;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.book.expanded .title-zone,
+.book.expanded .author-zone {
+  display: none;
+}
+
+/* Spine Title */
 .book .title-zone {
   font-family: lust-text, serif;
-  font-weight: 500;
-  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.06), 1.4rem);
-  line-height: 1.3;
-  margin: 1rem 0.25rem;
+  font-weight: 600;
+  font-size: clamp(0.85rem, 2vw, 1.2rem);
   text-align: center;
-  padding: 0 0.5rem;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: break-word;
-  hyphens: none;
-  max-height: 65%;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 10;
-  -webkit-box-orient: vertical;
+  padding: 0.5rem;
+  word-break: break-word;
+  color: var(--default-text);
 }
 
+/* Spine Author */
 .book .author-zone {
   font-family: lust-text, serif;
-  font-weight: 300;
+  font-weight: 400;
   font-style: italic;
-  font-size: clamp(0.75rem, calc(var(--spine-width) * 0.045), 1rem);
+  font-size: clamp(0.75rem, 2vw, 1rem);
   text-align: center;
-  padding: 0 0.5rem;
-  margin-top: auto;
-  margin-bottom: 0.75rem;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: break-word;
-  max-height: 25%;
-  overflow: hidden;
+  padding: 0.5rem;
+  color: var(--default-text);
 }
 
-/* --- EXPANDED CONTENT --- */
+/* Expanded Content */
 .book-expanded-content {
   display: none;
   opacity: 0;
   transform: scale(0.95);
   transition: opacity 0.4s ease, transform 0.4s ease;
-
   padding: 1.5rem;
-  margin: 0.5rem;
   background: rgba(255, 255, 255, 0.95);
   color: #333;
   border-radius: 8px;
   box-sizing: border-box;
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-
   max-height: calc(100% - 1rem);
   overflow-y: auto;
   backdrop-filter: blur(5px);
@@ -93,6 +110,7 @@
   overflow-wrap: break-word;
 }
 
+/* Typography inside Expanded */
 .book-expanded-content h3 {
   font-family: lust-text, serif;
   font-weight: 900;
@@ -115,33 +133,28 @@
   font-style: italic;
 }
 
-/* --- EXPANDED STATE (click for mobile) --- */
-.book.expanded .book-expanded-content {
-  display: block;
-  opacity: 1;
-  transform: scale(1);
+.status-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.8rem 0;
 }
 
-.book.expanded .title-zone,
-.book.expanded .author-zone {
-  display: none;
+.status-btn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #ddd;
+  background: #f5f5f5;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-/* --- DESKTOP HOVER EXPANSION --- */
-@media (hover: hover) {
-  .book:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-  }
+.status-btn:hover {
+  background: #e9e9e9;
+}
 
-  .book:hover .book-expanded-content {
-    display: block;
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .book:hover .title-zone,
-  .book:hover .author-zone {
-    display: none;
-  }
+.status-btn.active {
+  border-color: #333;
+  background: #333;
+  color: white;
 }
