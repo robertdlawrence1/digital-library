@@ -36,3 +36,26 @@
 .dark-mode #filter-toggle:hover {
   background-color: #95A6B3;
 }
+
+#theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-left: 0.75rem;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+}
+
+#theme-icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  fill: none;
+  color: #1e1e1e;
+  transition: color 0.3s;
+}
+
+.dark-mode #theme-icon {
+  color: #f0f0f0;
+}
