@@ -32,6 +32,8 @@ export function initBookshelf() {
       `;
 
       bookDiv.addEventListener('click', (e) => {
+        // Skip click-to-expand on desktop (since desktop uses hover)
+        if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
         bookDiv.classList.toggle('expanded');
       });
