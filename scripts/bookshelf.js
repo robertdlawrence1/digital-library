@@ -15,16 +15,12 @@ export function initBookshelf() {
       const formattedTags = bookTags.map(tag => tag.replace(/\s+/g, '-'));
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
 
-      // Dynamic width based on pageCount (min 80px, max 160px)
+      // Adjusted dynamic width based on pageCount
       const pages = bookData.pageCount || 200;
-      
-      // New: adjustable scale factor
-      const baseWidth = 70; // minimum base width
-      const scaleFactor = 0.12; // fine-tune this for how "fast" spines widen
+      const baseWidth = 70; // base starting width in px
+      const scaleFactor = 0.12; // how much width increases per page
       const calculatedWidth = baseWidth + (pages * scaleFactor);
-      
-      // Clamp result between 80px and 160px:
-      const width = Math.min(160, Math.max(80, calculatedWidth));
+      const width = Math.min(160, Math.max(80, calculatedWidth)); // clamp
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book';
@@ -51,7 +47,7 @@ export function initBookshelf() {
         </div>
       `;
 
-      // Click/hover behavior stays the same
+      // Mobile expand on click
       bookDiv.addEventListener('click', (e) => {
         if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
@@ -60,7 +56,7 @@ export function initBookshelf() {
 
       bookshelf.appendChild(bookDiv);
 
-      // Status logic stays the same...
+      // Pre-select reading status
       const statusBtns = bookDiv.querySelectorAll('.status-btn');
       if (bookData.readingStatus) {
         statusBtns.forEach(btn => {
@@ -70,6 +66,7 @@ export function initBookshelf() {
         });
       }
 
+      // Save status to Firestore
       statusBtns.forEach((btn) => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
