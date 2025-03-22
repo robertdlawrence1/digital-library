@@ -11,15 +11,19 @@ export function initBookshelf() {
       const docId = docSnap.id;
       const bookTags = bookData.contentTags || [];
 
-      // Convert tag names for CSS vars (e.g., "Social Commentary" -> Social-Commentary)
+      // Convert tags for CSS variables
       const formattedTags = bookTags.map(tag => tag.replace(/\s+/g, '-'));
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
+
+      // Dynamic width based on pageCount (min 80px, max 160px)
+      const pages = bookData.pageCount || 200;
+      const width = Math.min(160, Math.max(80, pages / 3)); // Example ratio
 
       const bookDiv = document.createElement('div');
       bookDiv.className = 'book';
       bookDiv.dataset.tags = formattedTags.join(',');
-
       bookDiv.style.setProperty('--gradient-colors', gradientColors);
+      bookDiv.style.setProperty('--spine-width', `${width}px`);
 
       bookDiv.innerHTML = `
         <div class="title-zone">${bookData.title}</div>
@@ -27,7 +31,7 @@ export function initBookshelf() {
         <div class="book-expanded-content">
           <h3>${bookData.title}</h3>
           <p><em>by ${bookData.author}</em></p>
-          <p><small>${bookData.pageCount || ''} pages | ${bookData.yearPublished || ''}</small></p>
+          <p><small>${pages} pages | ${bookData.yearPublished || ''}</small></p>
           <div class="status-selector">
             <h4>Reading Status:</h4>
             <div class="status-buttons">
@@ -40,7 +44,7 @@ export function initBookshelf() {
         </div>
       `;
 
-      // Click-to-expand on mobile
+      // Click/hover behavior stays the same
       bookDiv.addEventListener('click', (e) => {
         if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
@@ -49,7 +53,7 @@ export function initBookshelf() {
 
       bookshelf.appendChild(bookDiv);
 
-      // Pre-select reading status
+      // Status logic stays the same...
       const statusBtns = bookDiv.querySelectorAll('.status-btn');
       if (bookData.readingStatus) {
         statusBtns.forEach(btn => {
@@ -59,7 +63,6 @@ export function initBookshelf() {
         });
       }
 
-      // Save status to Firestore
       statusBtns.forEach((btn) => {
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
