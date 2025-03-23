@@ -29,8 +29,12 @@ export function initBookshelf() {
       bookDiv.style.setProperty('--spine-width', `${width}px`);
       bookDiv.style.setProperty('--gradient-border-color', borderColor);
 
+      // Determine if rotation is needed
+      const needsRotation = width < 110 && hasLongWord(bookData.title);
+      const titleClass = needsRotation ? 'title-zone title-rotate' : 'title-zone';
+
       bookDiv.innerHTML = `
-        <div class="title-zone">${bookData.title}</div>
+        <div class="${titleClass}">${bookData.title}</div>
         <div class="author-zone">${bookData.author}</div>
         <div class="book-expanded-content">
           <h3>${bookData.title}</h3>
@@ -48,6 +52,7 @@ export function initBookshelf() {
         </div>
       `;
 
+      // Expand logic
       bookDiv.addEventListener('click', (e) => {
         if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
@@ -56,6 +61,7 @@ export function initBookshelf() {
 
       bookshelf.appendChild(bookDiv);
 
+      // Reading status
       const statusBtns = bookDiv.querySelectorAll('.status-btn');
       if (bookData.readingStatus) {
         statusBtns.forEach(btn => {
@@ -76,17 +82,11 @@ export function initBookshelf() {
         });
       });
     });
-
-    // MAKE SURE filter callback is available AFTER books are rendered:
-    window.filterChangeCallback = function(selectedTags) {
-      const allBooks = document.querySelectorAll('.book');
-      allBooks.forEach(book => {
-        const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
-        const matches = selectedTags.every(tag => bookTags.includes(tag));
-        book.style.display = (matches || selectedTags.length === 0) ? 'flex' : 'none';
-      });
-    };
   }
 
   fetchBooks();
+}
+
+function hasLongWord(title) {
+  return title.split(/\s+/).some(word => word.length > 7);
 }
