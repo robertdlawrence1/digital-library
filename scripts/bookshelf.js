@@ -2,7 +2,7 @@ import { db } from './auth.js';
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { formatTagForCSS } from './utils.js';
 
-function needsRotation(title, width) {
+function shouldRotateTitle(title, width) {
   const words = title.split(/\s+|—/); // also split on em dash
   const averageCharWidth = 8; 
   const paddingAllowance = 20; 
