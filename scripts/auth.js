@@ -25,52 +25,45 @@ const provider = new GoogleAuthProvider();
 export function initAuth() {
   const authContainer = document.getElementById('auth-container');
 
-  // Default state
-  authContainer.innerHTML = `
-    <button class="auth-btn" id="sign-in-btn">Sign In with Google</button>
-  `;
+  function renderSignInButton() {
+    authContainer.innerHTML = `
+      <button class="auth-btn" id="sign-in-btn">Sign In with Google</button>
+    `;
+    document.getElementById('sign-in-btn').addEventListener('click', () => {
+      signInWithPopup(auth, provider)
+        .then(result => {
+          const user = result.user;
+          console.log('Signed in as:', user.displayName);
+        })
+        .catch(error => {
+          console.error('Sign-in error:', error);
+        });
+    });
+  }
 
-  document.getElementById('sign-in-btn').addEventListener('click', () => {
-    signInWithPopup(auth, provider)
-      .then(result => {
-        const user = result.user;
-        console.log('Signed in as:', user.displayName);
-      })
-      .catch(error => {
-        console.error('Sign-in error:', error);
-      });
-  });
+  function renderSignOutButton(user) {
+    authContainer.innerHTML = `
+      <div class="user-info">
+        <span>${user.displayName}</span>
+        <button class="auth-btn" id="sign-out-btn">Sign Out</button>
+      </div>
+    `;
+    document.getElementById('sign-out-btn').addEventListener('click', () => {
+      auth.signOut();
+    });
+  }
 
-  // Optional: auto-update UI when user is logged in/out
+  // Auto-update UI based on login state
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      authContainer.innerHTML = `
-        <div class="user-info">
-          <span>${user.displayName}</span>
-          <button class="auth-btn" id="sign-out-btn">Sign Out</button>
-        </div>
-      `;
-
-      document.getElementById('sign-out-btn').addEventListener('click', () => {
-        auth.signOut();
-      });
+      renderSignOutButton(user);
     } else {
-      // Reset to sign-in button if signed out
-      authContainer.innerHTML = `
-        <button class="auth-btn" id="sign-in-btn">Sign In with Google</button>
-      `;
-      document.getElementById('sign-in-btn').addEventListener('click', () => {
-        signInWithPopup(auth, provider)
-          .then(result => {
-            const user = result.user;
-            console.log('Signed in as:', user.displayName);
-          })
-          .catch(error => {
-            console.error('Sign-in error:', error);
-          });
-      });
+      renderSignInButton();
     }
   });
+
+  // Render initial state
+  renderSignInButton();
 }
 
 // Optional: export db and auth if other modules need them
