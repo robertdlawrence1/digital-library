@@ -28,7 +28,7 @@ export function initBookshelf() {
       bookDiv.style.setProperty('--gradient-colors', gradientColors);
       bookDiv.style.setProperty('--spine-width', `${width}px`);
       bookDiv.style.setProperty('--gradient-border-color', borderColor);
-      
+
       bookDiv.innerHTML = `
         <div class="title-zone">${bookData.title}</div>
         <div class="author-zone">${bookData.author}</div>
@@ -48,7 +48,6 @@ export function initBookshelf() {
         </div>
       `;
 
-      // Click-to-expand on mobile
       bookDiv.addEventListener('click', (e) => {
         if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
@@ -57,7 +56,6 @@ export function initBookshelf() {
 
       bookshelf.appendChild(bookDiv);
 
-      // Reading status logic
       const statusBtns = bookDiv.querySelectorAll('.status-btn');
       if (bookData.readingStatus) {
         statusBtns.forEach(btn => {
@@ -78,19 +76,17 @@ export function initBookshelf() {
         });
       });
     });
+
+    // MAKE SURE filter callback is available AFTER books are rendered:
+    window.filterChangeCallback = function(selectedTags) {
+      const allBooks = document.querySelectorAll('.book');
+      allBooks.forEach(book => {
+        const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
+        const matches = selectedTags.every(tag => bookTags.includes(tag));
+        book.style.display = (matches || selectedTags.length === 0) ? 'flex' : 'none';
+      });
+    };
   }
 
-  await fetchBooks();
-
-  // ✅ Now this section stays inside initBookshelf()
-  window.filterChangeCallback = selectedTags => {
-    const allBooks = document.querySelectorAll('.book');
-
-    allBooks.forEach(book => {
-      const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
-      const matches = selectedTags.every(tag => bookTags.includes(tag));
-
-      book.style.display = matches || selectedTags.length === 0 ? 'flex' : 'none';
-    });
-  };
+  fetchBooks();
 }
