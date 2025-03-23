@@ -90,15 +90,31 @@
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: normal;
-  white-space: normal;
-  hyphens: none;
-  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  line-height: 1.2;
   transition: all 0.3s ease;
   z-index: 1;
-  font-size: clamp(1.1rem, calc(var(--spine-width) * 0.15), 2.4rem);
+  font-size: clamp(0.8rem, calc(var(--spine-width) * 0.15), 2rem);
+}
+
+/* Spine Title - Vertical */
+.book .title-zone.title-rotate {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  line-height: 1.1;
+  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.16), 2.2rem);
+  letter-spacing: 0.02em;
 }
 
 /* Spine Author */
@@ -125,22 +141,6 @@
   transform: translateX(-50%);
   width: 100%;
   text-align: center;
-}
-
-/* Vertical Title Mode */
-.book .title-zone.title-rotate {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
-  transform-origin: center center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  white-space: nowrap;
-  line-height: 1.2;
-  letter-spacing: 0.03em;
-  font-size: clamp(1rem, calc(var(--spine-width) * 0.17), 2.2rem);
 }
 
 /* Expanded Content */
