@@ -97,11 +97,16 @@
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
+
   white-space: normal;
   overflow-wrap: break-word;
-  word-break: normal; /* Don't split words mid-line */
+  word-break: normal;
   hyphens: none;
-  line-height: 1.4;
+
+  /* Prevent text from touching edges */
+  box-sizing: border-box;
+  max-width: 100%;
+  line-height: 1.3;
 }
 
 /* Spine Author */
