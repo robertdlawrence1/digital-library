@@ -114,13 +114,13 @@
   text-align: center;
   padding: 0 0.2rem;
 
-  /* Limit width to keep text behaving vertically */
-  max-width: calc(var(--spine-width) * 1.2);
+  /* Adjust max-width to allow more characters per line */
+  max-width: calc(var(--spine-width) * 1.8);
   max-height: calc(var(--spine-width) * 2);
 
-  /* Improved typography */
+  /* Typographic adjustments */
   line-height: 1.3;
-  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.13), 1.4rem);
+  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.13), 1.5rem);
   word-break: break-word;
 }
 
