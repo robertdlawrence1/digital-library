@@ -29,8 +29,8 @@ export function initBookshelf() {
       bookDiv.style.setProperty('--spine-width', `${width}px`);
       bookDiv.style.setProperty('--gradient-border-color', borderColor);
 
-      // Determine if rotation is needed
-      const needsRotation = width < 110 && hasLongWord(bookData.title);
+      // Use the improved rotation logic
+      const needsRotation = shouldRotateTitle(bookData.title, width);
       const titleClass = needsRotation ? 'title-zone title-rotate' : 'title-zone';
 
       bookDiv.innerHTML = `
@@ -87,6 +87,8 @@ export function initBookshelf() {
   fetchBooks();
 }
 
-function hasLongWord(title) {
-  return title.split(/\s+/).some(word => word.length > 7);
+// Replace the old hasLongWord() function with this
+function shouldRotateTitle(title, width) {
+  const longestWord = title.split(/\s+/).reduce((a, b) => (a.length > b.length ? a : b), '');
+  return longestWord.length * (width * 0.17) > width;
 }
