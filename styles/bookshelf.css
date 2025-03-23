@@ -79,7 +79,7 @@
 }
 
 .book.expanded .title-zone,
-.book.expanded .author-zone {
+.book.expanded .-zone {
   display: none;
 }
 
@@ -116,6 +116,15 @@
   font-size: calc(var(--spine-width) * 0.14);
 }
 
+.book[data-rotate-title="true"] .author-zone {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  text-align: center;
+}
+
 /* Vertical Title Mode */
 .book .title-zone.title-rotate {
   position: absolute;
@@ -129,7 +138,7 @@
   white-space: nowrap;
   line-height: 1.2;
   letter-spacing: 0.03em;
-  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.12), 1.4rem);
+  font-size: clamp(1rem, calc(var(--spine-width) * 0.14), 1.6rem);
 }
 
 /* Expanded Content */
