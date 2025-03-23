@@ -118,16 +118,16 @@
 
 /* Vertical Title Mode */
 .book .title-zone.title-rotate {
-  transform: rotate(90deg);
-  transform-origin: left center;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center center;
   display: flex;
   justify-content: center;
   align-items: center;
   white-space: nowrap;
-  height: auto;
-  width: auto;
-  padding: 0;
-  line-height: 1.1;
+  line-height: 1.2;
   letter-spacing: 0.03em;
   font-size: clamp(0.9rem, calc(var(--spine-width) * 0.12), 1.4rem);
 }
