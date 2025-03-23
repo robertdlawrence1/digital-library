@@ -83,3 +83,28 @@
     display: none;
   }
 }
+
+@media (max-width: 768px) {
+  .book {
+    transition: all 0.4s ease;
+  }
+
+  .book.expanded {
+    margin-right: 0.5rem;
+    margin-left: 0.5rem;
+  }
+
+  .book .title-zone,
+  .book .author-zone {
+    pointer-events: none; /* Prevent accidental clicks */
+  }
+
+  .book .status-btn {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .book-expanded-content {
+    padding: 1rem;
+  }
+}
