@@ -66,3 +66,20 @@ function handleFilterClick(btn) {
     window.filterChangeCallback(selectedTags);
   }
 }
+function filterBooks() {
+  const books = document.querySelectorAll('.book');
+  if (selectedTags.length === 0) {
+    books.forEach(book => book.classList.remove('hidden'));
+    return;
+  }
+  
+  books.forEach(book => {
+    const bookTags = book.dataset.tags ? book.dataset.tags.split(',') : [];
+    const hasMatch = selectedTags.some(tag => bookTags.includes(tag));
+    if (hasMatch) {
+      book.classList.remove('hidden');
+    } else {
+      book.classList.add('hidden');
+    }
+  });
+}
