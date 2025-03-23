@@ -112,12 +112,13 @@
   align-items: center;
   white-space: pre-wrap;
   text-align: center;
-  line-height: 1.25;
-  letter-spacing: 0.03em;
-  padding: 0 0.4rem; /* slight bump here */
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  padding: 0 0.4rem;
+  max-width: calc(var(--spine-width) * 2.4); /* Allow more room per line */
   max-height: calc(var(--spine-width) - 1rem);
-  font-size: clamp(1rem, calc(var(--spine-width) * 0.13), 1.5rem);
-  max-width: 100%;
+  font-size: clamp(1rem, calc(var(--spine-width) * 0.12), 1.5rem);
+  overflow-wrap: break-word;
 }
 
 /* Vertical Author Spacing Adjustment */
