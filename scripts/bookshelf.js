@@ -87,8 +87,9 @@ export function initBookshelf() {
   fetchBooks();
 }
 
-// Replace the old hasLongWord() function with this
 function shouldRotateTitle(title, width) {
   const longestWord = title.split(/\s+/).reduce((a, b) => (a.length > b.length ? a : b), '');
-  return longestWord.length * (width * 0.17) > width;
+  // Adjust ratio to be more sensitive to narrow spines
+  const charPixelEstimate = width / longestWord.length;
+  return charPixelEstimate < 9; // triggers when characters might overflow
 }
