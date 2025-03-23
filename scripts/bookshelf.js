@@ -16,7 +16,6 @@ export function initBookshelf() {
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
       const borderColor = formattedTags.length > 0 ? `var(--${formattedTags[0]})` : '#ccc';
 
-      // Dynamic spine width when collapsed
       const pages = bookData.pageCount || 200;
       const baseWidth = 70;
       const scaleFactor = 0.12;
@@ -49,9 +48,9 @@ export function initBookshelf() {
         </div>
       `;
 
-      // Click-to-expand on mobile (forces standard width on tap)
+      // Click-to-expand on mobile
       bookDiv.addEventListener('click', (e) => {
-        if (window.matchMedia('(hover: hover)').matches) return; // ignore desktop
+        if (window.matchMedia('(hover: hover)').matches) return;
         if (e.target.closest('.status-btn')) return;
         bookDiv.classList.toggle('expanded');
       });
@@ -81,5 +80,17 @@ export function initBookshelf() {
     });
   }
 
-  fetchBooks();
+  await fetchBooks();
+
+  // ✅ Now this section stays inside initBookshelf()
+  window.filterChangeCallback = selectedTags => {
+    const allBooks = document.querySelectorAll('.book');
+
+    allBooks.forEach(book => {
+      const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
+      const matches = selectedTags.every(tag => bookTags.includes(tag));
+
+      book.style.display = matches || selectedTags.length === 0 ? 'flex' : 'none';
+    });
+  };
 }
