@@ -40,13 +40,7 @@
   }
 }
 
-/* Dynamic spine width based on JS */
-.book {
-  width: var(--spine-width);
-  min-width: var(--spine-width);
-}
-
-/* Hover expand to a wider standard fixed width on desktop */
+/* Hover expand */
 @media (hover: hover) {
   .book:hover {
     width: 360px;
@@ -57,19 +51,9 @@
       0 6px 12px rgba(0, 0, 0, 0.15);
     transition: all 0.4s ease;
   }
-
-  .book:hover .book-expanded-content {
-    display: block;
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .book:hover .title-zone,
-  .book:hover .author-zone {
-    display: none;
-  }
 }
 
+/* Mobile tap expand */
 .book.expanded {
   width: 360px !important;
   min-width: 360px !important;
@@ -78,32 +62,24 @@
     0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.book.expanded .book-expanded-content {
-  display: block;
-  opacity: 1;
-  transform: scale(1);
-}
-
-.book.expanded .title-zone,
-.book.expanded .author-zone {
-  display: none;
-}
-
 /* Spine Title */
 .book .title-zone {
   font-family: lust-text, serif;
   font-weight: 700;
-  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-size: calc(0.04 * var(--spine-width) + 0.6rem);
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
   overflow: hidden;
   white-space: normal;
   word-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
   line-height: 1.3;
   transition: all 0.3s ease;
 }
 
+/* Rotate long titles on narrow spines */
 .book[data-rotate-title="true"] .title-zone {
   writing-mode: vertical-rl;
   text-orientation: upright;
@@ -112,18 +88,9 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  padding: 0.5rem 0;
+  padding: 0;
+  font-size: calc(0.035 * var(--spine-width) + 0.5rem);
   line-height: 1.2;
-}
-
-
-/* Revert to normal in expanded view */
-.book.expanded .title-zone.title-rotate,
-.book:hover .title-zone.title-rotate {
-  writing-mode: horizontal-tb;
-  transform: none;
-  white-space: normal;
-  text-align: center;
 }
 
 /* Spine Author */
@@ -131,13 +98,15 @@
   font-family: lust-text, serif;
   font-weight: 400;
   font-style: italic;
-  font-size: clamp(0.75rem, 1vw, 0.9rem);
+  font-size: calc(0.035 * var(--spine-width) + 0.5rem);
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
   overflow: hidden;
   white-space: normal;
-  word-wrap: normal;
+  word-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
   line-height: 1.2;
 }
 
@@ -174,8 +143,10 @@
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0.7rem 0;
+  white-space: normal;
   word-wrap: normal;
-  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .book-expanded-content em {
