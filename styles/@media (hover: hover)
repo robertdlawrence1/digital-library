@@ -28,7 +28,7 @@
   cursor: pointer;
   overflow: hidden;
   background: linear-gradient(to bottom, var(--gradient-colors));
-  transition: all 0.4s ease;
+  transition: all 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
 }
 
@@ -46,13 +46,15 @@
   min-width: var(--spine-width);
 }
 
-/* Hover expand to a wider standard fixed width on desktop */
 @media (hover: hover) {
   .book:hover {
-    width: 360px; /* expanded width */
+    width: 360px;
     min-width: 360px;
     transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    box-shadow:
+      0 0 0 3px var(--gradient-border-color),
+      0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.4s ease;
   }
 
   .book:hover .book-expanded-content {
@@ -67,10 +69,12 @@
   }
 }
 
-/* Tap to expand on mobile */
 .book.expanded {
   width: 360px !important;
   min-width: 360px !important;
+  box-shadow:
+    0 0 0 3px var(--gradient-border-color),
+    0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .book.expanded .book-expanded-content {
