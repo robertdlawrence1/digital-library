@@ -48,7 +48,7 @@ async function fetchUniqueTags() {
 }
 
 function handleFilterClick(btn) {
-  const selected = document.querySelectorAll('.filter-button.selected');
+  const selected = document.querySelectorAll('.');
 
   if (btn.classList.contains('selected')) {
     btn.classList.remove('selected');
@@ -64,7 +64,7 @@ function handleFilterClick(btn) {
 
 function notifyBookshelf() {
   const selectedTags = [...document.querySelectorAll('.filter-button.selected')]
-    .map(btn => btn.innerText);
+    .map(btn => formatTagForCSS(btn.innerText));
   if (onFilterChange) {
     onFilterChange(selectedTags);
   }
