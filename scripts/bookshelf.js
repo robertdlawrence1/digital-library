@@ -2,10 +2,13 @@ import { db } from './auth.js';
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { formatTagForCSS } from './utils.js';
 
-function shouldRotateTitle(title, width) {
-  const longestWord = title.split(/\s+/).reduce((a, b) => (a.length > b.length ? a : b), '');
-  const charPixelEstimate = width / longestWord.length;
-  return charPixelEstimate < 11; // More sensitive threshold
+function needsRotation(title, width) {
+  const words = title.split(/\s+|—/); // also split on em dash
+  const averageCharWidth = 8; 
+  const paddingAllowance = 20; 
+  const threshold = width - paddingAllowance;
+
+  return words.some(word => word.length * averageCharWidth > threshold);
 }
 
 export function initBookshelf() {
