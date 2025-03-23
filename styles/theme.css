@@ -50,6 +50,17 @@ body {
   background-color: #95A6B3;
 }
 
+.dark-mode .book:hover,
+.dark-mode .book.expanded {
+  /* Keep border gradient visible on dark bg */
+  filter: brightness(1.2);
+}
+
+.dark-mode .book-expanded-content {
+  background: rgba(30, 30, 30, 0.95);
+  color: #f0f0f0;
+}
+
 #theme-toggle {
   background: none;
   border: none;
