@@ -59,27 +59,11 @@ function handleFilterClick(btn) {
     setTimeout(() => btn.classList.remove('shake'), 300);
   }
 
-  // Unified filtering logic!
-  if (typeof window.filterChangeCallback === 'function') {
+  // Correct filter trigger!
+  if (typeof onFilterChange === 'function') {
     const selectedTags = [...document.querySelectorAll('.filter-button.selected')]
-      .map(btn => formatTagForCSS(btn.innerText));
-    window.filterChangeCallback(selectedTags);
+      .map(btn => btn.innerText);
+    onFilterChange(selectedTags);
   }
 }
-function filterBooks() {
-  const books = document.querySelectorAll('.book');
-  if (selectedTags.length === 0) {
-    books.forEach(book => book.classList.remove('hidden'));
-    return;
-  }
-  
-  books.forEach(book => {
-    const bookTags = book.dataset.tags ? book.dataset.tags.split(',') : [];
-    const hasMatch = selectedTags.some(tag => bookTags.includes(tag));
-    if (hasMatch) {
-      book.classList.remove('hidden');
-    } else {
-      book.classList.add('hidden');
-    }
-  });
-}
+
