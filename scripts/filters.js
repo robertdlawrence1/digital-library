@@ -1,78 +1,92 @@
-import { db } from './auth.js';
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import { formatTagForCSS } from './utils.js';
+export function initBookshelf() {
+  const bookshelf = document.getElementById('bookshelf');
 
-let onFilterChange = null;
+  async function fetchBooks() {
+    const querySnapshot = await getDocs(collection(db, "books"));
+    querySnapshot.forEach((docSnap) => {
+      const bookData = docSnap.data();
+      const docId = docSnap.id;
+      const bookTags = bookData.contentTags || [];
 
-export async function initFilters(callback) {
-  const filterToggle = document.getElementById('filter-toggle');
-  const filterButtons = document.getElementById('filter-buttons');
-  onFilterChange = callback;
+      const formattedTags = bookTags.map(tag => formatTagForCSS(tag));
+      const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
+      const borderColor = formattedTags.length > 0 ? `var(--${formattedTags[0]})` : '#ccc';
 
-  const allTags = await fetchUniqueTags();
+      const pages = bookData.pageCount || 200;
+      const baseWidth = 70;
+      const scaleFactor = 0.12;
+      const calculatedWidth = baseWidth + (pages * scaleFactor);
+      const width = Math.min(160, Math.max(80, calculatedWidth));
 
-  allTags.forEach(tag => {
-    const formatted = formatTagForCSS(tag);
-    const btn = createFilterButton(tag, formatted);
-    filterButtons.appendChild(btn);
-  });
+      const bookDiv = document.createElement('div');
+      bookDiv.className = 'book';
+      bookDiv.dataset.tags = formattedTags.join(',');
+      bookDiv.style.setProperty('--gradient-colors', gradientColors);
+      bookDiv.style.setProperty('--spine-width', `${width}px`);
+      bookDiv.style.setProperty('--gradient-border-color', borderColor);
+      
+      bookDiv.innerHTML = `
+        <div class="title-zone">${bookData.title}</div>
+        <div class="author-zone">${bookData.author}</div>
+        <div class="book-expanded-content">
+          <h3>${bookData.title}</h3>
+          <p><em>by ${bookData.author}</em></p>
+          <p><small>${pages} pages | ${bookData.yearPublished || ''}</small></p>
+          <div class="status-selector">
+            <h4>Reading Status:</h4>
+            <div class="status-buttons">
+              <button class="status-btn" data-status="Unread">Unread</button>
+              <button class="status-btn" data-status="Reading">Reading</button>
+              <button class="status-btn" data-status="Read">Read</button>
+            </div>
+          </div>
+          <p>${bookData.summary || 'No summary available.'}</p>
+        </div>
+      `;
 
-  filterToggle.addEventListener('click', () => {
-    filterButtons.classList.toggle('hidden');
-    filterToggle.innerText = filterButtons.classList.contains('hidden')
-      ? 'Filter by Topic'
-      : 'Hide Filters';
-  });
-}
+      // Click-to-expand on mobile
+      bookDiv.addEventListener('click', (e) => {
+        if (window.matchMedia('(hover: hover)').matches) return;
+        if (e.target.closest('.status-btn')) return;
+        bookDiv.classList.toggle('expanded');
+      });
 
-function createFilterButton(tag, formattedColorName) {
-  const btn = document.createElement('button');
-  btn.className = 'filter-button';
-  btn.innerText = tag;
-  btn.style.backgroundColor = `var(--${formattedColorName})`;
+      bookshelf.appendChild(bookDiv);
 
-  btn.addEventListener('click', () => handleFilterClick(btn));
-  return btn;
-}
+      // Reading status logic
+      const statusBtns = bookDiv.querySelectorAll('.status-btn');
+      if (bookData.readingStatus) {
+        statusBtns.forEach(btn => {
+          if (btn.dataset.status.toLowerCase() === bookData.readingStatus.toLowerCase()) {
+            btn.classList.add('active');
+          }
+        });
+      }
 
-async function fetchUniqueTags() {
-  const querySnapshot = await getDocs(collection(db, "books"));
-  const tagSet = new Set();
-
-  querySnapshot.forEach((docSnap) => {
-    const tags = docSnap.data().contentTags || [];
-    tags.forEach(tag => tagSet.add(tag));
-  });
-
-  return Array.from(tagSet).sort();
-}
-
-function handleFilterClick(btn) {
-  const selected = document.querySelectorAll('.');
-
-  if (btn.classList.contains('selected')) {
-    btn.classList.remove('selected');
-  } else if (selected.length < 3) {
-    btn.classList.add('selected');
-  } else {
-    btn.classList.add('shake');
-    setTimeout(() => btn.classList.remove('shake'), 300);
+      statusBtns.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          statusBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          await updateDoc(doc(db, "books", docId), {
+            readingStatus: btn.dataset.status
+          });
+        });
+      });
+    });
   }
 
-function notifyBookshelf() {
-  const selectedTags = [...document.querySelectorAll('.filter-button.selected')]
-    .map(btn => formatTagForCSS(btn.innerText));
+  await fetchBooks();
 
-  const allBooks = document.querySelectorAll('.book');
+  // ✅ Now this section stays inside initBookshelf()
+  window.filterChangeCallback = selectedTags => {
+    const allBooks = document.querySelectorAll('.book');
 
-  allBooks.forEach(book => {
-    const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
-    const matches = selectedTags.every(tag => bookTags.includes(tag));
+    allBooks.forEach(book => {
+      const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
+      const matches = selectedTags.every(tag => bookTags.includes(tag));
 
-    book.style.display = matches || selectedTags.length === 0 ? 'flex' : 'none';
-  });
-
-  if (onFilterChange) {
-    onFilterChange(selectedTags);
-  }
+      book.style.display = matches || selectedTags.length === 0 ? 'flex' : 'none';
+    });
+  };
 }
