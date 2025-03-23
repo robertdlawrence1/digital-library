@@ -1,5 +1,6 @@
 import { db } from './auth.js';
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { formatTagForCSS } from './utils.js';
 
 let onFilterChange = null;
 
@@ -11,7 +12,7 @@ export async function initFilters(callback) {
   const allTags = await fetchUniqueTags();
 
   allTags.forEach(tag => {
-    const formatted = tag.replace(/\s+/g, '-'); // convert "Social Commentary" -> Social-Commentary
+    const formatted = formatTagForCSS(tag);
     const btn = document.createElement('button');
     btn.className = 'filter-button';
     btn.innerText = tag;
