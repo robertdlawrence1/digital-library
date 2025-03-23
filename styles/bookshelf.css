@@ -110,17 +110,17 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  white-space: normal; /* allow natural wrapping */
+  white-space: normal;
   text-align: center;
-  padding: 0 0.4rem;
+  padding: 0 0.2rem;
 
-  /* More horizontal space for multiple words per line */
-  max-width: calc(var(--spine-width) * 3.5);
-  max-height: calc(var(--spine-width) * 1.5);
+  /* Limit width to keep text behaving vertically */
+  max-width: calc(var(--spine-width) * 1.2);
+  max-height: calc(var(--spine-width) * 2);
 
-  /* Looser layout */
-  line-height: 1.25;
-  font-size: clamp(0.95rem, calc(var(--spine-width) * 0.14), 1.6rem);
+  /* Improved typography */
+  line-height: 1.3;
+  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.13), 1.4rem);
   word-break: break-word;
 }
 
