@@ -2,6 +2,11 @@ import { db } from './auth.js';
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import { formatTagForCSS } from './utils.js';
 
+function needsRotation(title, width) {
+  const longestWord = title.split(/\s+/).reduce((a, b) => a.length > b.length ? a : b, '');
+  return width < 110 && (longestWord.length > 8 || title.length > 25);
+}
+
 export function initBookshelf() {
   const bookshelf = document.getElementById('bookshelf');
 
@@ -30,8 +35,8 @@ export function initBookshelf() {
       bookDiv.style.setProperty('--gradient-border-color', borderColor);
 
       // Use the improved rotation logic
-      const needsRotation = shouldRotateTitle(bookData.title, width);
-      const titleClass = needsRotation ? 'title-zone title-rotate' : 'title-zone';
+      const needsRotate = needsRotation(bookData.title, width);
+      const titleClass = needsRotate ? 'title-zone title-rotate' : 'title-zone';
 
       bookDiv.innerHTML = `
         <div class="${titleClass}">${bookData.title}</div>
