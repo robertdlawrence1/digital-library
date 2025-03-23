@@ -104,13 +104,18 @@
   transition: all 0.3s ease;
 }
 
-/* Rotate long titles on narrow spines */
-.title-rotate {
+.book[data-rotate-title="true"] .title-zone {
   writing-mode: vertical-rl;
-  text-align: center;
-  transform: rotate(180deg);
-  white-space: nowrap;
+  text-orientation: upright;
+  transform: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0.5rem 0;
+  line-height: 1.2;
 }
+
 
 /* Revert to normal in expanded view */
 .book.expanded .title-zone.title-rotate,
