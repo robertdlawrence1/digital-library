@@ -79,7 +79,7 @@
 }
 
 .book.expanded .title-zone,
-.book.expanded .-zone {
+.book.expanded .author-zone {
   display: none;
 }
 
@@ -91,17 +91,16 @@
   padding: 0.5rem;
   color: var(--default-text);
   overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: normal;
   white-space: normal;
   overflow: hidden;
   line-height: 1.2;
   transition: all 0.3s ease;
   z-index: 1;
   font-size: clamp(0.9rem, calc(var(--spine-width) * 0.13), 2.2rem);
+  max-width: 95%;
 }
 
-/* Spine Title - Vertical */
+/* Vertical Title Mode */
 .book .title-zone.title-rotate {
   position: absolute;
   top: 50%;
@@ -111,14 +110,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  white-space: nowrap;
-  line-height: 1.3;
-  letter-spacing: 0.04em;
-  font-size: clamp(1rem, calc(var(--spine-width) * 0.14), 1.8rem);
-  padding: 0 0.4rem; /* adds side buffer */
+  white-space: pre-wrap;
+  text-align: center;
+  line-height: 1.25;
+  letter-spacing: 0.03em;
+  padding: 0 0.4rem; /* slight bump here */
+  max-height: calc(var(--spine-width) - 1rem);
+  font-size: clamp(1rem, calc(var(--spine-width) * 0.13), 1.5rem);
+  max-width: 100%;
 }
 
-/* Spine Author */
+/* Vertical Author Spacing Adjustment */
+.book .title-zone.title-rotate + .author-zone {
+  position: absolute;
+  bottom: 0.7rem; /* gave it a little extra clearance */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  text-align: center;
+  font-size: calc(var(--spine-width) * 0.13);
+  white-space: normal;
+  line-height: 1.3; /* extra breathing room */
+  overflow-wrap: break-word;
+}
+
+/* Spine Author (default) */
 .book .author-zone {
   font-family: lust-text, serif;
   font-weight: 400;
@@ -133,15 +149,6 @@
   hyphens: none;
   line-height: 1.2;
   font-size: calc(var(--spine-width) * 0.14);
-}
-
-.book .title-zone.title-rotate + .author-zone {
-  position: absolute;
-  bottom: 0.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  text-align: center;
 }
 
 /* Expanded Content */
@@ -161,10 +168,6 @@
   backdrop-filter: blur(5px);
   white-space: normal;
   overflow-wrap: break-word;
-}
-
-/* Expanded Content Layer Fix */
-.book-expanded-content {
   position: absolute;
   z-index: 5;
 }
