@@ -59,12 +59,19 @@ function handleFilterClick(btn) {
     setTimeout(() => btn.classList.remove('shake'), 300);
   }
 
-  notifyBookshelf();
-}
-
 function notifyBookshelf() {
   const selectedTags = [...document.querySelectorAll('.filter-button.selected')]
     .map(btn => formatTagForCSS(btn.innerText));
+
+  const allBooks = document.querySelectorAll('.book');
+
+  allBooks.forEach(book => {
+    const bookTags = (book.dataset.tags || '').split(',');
+    const isVisible = selectedTags.every(tag => bookTags.includes(tag));
+
+    book.style.display = isVisible || selectedTags.length === 0 ? 'flex' : 'none';
+  });
+
   if (onFilterChange) {
     onFilterChange(selectedTags);
   }
