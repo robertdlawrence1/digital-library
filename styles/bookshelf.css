@@ -119,16 +119,17 @@
 
 /* Vertical Title Mode */
 .book .title-zone.title-rotate {
-  transform: rotate(90deg);
-  transform-origin: left center;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
   display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
   white-space: nowrap;
-  height: auto;
-  width: auto;
+  height: 100%;
+  width: 100%;
   padding: 0;
-  line-height: 1.2;
+  line-height: 1.3;
   letter-spacing: 0.05em;
   font-size: clamp(0.8rem, calc(var(--spine-width) * 0.1), 1.1rem);
 }
