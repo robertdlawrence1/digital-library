@@ -3,8 +3,13 @@ import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/fir
 import { formatTagForCSS } from './utils.js';
 
 function needsRotation(title, width) {
-  const longestWord = title.split(/\s+/).reduce((a, b) => a.length > b.length ? a : b, '');
-  return width < 110 && (longestWord.length > 8 || title.length > 25);
+  const words = title.split(/\s+/);
+  const averageCharWidth = 8; // estimated pixels per character
+  const paddingAllowance = 20; // accounting for inner padding
+  const threshold = width - paddingAllowance;
+
+  // If any word is too long to fit horizontally, rotate it
+  return words.some(word => word.length * averageCharWidth > threshold);
 }
 
 export function initBookshelf() {
@@ -90,11 +95,4 @@ export function initBookshelf() {
   }
 
   fetchBooks();
-}
-
-function shouldRotateTitle(title, width) {
-  const longestWord = title.split(/\s+/).reduce((a, b) => (a.length > b.length ? a : b), '');
-  // Adjust ratio to be more sensitive to narrow spines
-  const charPixelEstimate = width / longestWord.length;
-  return charPixelEstimate < 9; // triggers when characters might overflow
 }
