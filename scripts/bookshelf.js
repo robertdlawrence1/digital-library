@@ -14,6 +14,7 @@ export function initBookshelf() {
 
       const formattedTags = bookTags.map(tag => formatTagForCSS(tag));
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
+      const borderColor = formattedTags.length > 0 ? `var(--${formattedTags[0]})` : '#ccc';
 
       // Dynamic spine width when collapsed
       const pages = bookData.pageCount || 200;
@@ -27,7 +28,8 @@ export function initBookshelf() {
       bookDiv.dataset.tags = formattedTags.join(',');
       bookDiv.style.setProperty('--gradient-colors', gradientColors);
       bookDiv.style.setProperty('--spine-width', `${width}px`);
-
+      bookDiv.style.setProperty('--gradient-border-color', borderColor);
+      
       bookDiv.innerHTML = `
         <div class="title-zone">${bookData.title}</div>
         <div class="author-zone">${bookData.author}</div>
