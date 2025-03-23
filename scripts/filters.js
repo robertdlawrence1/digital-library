@@ -13,19 +13,26 @@ export async function initFilters(callback) {
 
   allTags.forEach(tag => {
     const formatted = formatTagForCSS(tag);
-    const btn = document.createElement('button');
-    btn.className = 'filter-button';
-    btn.innerText = tag;
-    btn.style.backgroundColor = `var(--${formatted})`;
+    const btn = createFilterButton(tag, formatted);
     filterButtons.appendChild(btn);
-
-    btn.addEventListener('click', () => handleFilterClick(btn));
   });
 
   filterToggle.addEventListener('click', () => {
     filterButtons.classList.toggle('hidden');
-    filterToggle.innerText = filterButtons.classList.contains('hidden') ? 'Filter by Topic' : 'Hide Filters';
+    filterToggle.innerText = filterButtons.classList.contains('hidden')
+      ? 'Filter by Topic'
+      : 'Hide Filters';
   });
+}
+
+function createFilterButton(tag, formattedColorName) {
+  const btn = document.createElement('button');
+  btn.className = 'filter-button';
+  btn.innerText = tag;
+  btn.style.backgroundColor = `var(--${formattedColorName})`;
+
+  btn.addEventListener('click', () => handleFilterClick(btn));
+  return btn;
 }
 
 async function fetchUniqueTags() {
@@ -56,7 +63,8 @@ function handleFilterClick(btn) {
 }
 
 function notifyBookshelf() {
-  const selectedTags = [...document.querySelectorAll('.filter-button.selected')].map(btn => btn.innerText);
+  const selectedTags = [...document.querySelectorAll('.filter-button.selected')]
+    .map(btn => btn.innerText);
   if (onFilterChange) {
     onFilterChange(selectedTags);
   }
