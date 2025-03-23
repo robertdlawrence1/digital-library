@@ -90,13 +90,15 @@
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
-  white-space: nowrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
   overflow: hidden;
-  text-overflow: clip;
   line-height: 1.2;
   transition: all 0.3s ease;
   z-index: 1;
-  font-size: clamp(0.8rem, calc(var(--spine-width) * 0.15), 2rem);
+  font-size: clamp(0.9rem, calc(var(--spine-width) * 0.13), 2.2rem);
 }
 
 /* Spine Title - Vertical */
