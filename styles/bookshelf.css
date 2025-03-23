@@ -118,7 +118,7 @@
 }
 
 /* Vertical Title Mode */
-.book[data-rotate-title="true"] .title-zone {
+.book .title-zone.title-rotate {
   writing-mode: vertical-rl;
   text-orientation: upright;
   transform: none;
