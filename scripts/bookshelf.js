@@ -1,5 +1,6 @@
 import { db } from './auth.js';
 import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+import { formatTagForCSS } from './utils.js';
 
 export function initBookshelf() {
   const bookshelf = document.getElementById('bookshelf');
@@ -11,8 +12,7 @@ export function initBookshelf() {
       const docId = docSnap.id;
       const bookTags = bookData.contentTags || [];
 
-      // Convert tags for CSS variables
-      const formattedTags = bookTags.map(tag => tag.replace(/\s+/g, '-'));
+      const formattedTags = bookTags.map(tag => formatTagForCSS(tag));
       const gradientColors = formattedTags.map(tag => `var(--${tag})`).join(', ');
 
       // Dynamic spine width when collapsed
