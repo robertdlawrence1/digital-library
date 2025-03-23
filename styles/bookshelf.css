@@ -145,6 +145,13 @@
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
   line-height: 1.3;
+
+  /* Ensure proper wrapping */
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .book-expanded-content p {
