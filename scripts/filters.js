@@ -66,10 +66,10 @@ function notifyBookshelf() {
   const allBooks = document.querySelectorAll('.book');
 
   allBooks.forEach(book => {
-    const bookTags = (book.dataset.tags || '').split(',');
-    const isVisible = selectedTags.every(tag => bookTags.includes(tag));
+    const bookTags = (book.dataset.tags || '').split(',').filter(Boolean);
+    const matches = selectedTags.every(tag => bookTags.includes(tag));
 
-    book.style.display = isVisible || selectedTags.length === 0 ? 'flex' : 'none';
+    book.style.display = matches || selectedTags.length === 0 ? 'flex' : 'none';
   });
 
   if (onFilterChange) {
