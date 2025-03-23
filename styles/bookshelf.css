@@ -40,18 +40,22 @@
   }
 }
 
+/* Dynamic spine width based on JS */
+.book {
+  width: var(--spine-width);
+  min-width: var(--spine-width);
+}
+
+/* Hover expand to a wider standard fixed width on desktop */
 @media (hover: hover) {
   .book:hover {
     width: 360px;
     min-width: 360px;
     transform: translateY(-2px) scale(1.01);
-    padding: 0.4rem;
-    border: 4px solid transparent;
-    border-image: linear-gradient(to bottom, var(--gradient-colors)) 1;
-    border-radius: 8px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    box-sizing: border-box;
-    transition: all 0.4s ease, border-image 0.4s ease, filter 0.4s ease;
+    box-shadow:
+      0 0 0 3px var(--gradient-border-color),
+      0 6px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.4s ease;
   }
 
   .book:hover .book-expanded-content {
@@ -69,13 +73,9 @@
 .book.expanded {
   width: 360px !important;
   min-width: 360px !important;
-  padding: 0.4rem;
-  border: 4px solid transparent;
-  border-image: linear-gradient(to bottom, var(--gradient-colors)) 1;
-  border-radius: 8px;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-  box-sizing: border-box;
-  transition: all 0.4s ease, border-image 0.4s ease, filter 0.4s ease;
+  box-shadow:
+    0 0 0 3px var(--gradient-border-color),
+    0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .book.expanded .book-expanded-content {
@@ -93,32 +93,32 @@
 .book .title-zone {
   font-family: lust-text, serif;
   font-weight: 700;
+  font-size: clamp(0.85rem, 1.2vw, 1rem);
   text-align: center;
   padding: 0.5rem;
   color: var(--default-text);
-
+  overflow: hidden;
   white-space: normal;
-  overflow-wrap: break-word;
-  word-break: break-word; /* allow breaks anywhere if needed as a last resort */
-  hyphens: none;
-
-  font-size: clamp(0.75rem, 1.2vw, 1rem);
+  word-wrap: break-word;
   line-height: 1.3;
-  max-width: 100%;
+  transition: all 0.3s ease;
 }
 
-/* Adjust .book spine */
-.book {
-  min-width: 100px; /* baseline */
-  flex: 0 0 auto; /* stop flexbox from squashing */
+/* Rotate long titles on narrow spines */
+.title-rotate {
+  writing-mode: vertical-rl;
+  text-align: center;
+  transform: rotate(180deg);
+  white-space: nowrap;
 }
 
-/* Bonus: make narrower spines reduce padding */
-.book[style*="--spine-width: 80px"] .title-zone,
-.book[style*="--spine-width: 90px"] .title-zone {
-  padding: 0.25rem 0.25rem;
-  font-size: 0.65rem;
-  line-height: 1.15;
+/* Revert to normal in expanded view */
+.book.expanded .title-zone.title-rotate,
+.book:hover .title-zone.title-rotate {
+  writing-mode: horizontal-tb;
+  transform: none;
+  white-space: normal;
+  text-align: center;
 }
 
 /* Spine Author */
@@ -133,8 +133,6 @@
   overflow: hidden;
   white-space: normal;
   word-wrap: normal;
-  word-break: normal;
-  hyphens: none;
   line-height: 1.2;
 }
 
@@ -147,27 +145,22 @@
   padding: 1.5rem;
   background: rgba(255, 255, 255, 0.95);
   color: #333;
-  border-radius: 4px;
+  border-radius: 8px;
   box-sizing: border-box;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
   max-height: calc(100% - 1rem);
   overflow-y: auto;
   backdrop-filter: blur(5px);
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
-/* Expanded Content Typography */
 .book-expanded-content h3 {
   font-family: lust-text, serif;
   font-weight: 900;
   font-size: 1.2rem;
   margin-bottom: 0.5rem;
   line-height: 1.3;
-
-  /* Ensure proper wrapping */
-  white-space: normal;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-  word-break: normal;
-  hyphens: none;
 }
 
 .book-expanded-content p {
@@ -176,10 +169,8 @@
   font-size: 0.95rem;
   line-height: 1.5;
   margin: 0.7rem 0;
-  white-space: normal;
   word-wrap: normal;
-  word-break: normal;
-  hyphens: none;
+  overflow-wrap: break-word;
 }
 
 .book-expanded-content em {
@@ -188,7 +179,6 @@
   font-style: italic;
 }
 
-/* Reading Status Buttons */
 .status-buttons {
   display: flex;
   gap: 0.5rem;
