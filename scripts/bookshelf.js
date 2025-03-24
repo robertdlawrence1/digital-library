@@ -4,7 +4,7 @@ import { formatTagForCSS } from './utils.js';
 
 function shouldRotateTitle(title, width) {
   const words = title.split(/\s+|—/); // also split on em dash
-  const averageCharWidth = 8; 
+  const averageCharWidth = 9.5; 
   const paddingAllowance = 20; 
   const threshold = width - paddingAllowance;
 
