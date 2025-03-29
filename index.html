@@ -27,6 +27,25 @@
     <button id="filter-toggle">Filter by Topic</button>
     <div id="filter-buttons" class="hidden"></div>
   </div>
+  
+  <section id="add-book-form">
+    <h2>Add a New Book</h2>
+    <input type="text" id="book-title" placeholder="Book Title" required>
+    <input type="text" id="book-author" placeholder="Author" required>
+    <button id="generate-metadata">Generate Metadata</button>
+
+    <div id="book-preview" style="display: none;">
+      <h3>Preview</h3>
+      <p><strong>Title:</strong> <span id="preview-title"></span></p>
+      <p><strong>Author:</strong> <span id="preview-author"></span></p>
+      <p><strong>Summary:</strong> <span id="preview-summary"></span></p>
+      <p><strong>Year Published:</strong> <span id="preview-year"></span></p>
+      <p><strong>Page Count:</strong> <span id="preview-pages"></span></p>
+      <p><strong>Content Tags:</strong> <span id="preview-tags"></span></p>
+      <button id="confirm-add-book">Add to Library</button>
+    </div>
+  </section>
+  
   <div id="bookshelf-container">
     <div id="bookshelf"></div>
   </div>
