@@ -7,13 +7,14 @@ import {
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
-  authDomain: "digital-library-4f53e.firebaseapp.com",
+  authDomain: "robertdlawrence1.github.io", // ✅ This is now your actual domain
   projectId: "digital-library-4f53e",
   storageBucket: "digital-library-4f53e.appspot.com",
   messagingSenderId: "775289018267",
@@ -48,19 +49,19 @@ export function initAuth() {
       </div>
     `;
     document.getElementById('sign-out-btn').addEventListener('click', () => {
-      auth.signOut();
+      signOut(auth);
     });
   }
 
-  // Handle redirect result (after returning from Google)
+  // Handle sign-in redirect result
   getRedirectResult(auth)
     .then((result) => {
-      if (result?.user) {
-        console.log('Redirect sign-in successful:', result.user.displayName);
+      if (result && result.user) {
+        console.log("Signed in after redirect as:", result.user.displayName);
       }
     })
     .catch((error) => {
-      console.error('Redirect sign-in error:', error);
+      console.error("Redirect sign-in error:", error);
     });
 
   // Auto-update UI based on login state
@@ -71,9 +72,7 @@ export function initAuth() {
       renderSignInButton();
     }
   });
-
-  // Render initial state
-  renderSignInButton();
 }
 
+// Optional: export db and auth if other modules need them
 export { db, auth };
