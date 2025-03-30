@@ -2,7 +2,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import {
+  getAuth,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -30,14 +36,7 @@ export function initAuth() {
       <button class="auth-btn" id="sign-in-btn">Sign In with Google</button>
     `;
     document.getElementById('sign-in-btn').addEventListener('click', () => {
-      signInWithPopup(auth, provider)
-        .then(result => {
-          const user = result.user;
-          console.log('Signed in as:', user.displayName);
-        })
-        .catch(error => {
-          console.error('Sign-in error:', error);
-        });
+      signInWithRedirect(auth, provider);
     });
   }
 
@@ -53,6 +52,17 @@ export function initAuth() {
     });
   }
 
+  // Handle redirect result (after returning from Google)
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result?.user) {
+        console.log('Redirect sign-in successful:', result.user.displayName);
+      }
+    })
+    .catch((error) => {
+      console.error('Redirect sign-in error:', error);
+    });
+
   // Auto-update UI based on login state
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -66,5 +76,4 @@ export function initAuth() {
   renderSignInButton();
 }
 
-// Optional: export db and auth if other modules need them
 export { db, auth };
