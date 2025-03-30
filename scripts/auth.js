@@ -2,7 +2,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
+import {
+  getAuth,
+  signInWithPopup,
+  GoogleAuthProvider,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -31,12 +37,12 @@ export function initAuth() {
     `;
     document.getElementById('sign-in-btn').addEventListener('click', () => {
       signInWithPopup(auth, provider)
-        .then(result => {
+        .then((result) => {
           const user = result.user;
-          console.log('Signed in as:', user.displayName);
+          console.log("Signed in as:", user.displayName);
         })
-        .catch(error => {
-          console.error('Sign-in error:', error);
+        .catch((error) => {
+          console.error("Popup sign-in error:", error);
         });
     });
   }
@@ -49,7 +55,7 @@ export function initAuth() {
       </div>
     `;
     document.getElementById('sign-out-btn').addEventListener('click', () => {
-      auth.signOut();
+      signOut(auth);
     });
   }
 
@@ -61,9 +67,6 @@ export function initAuth() {
       renderSignInButton();
     }
   });
-
-  // Render initial state
-  renderSignInButton();
 }
 
 // Optional: export db and auth if other modules need them

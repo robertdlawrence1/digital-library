@@ -27,7 +27,9 @@
     <button id="filter-toggle">Filter by Topic</button>
     <div id="filter-buttons" class="hidden"></div>
   </div>
-  
+  <div id="bookshelf-container">
+    <div id="bookshelf"></div>
+  </div>
   <section id="add-book-form">
     <h2>Add a New Book</h2>
     <input type="text" id="book-title" placeholder="Book Title" required>
@@ -45,10 +47,7 @@
       <button id="confirm-add-book">Add to Library</button>
     </div>
   </section>
-  
-  <div id="bookshelf-container">
-    <div id="bookshelf"></div>
-  </div>
   <script type="module" src="scripts/main.js"></script>
+  <script type="module" src="scripts/addBook.js"></script>
 </body>
 </html>
