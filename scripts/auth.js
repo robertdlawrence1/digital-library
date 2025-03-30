@@ -13,7 +13,7 @@ import {
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
-  authDomain: "digital-library-4f53e.firebaseapp.com",
+  authDomain: "robertdlawrence1.github.io",
   projectId: "digital-library-4f53e",
   storageBucket: "digital-library-4f53e.appspot.com",
   messagingSenderId: "775289018267",
