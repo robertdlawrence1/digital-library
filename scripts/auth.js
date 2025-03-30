@@ -4,8 +4,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase
 import { getFirestore } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
   getAuth,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   GoogleAuthProvider,
   onAuthStateChanged,
   signOut
@@ -14,7 +13,7 @@ import {
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAC2xKlseyouk18Dr8A-ocoqY77OP56Jtk",
-  authDomain: "robertdlawrence1.github.io", // ✅ This is now your actual domain
+  authDomain: "robertdlawrence1.github.io", // ✅ Matches your GitHub Pages domain
   projectId: "digital-library-4f53e",
   storageBucket: "digital-library-4f53e.appspot.com",
   messagingSenderId: "775289018267",
@@ -37,7 +36,14 @@ export function initAuth() {
       <button class="auth-btn" id="sign-in-btn">Sign In with Google</button>
     `;
     document.getElementById('sign-in-btn').addEventListener('click', () => {
-      signInWithRedirect(auth, provider);
+      signInWithPopup(auth, provider)
+        .then((result) => {
+          const user = result.user;
+          console.log("Signed in as:", user.displayName);
+        })
+        .catch((error) => {
+          console.error("Popup sign-in error:", error);
+        });
     });
   }
 
@@ -52,17 +58,6 @@ export function initAuth() {
       signOut(auth);
     });
   }
-
-  // Handle sign-in redirect result
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result && result.user) {
-        console.log("Signed in after redirect as:", result.user.displayName);
-      }
-    })
-    .catch((error) => {
-      console.error("Redirect sign-in error:", error);
-    });
 
   // Auto-update UI based on login state
   onAuthStateChanged(auth, (user) => {
