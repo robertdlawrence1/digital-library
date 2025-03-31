@@ -1,84 +1,65 @@
 const functions = require("firebase-functions");
-const admin = require("firebase-admin");
-const fetch = require("node-fetch");
-const { defineSecret } = require("firebase-functions/params");
+const axios = require("axios");
 
-admin.initializeApp();
-
-const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
-
-exports.generateMetadata = functions
-  .region("us-central1")
-  .runWith({
-    secrets: [CLAUDE_API_KEY],
-    timeoutSeconds: 60,
-    memory: "1GB",
-  })
-  .https.onRequest(async (req, res) => {
+exports.generateMetadata = functions.https.onRequest(async (req, res) => {
+  try {
     const { title, author } = req.body;
 
     if (!title || !author) {
-      return res.status(400).json({ error: "Missing title or author" });
+      return res.status(400).json({ error: "Missing title or author." });
     }
 
-    try {
-      const metadata = await fetchClaudeMetadata(CLAUDE_API_KEY.value(), title, author);
-      res.status(200).json(metadata);
-    } catch (error) {
-      console.error("Error generating metadata:", error);
-      res.status(500).json({ error: "Failed to generate metadata" });
-    }
-  });
+    const prompt = `
+You are an expert book analyst. Given a book's title and author, provide the following metadata based on the most recent or most referenced edition:
 
-async function fetchClaudeMetadata(apiKey, title, author) {
-  const prompt = `
-You're an intelligent assistant helping a digital library app automatically create book metadata. Based only on the title and author provided, infer the following:
+1. A unique summary (1–3 paragraphs, max 8 sentences per paragraph) written in your own words.
+2. Estimated page count (digits only).
+3. Year published (digits only, commas or BCE allowed).
+4. A list of relevant content tags derived from the summary.
 
-1. A unique summary (not sourced or copied from elsewhere) in 1–3 paragraphs (no more than 8 sentences per paragraph). Write as if for a curious reader.
-2. A page count estimate for the most referenced or most recent edition.
-3. The year published (as a number, allow BCE if applicable) for the same edition.
-4. A list of 3–10 content tags inferred from the summary (e.g., “science fiction”, “climate change”, “capitalism”).
+Book:
+Title: ${title}
+Author: ${author}
 
-Only return valid JSON in the following format:
-
-\`\`\`json
+Respond in this format:
 {
-  "summary": "SUMMARY",
-  "pageCount": 123,
-  "yearPublished": 2010,
-  "contentTags": ["tag1", "tag2", "tag3"]
+  "title": "...",
+  "author": "...",
+  "summary": "...",
+  "pageCount": "...",
+  "yearPublished": "...",
+  "contentTags": ["...", "...", "..."]
 }
-\`\`\`
-
-The book is titled "${title}" by ${author}.
 `;
 
-  const response = await fetch("https://api.anthropic.com/v1/complete", {
-    method: "POST",
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "claude-2.1",
-      prompt: `\n\nHuman: ${prompt}\n\nAssistant:`,
-      max_tokens_to_sample: 1024,
-      temperature: 0.7,
-      stop_sequences: ["\n\nHuman:"],
-    }),
-  });
+    const apiKey = process.env.CLAUDE_API_KEY;
+    const response = await axios.post(
+      "https://api.anthropic.com/v1/messages",
+      {
+        model: "claude-3-haiku-20240307",
+        max_tokens: 1024,
+        temperature: 0.5,
+        system: "You are a metadata generator for a digital book library.",
+        messages: [{ role: "user", content: prompt }],
+      },
+      {
+        headers: {
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "content-type": "application/json",
+        },
+      }
+    );
 
-  const data = await response.json();
-  const text = data.completion;
+    const text = response.data?.content?.[0]?.text;
+    if (!text) {
+      return res.status(500).json({ error: "Claude response was empty." });
+    }
 
-  // Extract JSON block and handle errors
-  const match = text.match(/```json([\s\S]*?)```/);
-  const json = match ? match[1] : text;
-
-  try {
-    return JSON.parse(json.trim());
+    const metadata = JSON.parse(text);
+    return res.status(200).json(metadata);
   } catch (err) {
-    throw new Error(`Error parsing JSON from Claude: ${err.message}\nRaw response: ${json}`);
+    console.error("Error generating metadata:", err);
+    return res.status(500).json({ error: "Internal server error." });
   }
-}
+});
