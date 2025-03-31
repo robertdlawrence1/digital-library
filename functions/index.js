@@ -6,7 +6,7 @@ const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
 
 exports.generateMetadata = onRequest({ 
   region: "us-central1",
-  serviceAccount: "digital-library-4f53e@appspot.gserviceaccount.com",
+  serviceAccountEmail: "digital-library-4f53e@appspot.gserviceaccount.com", // use serviceAccountEmail
   secrets: [CLAUDE_API_KEY]
 }, async (req, res) => {
   try {
