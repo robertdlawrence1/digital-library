@@ -5,11 +5,11 @@ const { defineSecret } = require("firebase-functions/params");
 const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
 
 exports.generateMetadata = onRequest({ 
-  region: "us-central1", 
-  secrets: [CLAUDE_API_KEY] 
+  region: "us-central1",
+  serviceAccountEmail: "digital-library-4f53e@appspot.gserviceaccount.com", // use serviceAccountEmail
+  secrets: [CLAUDE_API_KEY]
 }, async (req, res) => {
   try {
-    // Just return a simple response without any API calls
     return res.status(200).json({ 
       message: "Function deployed successfully",
       secretExists: CLAUDE_API_KEY.exists()
