@@ -5,13 +5,19 @@ const axios = require("axios");
 // Define Claude API Key as a secret
 const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
 
-exports.generateMetadata = onRequest({ secrets: [CLAUDE_API_KEY] }, async (req, res) => {
+exports.generateMetadata = onRequest({ 
+  region: "us-central1", 
+  secrets: [CLAUDE_API_KEY] 
+}, async (req, res) => {
   try {
     const { title, author } = req.body;
 
     if (!title || !author) {
       return res.status(400).json({ error: "Missing title or author." });
     }
+
+    // Log what we're about to do
+    console.log(`Generating metadata for: ${title} by ${author}`);
 
     const prompt = `
 You are an expert book analyst. Given a book's title and author, provide the following metadata based on the most recent or most referenced edition:
@@ -36,6 +42,7 @@ Respond in this format:
 }
 `;
 
+    console.log("Sending request to Claude API");
     const response = await axios.post(
       "https://api.anthropic.com/v1/messages",
       {
@@ -54,15 +61,29 @@ Respond in this format:
       }
     );
 
+    console.log("Received response from Claude API");
     const text = response.data?.content?.[0]?.text;
     if (!text) {
+      console.error("Empty response from Claude:", response.data);
       return res.status(500).json({ error: "Claude response was empty." });
     }
 
-    const metadata = JSON.parse(text);
-    return res.status(200).json(metadata);
+    try {
+      const metadata = JSON.parse(text);
+      return res.status(200).json(metadata);
+    } catch (parseError) {
+      console.error("Error parsing Claude response:", parseError);
+      console.log("Raw text received:", text);
+      return res.status(500).json({ 
+        error: "Failed to parse Claude response into JSON", 
+        rawResponse: text 
+      });
+    }
   } catch (err) {
-    console.error("Error generating metadata:", err);
-    return res.status(500).json({ error: "Internal server error." });
+    console.error("Error generating metadata:", err.message);
+    if (err.response) {
+      console.error("API response error data:", err.response.data);
+    }
+    return res.status(500).json({ error: "Internal server error.", details: err.message });
   }
 });
