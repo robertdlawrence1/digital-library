@@ -6,7 +6,6 @@ const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
 
 exports.generateMetadata = onRequest({ 
   region: "us-central1",
-  serviceAccountEmail: "775289018267-compute@developer.gserviceaccount.com",
   secrets: [CLAUDE_API_KEY]
 }, async (req, res) => {
   try {
