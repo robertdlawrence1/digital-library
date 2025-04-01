@@ -20,7 +20,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const generateMetadata = async ({ title, author }) => {
-  const response = await fetch("https://generatemetadatav2-cbrgg4aahq-uc.a.run.app", {
+  const response = await fetch("https://generatemetadatav2-cbrgg4aahq-uc.a.run.app/", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
