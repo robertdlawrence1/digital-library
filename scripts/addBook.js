@@ -23,7 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const functions = getFunctions(app);
-const generateMetadata = httpsCallable(functions, "generateBookMetadata");
+const generateMetadata = httpsCallable(functions, "generateMetadataV2");
 
 // DOM elements
 const titleInput = document.getElementById("book-title");
