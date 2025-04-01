@@ -1,9 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import {
-  getFunctions,
-  httpsCallable
-} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-functions.js";
-import {
   getFirestore,
   collection,
   addDoc
@@ -22,8 +18,22 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const functions = getFunctions(app);
-const generateMetadata = httpsCallable(functions, "generateMetadataV2");
+
+const generateMetadata = async ({ title, author }) => {
+  const response = await fetch("https://generatemetadatav2-cbrgg4aahq-uc.a.run.app", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ title, author })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Claude API failed: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 // DOM elements
 const titleInput = document.getElementById("book-title");
@@ -46,7 +56,7 @@ generateBtn.addEventListener("click", async () => {
 
   try {
     const result = await generateMetadata({ title, author });
-    generatedBook = result.data;
+    generatedBook = result;
 
     document.getElementById("preview-title").textContent = generatedBook.title;
     document.getElementById("preview-author").textContent = generatedBook.author;
