@@ -44,6 +44,7 @@ Author: ${author}
 
 Respond in JSON format with the keys: summary, pageCount, yearPublished, contentTags.
 `;
+    console.log("📨 Sending prompt to Claude:\n", prompt);
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
