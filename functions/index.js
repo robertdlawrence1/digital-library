@@ -2,7 +2,7 @@ const { onRequest } = require("firebase-functions/v2/https");
 const functions = require("firebase-functions");
 
 // Gen 2, region + secret declaration (omit serviceAccountEmail)
-exports.generateMetadata = onRequest({
+exports.generateMetadataTest = onRequest({
   region: "us-central1",
   secrets: ["CLAUDE_API_KEY"], // Claude secret already set in Firebase
 }, async (req, res) => {
