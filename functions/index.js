@@ -6,8 +6,10 @@ const CLAUDE_API_KEY = defineSecret("CLAUDE_API_KEY");
 
 exports.generateMetadata = onRequest({ 
   region: "us-central1",
-  secrets: [CLAUDE_API_KEY]
-}, async (req, res) => {
+  secrets: [CLAUDE_API_KEY],
+  serviceAccountEmail: "",
+}, 
+async (req, res) => {
   try {
     return res.status(200).json({ 
       message: "Function deployed successfully",
