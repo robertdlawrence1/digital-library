@@ -34,7 +34,7 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
 `;
 
   try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://us-central1-digital-library-4f53e.cloudfunctions.net/generateMetadataV2", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
