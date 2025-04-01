@@ -47,19 +47,18 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
     console.log("📨 Sending prompt to Claude:\n", prompt);
 
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
         headers: {
-          "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
-          "content-type": "application/json"
+          'x-api-key': process.env.CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
         },
         body: JSON.stringify({
-          model: "claude-2.1",
+          model: 'claude-3-haiku-20240307',
+          messages: [{ role: 'user', content: prompt }],
           max_tokens: 1024,
-          temperature: 0.7,
-          messages: [{ role: "user", content: prompt }]
-        })
+        }),
       });
 
       const result = await response.json();
