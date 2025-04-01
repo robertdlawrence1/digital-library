@@ -7,6 +7,17 @@ exports.generateMetadataV2 = onRequest({
   secrets: ["CLAUDE_API_KEY"],
   serviceAccountEmail: "digital-library-4f53e@appspot.gserviceaccount.com",
 }, async (req, res) => {
+  // Handle preflight OPTIONS request
+  if (req.method === "OPTIONS") {
+    res.set("Access-Control-Allow-Origin", "*");
+    res.set("Access-Control-Allow-Methods", "POST");
+    res.set("Access-Control-Allow-Headers", "Content-Type, x-api-key, anthropic-version");
+    res.set("Access-Control-Max-Age", "3600");
+    return res.status(204).send("");
+  }
+
+  res.set("Access-Control-Allow-Origin", "*");
+
   const apiKey = process.env.CLAUDE_API_KEY;
 
   if (!apiKey) {
@@ -34,7 +45,7 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
 `;
 
   try {
-    const response = await fetch("https://us-central1-digital-library-4f53e.cloudfunctions.net/generateMetadataV2", {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
         "x-api-key": apiKey,
@@ -50,7 +61,6 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
     });
 
     const result = await response.json();
-
     const content = result?.content?.[0]?.text;
 
     if (!content) {
@@ -58,7 +68,6 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
     }
 
     const parsed = JSON.parse(content);
-
     return res.status(200).json(parsed);
   } catch (err) {
     console.error("Claude metadata generation failed:", err);
