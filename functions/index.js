@@ -66,10 +66,11 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
 
       console.log("Claude raw response:", result);
 
+      console.log("📩 Raw Claude response content field:", result?.content);
       const content = result?.content?.[0]?.text;
 
       if (!content) {
-        console.error("⚠️ Claude returned no content. Full response:", result);
+        console.error("⚠️ Claude returned no usable content. Full response:", JSON.stringify(result, null, 2));
         throw new Error("No content returned from Claude");
       }
 
