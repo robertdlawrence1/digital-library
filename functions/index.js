@@ -62,17 +62,21 @@ Respond in JSON format with the keys: summary, pageCount, yearPublished, content
       });
 
       const result = await response.json();
+
+      console.log("Claude raw response:", result);
+
       const content = result?.content?.[0]?.text;
 
       if (!content) {
+        console.error("⚠️ Claude returned no content. Full response:", result);
         throw new Error("No content returned from Claude");
       }
 
       const parsed = JSON.parse(content);
       return res.status(200).json(parsed);
     } catch (err) {
-      console.error("Claude metadata generation failed:", err);
-      return res.status(500).json({ error: "Failed to generate metadata" });
+      console.error("❌ Claude metadata generation failed:", err);
+      return res.status(500).json({ error: "Failed to generate metadata", details: err.message });
     }
   });
 });
